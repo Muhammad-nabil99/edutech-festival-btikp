@@ -20,6 +20,7 @@ storage/framework/cache/data/*
 storage/framework/sessions/*
 storage/framework/views/*
 public/storage
+public/hot
 
 tests
 docker-compose*.yml

@@ -37,6 +37,12 @@ if [ ! -L "public/storage" ]; then
     php artisan storage:link || true
 fi
 
+# Sinkronkan file public (termasuk build Vite, logo, index.php) ke shared volume untuk Nginx
+if [ -d "/var/www/html/public-shared" ]; then
+    echo "==> Menyinkronkan asset public ke Nginx shared volume..."
+    cp -a /var/www/html/public/. /var/www/html/public-shared/
+fi
+
 # Migrasi otomatis jika diaktifkan (default: true)
 if [ "${AUTO_MIGRATE:-true}" = "true" ]; then
     echo "==> Menjalankan database migration..."
