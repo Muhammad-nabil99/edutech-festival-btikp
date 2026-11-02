@@ -26,6 +26,10 @@ if [ ! -f "/var/www/html/.env" ]; then
     chmod 664 /var/www/html/.env || true
 fi
 
+# Bersihkan cache package/service bootstrap lama agar package dev (seperti Pail) tidak dicari di production
+rm -f bootstrap/cache/*.php
+php artisan package:discover --ansi || true
+
 # Pastikan folder penting ada dan memiliki hak akses yang benar
 mkdir -p storage/app/public/profile-photos storage/framework/cache/data storage/framework/sessions storage/framework/views storage/logs bootstrap/cache
 chown -R www-data:www-data storage bootstrap/cache

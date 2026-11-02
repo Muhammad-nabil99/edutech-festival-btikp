@@ -86,7 +86,8 @@ COPY --from=vendor /app/vendor /var/www/html/vendor
 COPY --from=frontend /app/public/build /var/www/html/public/build
 
 # Setup permission & folder
-RUN mkdir -p storage/app/public/profile-photos \
+RUN rm -f /var/www/html/bootstrap/cache/*.php \
+    && mkdir -p storage/app/public/profile-photos \
     storage/framework/cache/data \
     storage/framework/sessions \
     storage/framework/views \
