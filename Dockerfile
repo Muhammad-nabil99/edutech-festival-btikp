@@ -101,3 +101,4 @@ EXPOSE 9000
 # Set entrypoint & perintah default
 ENTRYPOINT ["/var/www/html/docker/entrypoint.sh"]
 CMD ["php-fpm"]
+

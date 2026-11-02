@@ -48,3 +48,4 @@ fi
 
 echo "==> EduTech Festival BTIKP siap dijalankan!"
 exec "$@"
+
