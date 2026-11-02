@@ -36,6 +36,24 @@ class RegistrationController extends Controller
     ];
 
     /**
+     * Upload foto profil sementara (AJAX) agar tidak hilang saat validasi form lain gagal.
+     */
+    public function uploadTempPhoto(\Illuminate\Http\Request $request): \Illuminate\Http\JsonResponse
+    {
+        $request->validate([
+            'profile_photo' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+        ]);
+
+        $path = $request->file('profile_photo')->store('temp-photos', 'public');
+
+        return response()->json([
+            'success' => true,
+            'path' => $path,
+            'url' => asset('storage/' . $path),
+        ]);
+    }
+
+    /**
      * Menampilkan formulir pendaftaran EduTech Festival BTIKP.
      */
     public function create(): View
@@ -62,8 +80,18 @@ class RegistrationController extends Controller
             $formattedWa = '62' . $rawWa;
         }
 
-        // Upload Foto Profil ke storage/app/public/profile-photos
-        $photoPath = $request->file('profile_photo')->store('profile-photos', 'public');
+        // Upload Foto Profil (baru atau pindahkan dari upload sementara)
+        $disk = Storage::disk('public');
+        if ($request->hasFile('profile_photo')) {
+            $photoPath = $request->file('profile_photo')->store('profile-photos', 'public');
+        } elseif ($request->filled('temp_photo') && $disk->exists($request->input('temp_photo'))) {
+            $tempPath = $request->input('temp_photo');
+            $newFileName = 'profile-photos/' . basename($tempPath);
+            $disk->move($tempPath, $newFileName);
+            $photoPath = $newFileName;
+        } else {
+            return back()->withInput()->withErrors(['profile_photo' => 'Foto profil wajib diunggah.']);
+        }
 
         // Simpan pendaftar dalam transaksi database
         $registration = DB::transaction(function () use ($validated, $formattedWa, $photoPath) {

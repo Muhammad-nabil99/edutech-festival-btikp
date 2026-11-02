@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Route;
 */
 Route::get('/', [RegistrationController::class, 'create'])->name('registration.create');
 Route::post('/register', [RegistrationController::class, 'store'])->name('registration.store');
+Route::post('/upload-photo-temp', [RegistrationController::class, 'uploadTempPhoto'])->name('registration.upload-temp');
 Route::get('/register/success/{registration_number}', [RegistrationController::class, 'success'])->name('registration.success');
 Route::get('/registrations/{registration}/photo', [RegistrationController::class, 'photo'])->name('registration.photo');
 

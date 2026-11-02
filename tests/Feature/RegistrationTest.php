@@ -93,6 +93,47 @@ class RegistrationTest extends TestCase
     }
 
     /**
+     * Test upload foto sementara (temp photo) dan tetap bertahan saat validasi input lain gagal.
+     */
+    public function test_temp_photo_retained_and_processed_successfully(): void
+    {
+        Storage::fake('public');
+
+        $photo = UploadedFile::fake()->image('temp_avatar.jpg', 300, 300);
+
+        // 1. Upload ke endpoint temp photo
+        $uploadResponse = $this->postJson(route('registration.upload-temp'), [
+            'profile_photo' => $photo,
+        ]);
+
+        $uploadResponse->assertStatus(200)
+            ->assertJsonStructure(['success', 'path', 'url']);
+
+        $tempPath = $uploadResponse->json('path');
+        Storage::disk('public')->assertExists($tempPath);
+
+        // 2. Submit form pendaftaran menggunakan temp_photo tanpa upload file baru
+        $payload = [
+            'full_name' => 'Budi Setiawan, S.Pd.',
+            'school_name' => 'smpn 1 kendari',
+            'regency_city' => 'Kota Kendari',
+            'email' => 'budi.setiawan@gmail.com',
+            'whatsapp_number' => '081234567890',
+            'learning_category' => 'media_pembelajaran_interaktif',
+            'temp_photo' => $tempPath,
+            'media_link' => 'https://canva.com/design/test',
+        ];
+
+        $response = $this->post('/register', $payload);
+        $response->assertSessionHasNoErrors();
+
+        $registration = Registration::where('email', 'budi.setiawan@gmail.com')->first();
+        $this->assertNotNull($registration);
+        $this->assertEquals('SMPN 1 KENDARI', $registration->school_name);
+        Storage::disk('public')->assertExists($registration->profile_photo_path);
+    }
+
+    /**
      * Test akses dashboard admin membutuhkan login.
      */
     public function test_guest_cannot_access_admin_dashboard(): void

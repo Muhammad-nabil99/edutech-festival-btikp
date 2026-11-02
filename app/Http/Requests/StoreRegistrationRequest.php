@@ -41,6 +41,8 @@ class StoreRegistrationRequest extends FormRequest
             'Kabupaten Wakatobi',
         ];
 
+        $hasTempPhoto = $this->filled('temp_photo') && \Illuminate\Support\Facades\Storage::disk('public')->exists($this->input('temp_photo'));
+
         return [
             'full_name' => ['required', 'string', 'min:3', 'max:150'],
             'school_name' => ['required', 'string', 'min:3', 'max:150'],
@@ -48,7 +50,10 @@ class StoreRegistrationRequest extends FormRequest
             'email' => ['required', 'string', 'email:rfc,dns', 'max:150', 'unique:registrations,email'],
             'whatsapp_number' => ['required', 'string', 'regex:/^(\+62|62|0)8[1-9][0-9]{7,11}$/'],
             'learning_category' => ['required', 'in:gim_edukasi,media_pembelajaran_interaktif'],
-            'profile_photo' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+            'profile_photo' => $hasTempPhoto 
+                ? ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048']
+                : ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+            'temp_photo' => ['nullable', 'string'],
             'media_link' => ['required', 'url', 'max:500'],
         ];
     }

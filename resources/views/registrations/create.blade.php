@@ -196,11 +196,12 @@
 
                             <!-- Upload Button & Hints -->
                             <div class="flex-1 text-center sm:text-left">
+                                <input type="hidden" name="temp_photo" :value="tempPhoto">
                                 <label for="profile_photo" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-slate-300 hover:border-blue-500 text-sm font-semibold text-slate-700 hover:text-blue-600 shadow-xs cursor-pointer transition">
                                     <svg class="w-4 h-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                                     </svg>
-                                    <span>Pilih File Foto</span>
+                                    <span x-text="tempPhoto ? 'Ganti File Foto' : 'Pilih File Foto'"></span>
                                 </label>
                                 <input 
                                     type="file" 
@@ -209,13 +210,18 @@
                                     accept="image/png,image/jpeg,image/webp"
                                     @change="updatePhotoPreview"
                                     class="hidden"
-                                    required
+                                    :required="!tempPhoto"
                                 >
                                 <p class="text-xs text-slate-500 mt-2">
                                     Format: JPG, PNG, atau WEBP. Maksimal ukuran file: <strong class="text-slate-700">2 MB</strong>. Gunakan foto formal/semi-formal yang jelas.
                                 </p>
-                                <template x-if="fileName">
-                                    <p class="text-xs text-blue-600 font-medium mt-1 truncate" x-text="'File terpilih: ' + fileName"></p>
+                                <template x-if="tempPhoto">
+                                    <div class="inline-flex items-center gap-1.5 mt-2 px-2.5 py-1 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-medium">
+                                        <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                        </svg>
+                                        <span x-text="fileName ? 'Foto tersimpan: ' + fileName : 'Foto berhasil diunggah & tersimpan'"></span>
+                                    </div>
                                 </template>
                             </div>
                         </div>
@@ -473,8 +479,9 @@
         function registrationForm() {
             return {
                 isSubmitting: false,
-                photoPreview: null,
-                fileName: '',
+                photoPreview: '{{ old('temp_photo') ? asset('storage/' . old('temp_photo')) : '' }}',
+                tempPhoto: '{{ old('temp_photo', '') }}',
+                fileName: '{{ old('temp_photo') ? 'Foto tersimpan sebelumnya' : '' }}',
                 formData: {
                     full_name: '{{ old('full_name', '') }}',
                     school_name: '{{ old('school_name', '') }}',
@@ -483,18 +490,42 @@
                     whatsapp_number: '{{ old('whatsapp_number', '') }}',
                     learning_category: '{{ old('learning_category', '') }}',
                     media_link: '{{ old('media_link', '') }}',
-                    hasPhoto: false
+                    hasPhoto: {{ old('temp_photo') ? 'true' : 'false' }}
                 },
                 updatePhotoPreview(event) {
                     const file = event.target.files[0];
                     if (file) {
                         this.fileName = file.name;
                         this.formData.hasPhoto = true;
+
+                        // 1. Tampilkan pratinjau instan di sisi browser
                         const reader = new FileReader();
                         reader.onload = (e) => {
                             this.photoPreview = e.target.result;
                         };
                         reader.readAsDataURL(file);
+
+                        // 2. Upload sementara ke server agar tersimpan jika field lain gagal validasi
+                        const uploadData = new FormData();
+                        uploadData.append('profile_photo', file);
+                        uploadData.append('_token', '{{ csrf_token() }}');
+
+                        fetch('{{ route('registration.upload-temp') }}', {
+                            method: 'POST',
+                            body: uploadData,
+                            headers: {
+                                'Accept': 'application/json'
+                            }
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success && data.path) {
+                                this.tempPhoto = data.path;
+                            }
+                        })
+                        .catch(err => {
+                            console.warn('Upload foto sementara gagal, akan menggunakan pengiriman form biasa:', err);
+                        });
                     }
                 },
                 completedCount() {
