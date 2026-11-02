@@ -76,8 +76,103 @@
             </div>
         </div>
 
+        <!-- Banner Peringatan jika Validasi Server Gagal -->
+        @if ($errors->any())
+            <div class="p-5 rounded-3xl bg-rose-50 border-2 border-rose-200 text-rose-900 shadow-sm flex items-start gap-4 animate-shake">
+                <div class="w-10 h-10 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center shrink-0">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                </div>
+                <div class="flex-1 text-xs sm:text-sm">
+                    <h3 class="font-extrabold text-rose-950 text-sm sm:text-base mb-1">
+                        Pendaftaran Belum Lengkap ({{ $errors->count() }} Isian Perlu Diperbaiki)
+                    </h3>
+                    <p class="text-rose-700 leading-relaxed mb-2.5">
+                        Mohon periksa kolom yang bertanda merah di bawah ini sebelum mengirim ulang formulir.
+                    </p>
+                    <button 
+                        type="button" 
+                        @click="showErrorModal = true" 
+                        class="inline-flex items-center gap-1.5 font-bold text-xs bg-rose-600 hover:bg-rose-700 text-white px-3 py-1.5 rounded-lg shadow-xs transition cursor-pointer"
+                    >
+                        <span>Lihat Rincian Kesalahan Isian</span>
+                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        @endif
+
+        <!-- Pop-Up Modal Peringatan Gagal Pengisian Form -->
+        <div 
+            x-show="showErrorModal" 
+            x-cloak
+            class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm"
+            @keydown.escape.window="showErrorModal = false"
+        >
+            <div 
+                class="relative w-full max-w-lg bg-white rounded-3xl p-6 sm:p-8 shadow-2xl border border-rose-100 overflow-hidden transform transition-all"
+                @click.away="showErrorModal = false"
+            >
+                <!-- Top Colorful Accent Bar -->
+                <div class="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-rose-500 via-amber-500 to-rose-600"></div>
+
+                <!-- Icon & Header -->
+                <div class="flex items-start gap-4 mb-4">
+                    <div class="w-12 h-12 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center shrink-0 shadow-inner">
+                        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="text-lg sm:text-xl font-extrabold text-slate-900 tracking-tight">
+                            Peringatan Pengisian Formulir!
+                        </h3>
+                        <p class="text-xs sm:text-sm text-slate-500 mt-1">
+                            Mohon periksa kembali isian formulir Anda. Terdapat data yang belum lengkap atau belum sesuai:
+                        </p>
+                    </div>
+                </div>
+
+                <!-- List of Errors -->
+                <div class="my-4 max-h-60 overflow-y-auto space-y-2 p-4 bg-rose-50/80 border border-rose-200/80 rounded-2xl text-xs sm:text-sm text-rose-900">
+                    <template x-if="serverErrors.length > 0">
+                        <ul class="space-y-1.5 list-disc list-inside">
+                            <template x-for="(err, index) in serverErrors" :key="index">
+                                <li class="font-semibold" x-text="err"></li>
+                            </template>
+                        </ul>
+                    </template>
+                    <template x-if="clientErrorMessage">
+                        <div class="flex items-start gap-2 text-rose-800 font-semibold">
+                            <svg class="w-4 h-4 text-rose-600 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span x-text="clientErrorMessage"></span>
+                        </div>
+                    </template>
+                </div>
+
+                <!-- Action Button -->
+                <div class="mt-6 flex flex-col sm:flex-row items-center justify-end gap-3">
+                    <button 
+                        type="button" 
+                        @click="closeAndFocusError()"
+                        class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-rose-600 via-rose-700 to-rose-800 hover:from-rose-700 hover:to-rose-900 text-white font-bold text-xs sm:text-sm shadow-md shadow-rose-600/30 hover:shadow-lg transition cursor-pointer"
+                    >
+                        <span>Periksa &amp; Perbaiki Isian</span>
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <!-- Form Submission -->
-        <form method="POST" action="{{ route('registration.store') }}" enctype="multipart/form-data" @submit="isSubmitting = true" class="space-y-6">
+        <form method="POST" action="{{ route('registration.store') }}" enctype="multipart/form-data" @submit="validateBeforeSubmit($event)" class="space-y-6">
             @csrf
 
             <!-- ============================================== -->
@@ -479,6 +574,9 @@
         function registrationForm() {
             return {
                 isSubmitting: false,
+                showErrorModal: {{ $errors->any() ? 'true' : 'false' }},
+                serverErrors: @json($errors->all()),
+                clientErrorMessage: '',
                 photoPreview: '{{ old('temp_photo') ? asset('storage/' . old('temp_photo')) : '' }}',
                 tempPhoto: '{{ old('temp_photo', '') }}',
                 fileName: '{{ old('temp_photo') ? 'Foto tersimpan sebelumnya' : '' }}',
@@ -491,6 +589,26 @@
                     learning_category: '{{ old('learning_category', '') }}',
                     media_link: '{{ old('media_link', '') }}',
                     hasPhoto: {{ old('temp_photo') ? 'true' : 'false' }}
+                },
+                closeAndFocusError() {
+                    this.showErrorModal = false;
+                    this.$nextTick(() => {
+                        const firstErrorInput = document.querySelector('.border-rose-400') || document.querySelector(':invalid');
+                        if (firstErrorInput) {
+                            firstErrorInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            firstErrorInput.focus();
+                        }
+                    });
+                },
+                validateBeforeSubmit(event) {
+                    if (this.completedCount() < 8) {
+                        event.preventDefault();
+                        this.clientErrorMessage = 'Mohon lengkapi seluruh isian wajib (8 dari 8 isian) sebelum mengirim pendaftaran.';
+                        this.showErrorModal = true;
+                        this.isSubmitting = false;
+                        return false;
+                    }
+                    this.isSubmitting = true;
                 },
                 updatePhotoPreview(event) {
                     const file = event.target.files[0];
