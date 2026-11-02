@@ -40,7 +40,7 @@ services:
   # ----------------------------------------------------------------------------
   web:
     image: nginx:alpine
-    container_name: edutech_web
+    container_name: edutech_festival_btikp
     restart: unless-stopped
     ports:
       - "${APP_PORT:-8085}:80"
