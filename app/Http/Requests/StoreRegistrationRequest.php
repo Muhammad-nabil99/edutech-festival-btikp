@@ -47,7 +47,7 @@ class StoreRegistrationRequest extends FormRequest
             'full_name' => ['required', 'string', 'min:3', 'max:150'],
             'school_name' => ['required', 'string', 'min:3', 'max:150'],
             'regency_city' => ['required', 'string', 'in:' . implode(',', $regencies)],
-            'email' => ['required', 'string', 'email:rfc,dns', 'max:150', 'unique:registrations,email'],
+            'email' => ['required', 'string', 'email:rfc', 'max:150', 'unique:registrations,email'],
             'whatsapp_number' => ['required', 'string', 'regex:/^(\+62|62|0)8[1-9][0-9]{7,11}$/'],
             'learning_category' => ['required', 'in:gim_edukasi,media_pembelajaran_interaktif'],
             'profile_photo' => $hasTempPhoto 

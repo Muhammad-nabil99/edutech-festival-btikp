@@ -1,11 +1,24 @@
-<x-layouts.app title="Dashboard Panitia — EduTech Festival BTIKP">
-    <div class="space-y-8" x-data="{ previewImage: null }">
+<x-layouts.app title="Dashboard Panitia — EduTech Festival BTIKP" maxWidth="max-w-7xl">
+    <div 
+        class="space-y-6" 
+        x-data="{ 
+            viewMode: 'table', 
+            previewImage: null, 
+            selectedRegistration: null,
+            openDetail(data) {
+                this.selectedRegistration = data;
+            },
+            closeDetail() {
+                this.selectedRegistration = null;
+            }
+        }"
+    >
 
         <!-- Top Header & Actions -->
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
                 <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 border border-blue-200 mb-2">
-                    <span class="w-2 h-2 rounded-full bg-blue-600"></span>
+                    <span class="w-2 h-2 rounded-full bg-blue-600 animate-pulse"></span>
                     Panel Panitia BTIKP Sultra
                 </div>
                 <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
@@ -171,13 +184,51 @@
             </form>
         </div>
 
-        <!-- Participants Table -->
-        <div class="bg-white rounded-3xl border border-slate-200/90 shadow-sm overflow-hidden">
+        <!-- View Controls Bar: Counter & Table/Grid Toggle -->
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 px-1">
+            <div class="text-xs sm:text-sm text-slate-600">
+                Menampilkan <strong class="text-slate-900 font-extrabold">{{ $registrations->count() }}</strong> dari total <strong class="text-slate-900 font-extrabold">{{ $registrations->total() }}</strong> pendaftar
+                <span class="text-xs text-blue-600 font-medium block sm:inline sm:ml-2">
+                    &bull; Klik baris/kartu pendaftar untuk melihat detail lengkap
+                </span>
+            </div>
+
+            <!-- View Switcher (Table / Grid) -->
+            <div class="inline-flex items-center p-1 rounded-2xl bg-white border border-slate-200/90 shadow-2xs">
+                <button 
+                    type="button" 
+                    @click="viewMode = 'table'"
+                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer"
+                    :class="viewMode === 'table' ? 'bg-blue-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'"
+                >
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+                    </svg>
+                    <span>Tabel (List)</span>
+                </button>
+                <button 
+                    type="button" 
+                    @click="viewMode = 'grid'"
+                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer"
+                    :class="viewMode === 'grid' ? 'bg-blue-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'"
+                >
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                    </svg>
+                    <span>Grid (Kartu)</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- ======================================================= -->
+        <!-- VIEW 1: TABLE VIEW (Fit, Rapi, Tanpa Text Wrap Anomali) -->
+        <!-- ======================================================= -->
+        <div x-show="viewMode === 'table'" class="bg-white rounded-3xl border border-slate-200/90 shadow-sm overflow-hidden">
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse text-xs sm:text-sm">
                     <thead>
                         <tr class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white text-[11px] font-bold uppercase tracking-wider">
-                            <th class="py-4 px-5">
+                            <th class="py-4 px-5 whitespace-nowrap">
                                 <div class="flex items-center gap-2">
                                     <svg class="w-4 h-4 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -185,7 +236,7 @@
                                     <span>Peserta</span>
                                 </div>
                             </th>
-                            <th class="py-4 px-5">
+                            <th class="py-4 px-5 whitespace-nowrap">
                                 <div class="flex items-center gap-2">
                                     <svg class="w-4 h-4 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
@@ -193,7 +244,7 @@
                                     <span>Instansi &amp; Daerah</span>
                                 </div>
                             </th>
-                            <th class="py-4 px-5">
+                            <th class="py-4 px-5 whitespace-nowrap">
                                 <div class="flex items-center gap-2">
                                     <svg class="w-4 h-4 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
@@ -201,7 +252,7 @@
                                     <span>Kategori Karya</span>
                                 </div>
                             </th>
-                            <th class="py-4 px-5">
+                            <th class="py-4 px-5 whitespace-nowrap">
                                 <div class="flex items-center gap-2">
                                     <svg class="w-4 h-4 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
@@ -209,7 +260,7 @@
                                     <span>Kontak (WA / Email)</span>
                                 </div>
                             </th>
-                            <th class="py-4 px-5">
+                            <th class="py-4 px-5 whitespace-nowrap">
                                 <div class="flex items-center gap-2">
                                     <svg class="w-4 h-4 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
@@ -217,20 +268,40 @@
                                     <span>Link Karya</span>
                                 </div>
                             </th>
-                            <th class="py-4 px-5 text-center">
+                            <th class="py-4 px-5 text-center whitespace-nowrap">
                                 <span>Aksi</span>
                             </th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100">
                         @forelse ($registrations as $reg)
-                            <tr class="hover:bg-blue-50/30 transition-colors group">
+                            @php
+                                $regPayload = [
+                                    'id' => $reg->id,
+                                    'registration_number' => $reg->registration_number,
+                                    'full_name' => $reg->full_name,
+                                    'school_name' => $reg->school_name,
+                                    'regency_city' => $reg->regency_city,
+                                    'email' => $reg->email,
+                                    'whatsapp_number' => $reg->whatsapp_number,
+                                    'whatsapp_chat_url' => $reg->whatsapp_chat_url,
+                                    'learning_category' => $reg->learning_category,
+                                    'category_label' => $reg->category_label,
+                                    'profile_photo_url' => $reg->profile_photo_url,
+                                    'media_link' => $reg->media_link,
+                                    'created_at_formatted' => $reg->created_at ? $reg->created_at->translatedFormat('l, d F Y — H:i') . ' WITA' : '-',
+                                    'delete_url' => route('admin.registrations.destroy', $reg),
+                                ];
+                            @endphp
+                            <tr 
+                                class="hover:bg-blue-50/50 transition-colors group cursor-pointer"
+                                @click="openDetail(@js($regPayload))"
+                            >
                                 <!-- Peserta & Foto -->
                                 <td class="py-4 px-5">
                                     <div class="flex items-center gap-3.5">
-                                        <button 
-                                            type="button" 
-                                            @click="previewImage = '{{ $reg->profile_photo_url }}'"
+                                        <div 
+                                            @click.stop="previewImage = '{{ $reg->profile_photo_url }}'"
                                             class="relative shrink-0 group/img focus:outline-hidden"
                                             title="Klik untuk memperbesar foto"
                                         >
@@ -245,12 +316,12 @@
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7" />
                                                 </svg>
                                             </div>
-                                        </button>
+                                        </div>
                                         <div class="space-y-1">
-                                            <div class="font-extrabold text-slate-900 group-hover:text-blue-700 transition-colors">
+                                            <div class="font-extrabold text-slate-900 group-hover:text-blue-700 transition-colors whitespace-nowrap">
                                                 {{ $reg->full_name }}
                                             </div>
-                                            <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg bg-blue-50/80 border border-blue-200/80 text-[11px] font-mono font-bold text-blue-800 shadow-2xs">
+                                            <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg bg-blue-50/80 border border-blue-200/80 text-[11px] font-mono font-bold text-blue-800 shadow-2xs whitespace-nowrap">
                                                 <svg class="w-3 h-3 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
                                                 </svg>
@@ -263,10 +334,10 @@
                                 <!-- Instansi & Daerah -->
                                 <td class="py-4 px-5">
                                     <div class="space-y-1">
-                                        <div class="font-bold text-slate-900 tracking-wide text-xs uppercase">
+                                        <div class="font-bold text-slate-900 tracking-wide text-xs uppercase whitespace-nowrap">
                                             {{ $reg->school_name }}
                                         </div>
-                                        <div class="inline-flex items-center gap-1 text-[11px] font-medium text-slate-500">
+                                        <div class="inline-flex items-center gap-1 text-[11px] font-medium text-slate-500 whitespace-nowrap">
                                             <svg class="w-3.5 h-3.5 text-rose-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -277,7 +348,7 @@
                                 </td>
 
                                 <!-- Kategori -->
-                                <td class="py-4 px-5">
+                                <td class="py-4 px-5 whitespace-nowrap">
                                     @if ($reg->learning_category === 'gim_edukasi')
                                         <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-extrabold bg-gradient-to-r from-amber-50 to-orange-50 text-amber-900 border border-amber-300/80 shadow-2xs">
                                             <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
@@ -299,30 +370,32 @@
                                 </td>
 
                                 <!-- Kontak -->
-                                <td class="py-4 px-5">
+                                <td class="py-4 px-5 whitespace-nowrap">
                                     <div class="space-y-1.5">
                                         <div class="flex items-center gap-1.5 text-xs text-slate-700 font-medium">
                                             <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                                             </svg>
-                                            <span class="truncate max-w-[170px]" title="{{ $reg->email }}">{{ $reg->email }}</span>
+                                            <span>{{ $reg->email }}</span>
                                         </div>
-                                        <a 
-                                            href="{{ $reg->whatsapp_chat_url }}" 
-                                            target="_blank" 
-                                            rel="noopener noreferrer" 
-                                            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] shadow-sm shadow-emerald-600/20 hover:shadow-md transition-all group-hover:scale-102"
-                                        >
-                                            <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
-                                                <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.007c.106.005.249-.04.39.299.144.347.491 1.2.534 1.288.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.353.101.173.449.741.963 1.2 1.014.904 1.868 1.185 2.134 1.315.265.13.42.115.578-.066.158-.181.677-.789.858-1.06.181-.271.36-.226.605-.136.245.09 1.545.728 1.811.86.265.132.441.198.505.311.063.113.063.655-.081 1.06z" />
-                                            </svg>
-                                            <span>Chat WA ({{ $reg->whatsapp_number }})</span>
-                                        </a>
+                                        <div @click.stop>
+                                            <a 
+                                                href="{{ $reg->whatsapp_chat_url }}" 
+                                                target="_blank" 
+                                                rel="noopener noreferrer" 
+                                                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] shadow-sm shadow-emerald-600/20 hover:shadow-md transition-all hover:scale-102"
+                                            >
+                                                <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
+                                                    <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.007c.106.005.249-.04.39.299.144.347.491 1.2.534 1.288.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.353.101.173.449.741.963 1.2 1.014.904 1.868 1.185 2.134 1.315.265.13.42.115.578-.066.158-.181.677-.789.858-1.06.181-.271.36-.226.605-.136.245.09 1.545.728 1.811.86.265.132.441.198.505.311.063.113.063.655-.081 1.06z" />
+                                                </svg>
+                                                <span>Chat WA ({{ $reg->whatsapp_number }})</span>
+                                            </a>
+                                        </div>
                                     </div>
                                 </td>
 
                                 <!-- Link Media -->
-                                <td class="py-4 px-5">
+                                <td class="py-4 px-5 whitespace-nowrap" @click.stop>
                                     <a 
                                         href="{{ $reg->media_link }}" 
                                         target="_blank" 
@@ -338,25 +411,41 @@
                                 </td>
 
                                 <!-- Aksi -->
-                                <td class="py-4 px-5 text-center">
-                                    <form 
-                                        method="POST" 
-                                        action="{{ route('admin.registrations.destroy', $reg) }}" 
-                                        onsubmit="return confirm('Apakah Anda yakin ingin menghapus data pendaftaran {{ $reg->full_name }} ({{ $reg->registration_number }})? Tindakan ini bersifat permanen.')"
-                                        class="inline"
-                                    >
-                                        @csrf
-                                        @method('DELETE')
+                                <td class="py-4 px-5 text-center whitespace-nowrap" @click.stop>
+                                    <div class="inline-flex items-center gap-1">
+                                        <!-- Tombol Lihat Detail -->
                                         <button 
-                                            type="submit" 
-                                            class="p-2.5 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 border border-transparent hover:border-rose-200 transition-all cursor-pointer shadow-none hover:shadow-2xs"
-                                            title="Hapus data pendaftaran"
+                                            type="button" 
+                                            @click="openDetail(@js($regPayload))"
+                                            class="p-2 rounded-xl text-slate-500 hover:text-blue-600 hover:bg-blue-50 transition cursor-pointer"
+                                            title="Lihat Detail Pendaftaran"
                                         >
                                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                                             </svg>
                                         </button>
-                                    </form>
+
+                                        <!-- Tombol Hapus -->
+                                        <form 
+                                            method="POST" 
+                                            action="{{ route('admin.registrations.destroy', $reg) }}" 
+                                            onsubmit="return confirm('Apakah Anda yakin ingin menghapus data pendaftaran {{ $reg->full_name }} ({{ $reg->registration_number }})? Tindakan ini bersifat permanen.')"
+                                            class="inline"
+                                        >
+                                            @csrf
+                                            @method('DELETE')
+                                            <button 
+                                                type="submit" 
+                                                class="p-2 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition cursor-pointer"
+                                                title="Hapus data pendaftaran"
+                                            >
+                                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                </svg>
+                                            </button>
+                                        </form>
+                                    </div>
                                 </td>
                             </tr>
                         @empty
@@ -386,7 +475,326 @@
             @endif
         </div>
 
-        <!-- Lightbox Modal Preview Foto Profil -->
+        <!-- ======================================================= -->
+        <!-- VIEW 2: GRID VIEW (Kartu-Kartu Interaktif & Modern)     -->
+        <!-- ======================================================= -->
+        <div x-show="viewMode === 'grid'" class="space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                @forelse ($registrations as $reg)
+                    @php
+                        $regPayload = [
+                            'id' => $reg->id,
+                            'registration_number' => $reg->registration_number,
+                            'full_name' => $reg->full_name,
+                            'school_name' => $reg->school_name,
+                            'regency_city' => $reg->regency_city,
+                            'email' => $reg->email,
+                            'whatsapp_number' => $reg->whatsapp_number,
+                            'whatsapp_chat_url' => $reg->whatsapp_chat_url,
+                            'learning_category' => $reg->learning_category,
+                            'category_label' => $reg->category_label,
+                            'profile_photo_url' => $reg->profile_photo_url,
+                            'media_link' => $reg->media_link,
+                            'created_at_formatted' => $reg->created_at ? $reg->created_at->translatedFormat('l, d F Y — H:i') . ' WITA' : '-',
+                            'delete_url' => route('admin.registrations.destroy', $reg),
+                        ];
+                    @endphp
+                    <div 
+                        class="bg-white rounded-3xl p-5 border border-slate-200/90 shadow-sm hover:shadow-md hover:border-blue-300 transition-all cursor-pointer flex flex-col justify-between group"
+                        @click="openDetail(@js($regPayload))"
+                    >
+                        <div>
+                            <!-- Card Header: Category Badge & Registration Number -->
+                            <div class="flex items-center justify-between gap-2 mb-4">
+                                @if ($reg->learning_category === 'gim_edukasi')
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[11px] font-extrabold bg-gradient-to-r from-amber-50 to-orange-50 text-amber-900 border border-amber-300/80 shadow-2xs">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                                        <span>Gim Edukasi</span>
+                                    </span>
+                                @else
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[11px] font-extrabold bg-gradient-to-r from-cyan-50 to-blue-50 text-cyan-900 border border-cyan-300/80 shadow-2xs">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-cyan-500 animate-pulse"></span>
+                                        <span>Media Interaktif</span>
+                                    </span>
+                                @endif
+
+                                <span class="text-[11px] font-mono font-bold text-blue-800 bg-blue-50 px-2 py-0.5 rounded-md border border-blue-200/80">
+                                    {{ $reg->registration_number }}
+                                </span>
+                            </div>
+
+                            <!-- Avatar & Participant Info -->
+                            <div class="flex items-center gap-3.5 mb-4">
+                                <div 
+                                    @click.stop="previewImage = '{{ $reg->profile_photo_url }}'"
+                                    class="relative shrink-0"
+                                    title="Klik untuk memperbesar foto"
+                                >
+                                    <img 
+                                        src="{{ $reg->profile_photo_url }}" 
+                                        alt="{{ $reg->full_name }}" 
+                                        onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name={{ urlencode($reg->full_name) }}&background=1E40AF&color=FFFFFF&size=200';"
+                                        class="w-14 h-14 rounded-2xl object-cover border-2 border-white shadow-md ring-2 ring-slate-100 group-hover:ring-blue-400 transition-all bg-slate-100"
+                                    >
+                                </div>
+                                <div class="space-y-0.5 overflow-hidden">
+                                    <h3 class="font-extrabold text-slate-900 group-hover:text-blue-700 transition-colors text-sm truncate" title="{{ $reg->full_name }}">
+                                        {{ $reg->full_name }}
+                                    </h3>
+                                    <p class="text-xs font-bold text-slate-700 uppercase truncate" title="{{ $reg->school_name }}">
+                                        {{ $reg->school_name }}
+                                    </p>
+                                    <p class="text-[11px] text-slate-500 flex items-center gap-1 truncate">
+                                        <svg class="w-3.5 h-3.5 text-rose-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                        </svg>
+                                        <span class="truncate">{{ $reg->regency_city }}</span>
+                                    </p>
+                                </div>
+                            </div>
+
+                            <!-- Contact Snippet -->
+                            <div class="p-3 rounded-2xl bg-slate-50 border border-slate-100 mb-4 space-y-1.5 text-xs text-slate-600">
+                                <div class="flex items-center gap-2 truncate">
+                                    <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                    </svg>
+                                    <span class="truncate" title="{{ $reg->email }}">{{ $reg->email }}</span>
+                                </div>
+                                <div class="flex items-center justify-between gap-2 pt-1" @click.stop>
+                                    <a 
+                                        href="{{ $reg->whatsapp_chat_url }}" 
+                                        target="_blank" 
+                                        rel="noopener noreferrer" 
+                                        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] shadow-xs transition"
+                                    >
+                                        <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
+                                            <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.007c.106.005.249-.04.39.299.144.347.491 1.2.534 1.288.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.353.101.173.449.741.963 1.2 1.014.904 1.868 1.185 2.134 1.315.265.13.42.115.578-.066.158-.181.677-.789.858-1.06.181-.271.36-.226.605-.136.245.09 1.545.728 1.811.86.265.132.441.198.505.311.063.113.063.655-.081 1.06z" />
+                                        </svg>
+                                        <span>Chat WA</span>
+                                    </a>
+                                    <span class="text-[11px] font-mono text-slate-400">{{ $reg->whatsapp_number }}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Card Footer Actions -->
+                        <div class="pt-3 border-t border-slate-100 flex items-center justify-between gap-2" @click.stop>
+                            <a 
+                                href="{{ $reg->media_link }}" 
+                                target="_blank" 
+                                rel="noopener noreferrer" 
+                                class="inline-flex items-center gap-1.5 text-xs font-extrabold text-blue-600 hover:text-blue-800 transition"
+                            >
+                                <span>Buka Karya</span>
+                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                </svg>
+                            </a>
+
+                            <div class="flex items-center gap-1">
+                                <button 
+                                    type="button" 
+                                    @click="openDetail(@js($regPayload))"
+                                    class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-blue-50 text-slate-700 hover:text-blue-700 font-bold text-xs transition cursor-pointer"
+                                >
+                                    Detail
+                                </button>
+                                <form 
+                                    method="POST" 
+                                    action="{{ route('admin.registrations.destroy', $reg) }}" 
+                                    onsubmit="return confirm('Apakah Anda yakin ingin menghapus pendaftaran {{ $reg->full_name }}?')"
+                                    class="inline"
+                                >
+                                    @csrf
+                                    @method('DELETE')
+                                    <button 
+                                        type="submit" 
+                                        class="p-1.5 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition cursor-pointer"
+                                        title="Hapus"
+                                    >
+                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                        </svg>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                @empty
+                    <div class="col-span-full py-16 text-center text-slate-500 bg-white rounded-3xl border border-slate-200">
+                        <div class="flex flex-col items-center justify-center gap-2 max-w-sm mx-auto">
+                            <span class="font-extrabold text-slate-800 text-sm">Tidak ada data pendaftar</span>
+                            <span class="text-xs text-slate-400">Tidak ada data yang cocok dengan kriteria filter atau pencarian Anda.</span>
+                        </div>
+                    </div>
+                @endforelse
+            </div>
+
+            <!-- Pagination Grid -->
+            @if ($registrations->hasPages())
+                <div class="bg-white rounded-3xl p-4 border border-slate-200">
+                    {{ $registrations->links() }}
+                </div>
+            @endif
+        </div>
+
+        <!-- ======================================================= -->
+        <!-- MODAL POP-UP: DETAIL LENGKAP PENDAFTARAN                -->
+        <!-- ======================================================= -->
+        <div 
+            x-show="selectedRegistration" 
+            x-cloak
+            class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm"
+            @keydown.escape.window="closeDetail()"
+        >
+            <div 
+                class="relative w-full max-w-2xl bg-white rounded-3xl shadow-2xl border border-slate-200/80 overflow-hidden transform transition-all max-h-[90vh] flex flex-col"
+                @click.away="closeDetail()"
+            >
+                <!-- Modal Top Gradient Header -->
+                <div class="bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 px-6 sm:px-8 py-5 text-white flex items-center justify-between shrink-0">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-white/10 p-1 backdrop-blur-xs border border-white/20 flex items-center justify-center shrink-0">
+                            <img src="{{ asset('logo.png') }}" alt="Logo BTIKP" class="w-full h-full object-contain">
+                        </div>
+                        <div>
+                            <span class="text-[10px] tracking-widest uppercase font-semibold text-cyan-300">Detail Pendaftaran Peserta</span>
+                            <h2 class="text-base sm:text-lg font-bold tracking-tight" x-text="selectedRegistration?.registration_number"></h2>
+                        </div>
+                    </div>
+                    <button 
+                        type="button" 
+                        @click="closeDetail()"
+                        class="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-slate-200 hover:text-white transition cursor-pointer"
+                        title="Tutup (Esc)"
+                    >
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Modal Body (Scrollable) -->
+                <div class="p-6 sm:p-8 overflow-y-auto space-y-6">
+                    <!-- Profile Card -->
+                    <div class="flex flex-col sm:flex-row items-center sm:items-start gap-5 p-5 rounded-3xl bg-slate-50 border border-slate-200/70">
+                        <img 
+                            :src="selectedRegistration?.profile_photo_url" 
+                            :alt="selectedRegistration?.full_name"
+                            class="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl object-cover shadow-md border-2 border-white ring-2 ring-blue-100 shrink-0 bg-white"
+                        >
+                        <div class="flex-1 text-center sm:text-left space-y-1">
+                            <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-blue-100 text-blue-800 mb-1">
+                                <span class="w-1.5 h-1.5 rounded-full bg-blue-600"></span>
+                                <span x-text="selectedRegistration?.category_label"></span>
+                            </div>
+                            <h3 class="text-lg sm:text-xl font-extrabold text-slate-900" x-text="selectedRegistration?.full_name"></h3>
+                            <p class="text-sm font-bold text-slate-700 uppercase" x-text="selectedRegistration?.school_name"></p>
+                            <p class="text-xs text-slate-500 flex items-center justify-center sm:justify-start gap-1">
+                                <svg class="w-3.5 h-3.5 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                </svg>
+                                <span x-text="selectedRegistration?.regency_city"></span>
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Details Grid -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs sm:text-sm">
+                        <!-- Email -->
+                        <div class="p-4 rounded-2xl bg-white border border-slate-200 shadow-2xs space-y-1">
+                            <span class="text-[11px] uppercase tracking-wider text-slate-400 font-bold block">Alamat Email</span>
+                            <span class="font-bold text-slate-900 break-all" x-text="selectedRegistration?.email"></span>
+                        </div>
+
+                        <!-- WhatsApp -->
+                        <div class="p-4 rounded-2xl bg-white border border-slate-200 shadow-2xs space-y-1">
+                            <span class="text-[11px] uppercase tracking-wider text-slate-400 font-bold block">Nomor WhatsApp</span>
+                            <div class="flex items-center justify-between gap-2 pt-0.5">
+                                <span class="font-bold text-slate-900" x-text="selectedRegistration?.whatsapp_number"></span>
+                                <a 
+                                    :href="selectedRegistration?.whatsapp_chat_url" 
+                                    target="_blank" 
+                                    rel="noopener noreferrer" 
+                                    class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] transition shadow-xs"
+                                >
+                                    <span>Chat WA</span>
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- Kategori Pembelajaran -->
+                        <div class="p-4 rounded-2xl bg-white border border-slate-200 shadow-2xs space-y-1">
+                            <span class="text-[11px] uppercase tracking-wider text-slate-400 font-bold block">Pilihan Pembelajaran</span>
+                            <span class="font-extrabold text-blue-700 block" x-text="selectedRegistration?.category_label"></span>
+                        </div>
+
+                        <!-- Waktu Pendaftaran -->
+                        <div class="p-4 rounded-2xl bg-white border border-slate-200 shadow-2xs space-y-1">
+                            <span class="text-[11px] uppercase tracking-wider text-slate-400 font-bold block">Waktu Terdaftar</span>
+                            <span class="font-semibold text-slate-700 block" x-text="selectedRegistration?.created_at_formatted"></span>
+                        </div>
+
+                        <!-- Link Media Karya -->
+                        <div class="sm:col-span-2 p-4 rounded-2xl bg-blue-50/70 border border-blue-200/80 shadow-2xs space-y-2">
+                            <div class="flex items-center justify-between gap-2">
+                                <span class="text-[11px] uppercase tracking-wider text-blue-800 font-bold block">Tautan Media Karya Digital</span>
+                                <a 
+                                    :href="selectedRegistration?.media_link" 
+                                    target="_blank" 
+                                    rel="noopener noreferrer" 
+                                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs transition shadow-xs"
+                                >
+                                    <span>Buka Tautan Karya</span>
+                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                    </svg>
+                                </a>
+                            </div>
+                            <p class="text-xs text-blue-900 font-mono break-all" x-text="selectedRegistration?.media_link"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modal Footer -->
+                <div class="p-4 sm:p-6 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
+                    <div>
+                        <!-- Tombol Hapus di dalam modal -->
+                        <form 
+                            method="POST" 
+                            :action="selectedRegistration?.delete_url" 
+                            onsubmit="return confirm('Apakah Anda yakin ingin menghapus data ini?')"
+                            class="inline"
+                        >
+                            @csrf
+                            @method('DELETE')
+                            <button 
+                                type="submit" 
+                                class="inline-flex items-center gap-1.5 text-xs font-semibold text-rose-600 hover:text-rose-800 px-3 py-2 rounded-xl hover:bg-rose-50 transition cursor-pointer"
+                            >
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                                <span>Hapus Data</span>
+                            </button>
+                        </form>
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <button 
+                            type="button" 
+                            @click="closeDetail()"
+                            class="px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-sm transition cursor-pointer"
+                        >
+                            Tutup Detail
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Lightbox Modal Preview Foto Profil Saja -->
         <div 
             x-show="previewImage" 
             x-cloak
@@ -394,11 +802,11 @@
             @click.self="previewImage = null"
         >
             <div class="relative bg-white rounded-3xl p-4 max-w-sm w-full text-center shadow-2xl">
-                <img :src="previewImage" alt="Foto Profil" class="w-full h-80 object-cover rounded-2xl mb-4">
+                <img :src="previewImage" alt="Foto Profil" class="w-full h-80 object-cover rounded-2xl mb-4 bg-slate-100 shadow-inner">
                 <button 
                     type="button" 
                     @click="previewImage = null"
-                    class="w-full py-2.5 rounded-xl bg-slate-900 text-white font-semibold text-xs hover:bg-slate-800 transition"
+                    class="w-full py-2.5 rounded-xl bg-slate-900 text-white font-semibold text-xs hover:bg-slate-800 transition cursor-pointer"
                 >
                     Tutup Pratinjau
                 </button>
@@ -407,4 +815,3 @@
 
     </div>
 </x-layouts.app>
-

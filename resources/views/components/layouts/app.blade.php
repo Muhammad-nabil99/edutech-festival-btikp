@@ -29,7 +29,7 @@
 <body class="h-full flex flex-col text-slate-800 antialiased selection:bg-blue-600 selection:text-white">
     <!-- Navbar -->
     <header class="sticky top-0 z-30 backdrop-blur-md bg-white/85 border-b border-slate-200/80 transition-all">
-        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="{{ $maxWidth ?? 'max-w-6xl' }} mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-16 sm:h-20">
                 <!-- Brand / Logo -->
                 <a href="{{ route('registration.create') }}" class="flex items-center gap-3 group">
@@ -73,7 +73,7 @@
 
     <!-- Main Content -->
     <main class="flex-1 py-8 sm:py-12">
-        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="{{ $maxWidth ?? 'max-w-6xl' }} mx-auto px-4 sm:px-6 lg:px-8">
             <!-- Flash Notification -->
             @if (session('status'))
                 <div class="mb-6 p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm font-medium flex items-center gap-3 shadow-xs animate-fade-in">
@@ -99,7 +99,7 @@
 
     <!-- Footer -->
     <footer class="mt-auto border-t border-slate-200 bg-white/70 backdrop-blur-xs py-8">
-        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center sm:text-left flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div class="{{ $maxWidth ?? 'max-w-6xl' }} mx-auto px-4 sm:px-6 lg:px-8 text-center sm:text-left flex flex-col sm:flex-row items-center justify-between gap-4">
             <div class="flex items-center gap-3">
                 <img src="{{ asset('logo.png') }}" alt="Logo BTIKP" class="w-9 h-9 object-contain shrink-0 hidden sm:block">
                 <div>
