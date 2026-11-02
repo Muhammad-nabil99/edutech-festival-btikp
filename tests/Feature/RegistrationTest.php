@@ -84,6 +84,11 @@ class RegistrationTest extends TestCase
         $successResponse->assertStatus(200);
         $successResponse->assertSee($registration->registration_number);
         $successResponse->assertSee('Ahmad Fauzan Pratama, S.Pd.');
+
+        // Cek foto profil dapat diakses melalui route
+        $photoResponse = $this->get(route('registration.photo', $registration->id));
+        $photoResponse->assertStatus(200);
+        $photoResponse->assertHeader('Content-Type', 'image/jpeg');
     }
 
     /**

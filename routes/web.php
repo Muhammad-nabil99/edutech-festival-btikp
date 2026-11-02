@@ -13,6 +13,16 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [RegistrationController::class, 'create'])->name('registration.create');
 Route::post('/register', [RegistrationController::class, 'store'])->name('registration.store');
 Route::get('/register/success/{registration_number}', [RegistrationController::class, 'success'])->name('registration.success');
+Route::get('/registrations/{registration}/photo', [RegistrationController::class, 'photo'])->name('registration.photo');
+
+// Direct storage fallback route untuk menjamin file gambar statis selalu dapat dibuka
+Route::get('/storage/{path}', function (string $path) {
+    $filePath = storage_path('app/public/' . ltrim($path, '/'));
+    if (!file_exists($filePath)) {
+        abort(404);
+    }
+    return response()->file($filePath);
+})->where('path', '.*');
 
 /*
 |--------------------------------------------------------------------------

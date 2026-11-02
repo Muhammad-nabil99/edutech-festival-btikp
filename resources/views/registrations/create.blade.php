@@ -11,9 +11,17 @@
             <div class="h-2.5 w-full bg-gradient-to-r from-blue-500 via-indigo-400 to-cyan-400"></div>
 
             <div class="p-6 sm:p-10 relative z-10">
-                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-white/10 text-cyan-300 border border-cyan-400/30 backdrop-blur-md mb-4">
-                    <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
-                    Pendaftaran Dibuka &bull; BTIKP Sultra
+                <div class="flex items-center gap-4 mb-5">
+                    <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-white/10 p-2 backdrop-blur-md border border-white/20 shadow-md flex items-center justify-center shrink-0">
+                        <img src="{{ asset('logo.png') }}" alt="Logo EduTech BTIKP" class="w-full h-full object-contain">
+                    </div>
+                    <div>
+                        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-white/10 text-cyan-300 border border-cyan-400/30 backdrop-blur-md">
+                            <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+                            Pendaftaran Dibuka &bull; BTIKP Sultra
+                        </div>
+                        <p class="text-xs text-slate-300 font-medium mt-1">Balai Teknologi Informasi dan Komunikasi Pendidikan</p>
+                    </div>
                 </div>
 
                 <h1 class="text-2xl sm:text-4xl font-extrabold tracking-tight text-white mb-3">
@@ -43,14 +51,14 @@
                         <span>2 Kategori Pilihan</span>
                     </div>
 
-                    <div class="flex items-center gap-2.5">
+                    <!-- <div class="flex items-center gap-2.5">
                         <div class="p-2 rounded-lg bg-white/10 text-cyan-300">
                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                             </svg>
                         </div>
                         <span>Sertifikat &amp; Tiket Resmi</span>
-                    </div>
+                    </div> -->
                 </div>
             </div>
 
@@ -99,7 +107,7 @@
                                 name="full_name" 
                                 x-model="formData.full_name"
                                 value="{{ old('full_name') }}"
-                                placeholder="Contoh: Muhammad Nabil, S.Pd., M.Cs."
+                                placeholder="Contoh: Ahmad, S.T., S.S."
                                 class="w-full px-4 py-3 rounded-xl border {{ $errors->has('full_name') ? 'border-rose-400 bg-rose-50/30' : 'border-slate-300 focus:border-blue-500' }} focus:ring-4 focus:ring-blue-100 outline-none text-slate-800 text-sm transition"
                                 required
                             >
@@ -507,3 +515,4 @@
         }
     </script>
 </x-layouts.app>
+

@@ -200,7 +200,8 @@
                                             <img 
                                                 src="{{ $reg->profile_photo_url }}" 
                                                 alt="{{ $reg->full_name }}" 
-                                                class="w-11 h-11 rounded-full object-cover border border-slate-200 shadow-xs group-hover:scale-105 transition"
+                                                onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name={{ urlencode($reg->full_name) }}&background=1E40AF&color=FFFFFF&size=200';"
+                                                class="w-11 h-11 rounded-full object-cover border border-slate-200 shadow-xs group-hover:scale-105 transition bg-slate-100"
                                             >
                                         </button>
                                         <div>
@@ -333,3 +334,4 @@
 
     </div>
 </x-layouts.app>
+

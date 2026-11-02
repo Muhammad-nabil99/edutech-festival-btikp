@@ -3,10 +3,8 @@
         <div class="bg-white rounded-3xl p-8 border border-slate-200/80 shadow-xl shadow-slate-200/50">
             <!-- Header -->
             <div class="text-center mb-8">
-                <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-blue-700 to-indigo-600 text-white flex items-center justify-center mx-auto mb-4 shadow-md shadow-blue-600/30">
-                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                    </svg>
+                <div class="w-20 h-20 mx-auto mb-4 p-2 rounded-2xl bg-slate-50 border border-slate-200/80 shadow-sm flex items-center justify-center">
+                    <img src="{{ asset('logo.png') }}" alt="Logo BTIKP" class="w-full h-full object-contain">
                 </div>
                 <h1 class="text-xl font-extrabold text-slate-900 tracking-tight">Portal Panitia BTIKP</h1>
                 <p class="text-xs text-slate-500 mt-1">Masuk untuk mengelola pendaftar EduTech Festival</p>
@@ -78,3 +76,4 @@
         </div>
     </div>
 </x-layouts.app>
+

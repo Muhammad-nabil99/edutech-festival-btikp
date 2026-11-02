@@ -6,7 +6,9 @@ use App\Http\Requests\StoreRegistrationRequest;
 use App\Models\Registration;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class RegistrationController extends Controller
 {
@@ -95,5 +97,27 @@ class RegistrationController extends Controller
         return view('registrations.success', [
             'registration' => $registration,
         ]);
+    }
+
+    /**
+     * Menyajikan foto profil pendaftar secara langsung dan andal.
+     */
+    public function photo(Registration $registration): BinaryFileResponse|RedirectResponse
+    {
+        if ($registration->profile_photo_path) {
+            $disk = Storage::disk('public');
+            if ($disk->exists($registration->profile_photo_path)) {
+                return response()->file($disk->path($registration->profile_photo_path));
+            }
+
+            // Fallback direct storage path
+            $directPath = storage_path('app/public/' . ltrim($registration->profile_photo_path, '/'));
+            if (file_exists($directPath)) {
+                return response()->file($directPath);
+            }
+        }
+
+        // Redirect ke avatar placeholder jika gambar fisik belum ada
+        return redirect('https://ui-avatars.com/api/?name=' . urlencode($registration->full_name) . '&background=1E40AF&color=FFFFFF&size=200');
     }
 }

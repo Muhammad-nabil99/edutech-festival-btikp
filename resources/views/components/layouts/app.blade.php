@@ -6,6 +6,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <title>{{ $title ?? 'EduTech Festival BTIKP — Pendaftaran Karya Digital' }}</title>
+    <link rel="icon" type="image/png" href="{{ asset('logo.png') }}">
 
     <!-- Google Fonts: Plus Jakarta Sans -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -32,10 +33,8 @@
             <div class="flex items-center justify-between h-16 sm:h-20">
                 <!-- Brand / Logo -->
                 <a href="{{ route('registration.create') }}" class="flex items-center gap-3 group">
-                    <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-gradient-to-tr from-blue-700 via-indigo-600 to-cyan-500 flex items-center justify-center text-white shadow-md shadow-blue-500/20 group-hover:scale-105 transition-transform">
-                        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                        </svg>
+                    <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white p-1 border border-slate-200/80 flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform overflow-hidden">
+                        <img src="{{ asset('logo.png') }}" alt="Logo EduTech BTIKP" class="w-full h-full object-contain">
                     </div>
                     <div>
                         <div class="flex items-center gap-2">
@@ -54,7 +53,7 @@
                         </a>
                         <form method="POST" action="{{ route('admin.logout') }}" class="inline">
                             @csrf
-                            <button type="submit" class="text-xs sm:text-sm font-medium text-rose-600 hover:text-rose-700 px-3 py-1.5 rounded-lg hover:bg-rose-50 transition">
+                            <button type="submit" class="text-xs sm:text-sm font-medium text-rose-600 hover:text-rose-700 px-3 py-1.5 rounded-lg hover:bg-rose-50 transition cursor-pointer">
                                 Keluar
                             </button>
                         </form>
@@ -62,10 +61,8 @@
                         <a href="{{ route('registration.create') }}" class="text-xs sm:text-sm font-medium text-slate-600 hover:text-blue-600 hidden sm:inline-block">
                             Formulir Pendaftaran
                         </a>
-                        <a href="{{ route('admin.login') }}" class="inline-flex items-center gap-1.5 text-xs sm:text-sm font-medium text-slate-600 hover:text-slate-900 px-3 py-1.5 rounded-lg border border-slate-200 hover:border-slate-300 bg-white shadow-xs transition">
-                            <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                            </svg>
+                        <a href="{{ route('admin.login') }}" class="inline-flex items-center gap-2 text-xs sm:text-sm font-medium text-slate-600 hover:text-slate-900 px-3 py-1.5 rounded-lg border border-slate-200 hover:border-slate-300 bg-white shadow-xs transition">
+                            <img src="{{ asset('logo.png') }}" alt="Logo" class="w-4 h-4 object-contain">
                             <span>Panitia</span>
                         </a>
                     @endauth
@@ -103,9 +100,12 @@
     <!-- Footer -->
     <footer class="mt-auto border-t border-slate-200 bg-white/70 backdrop-blur-xs py-8">
         <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center sm:text-left flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div>
-                <p class="text-sm font-semibold text-slate-800">Balai Teknologi Informasi dan Komunikasi Pendidikan (BTIKP)</p>
-                <p class="text-xs text-slate-500">Dinas Pendidikan dan Kebudayaan Provinsi Sulawesi Tenggara &copy; {{ date('Y') }}. Seluruh hak cipta dilindungi.</p>
+            <div class="flex items-center gap-3">
+                <img src="{{ asset('logo.png') }}" alt="Logo BTIKP" class="w-9 h-9 object-contain shrink-0 hidden sm:block">
+                <div>
+                    <p class="text-sm font-semibold text-slate-800">Balai Teknologi Informasi dan Komunikasi Pendidikan (BTIKP)</p>
+                    <p class="text-xs text-slate-500">Dinas Pendidikan dan Kebudayaan Provinsi Sulawesi Tenggara &copy; {{ date('Y') }}. Seluruh hak cipta dilindungi.</p>
+                </div>
             </div>
             <div class="flex items-center gap-4 text-xs text-slate-400">
                 <span>Versi 1.0</span>

@@ -18,16 +18,21 @@
 
         <!-- Official Registration Ticket Card (Printable) -->
         <div id="printable-ticket" class="relative overflow-hidden bg-white rounded-3xl border border-slate-200 shadow-xl print:border-none print:shadow-none">
-            <!-- Top Gradient Header -->
+            <!-- Top Gradient Header with Official Logo -->
             <div class="bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 px-6 sm:px-8 py-5 text-white flex items-center justify-between">
-                <div>
-                    <span class="text-[10px] tracking-widest uppercase font-semibold text-cyan-300">Tiket Pendaftaran Resmi</span>
-                    <h2 class="text-lg font-bold tracking-tight">EduTech Festival BTIKP</h2>
-                    <p class="text-xs text-slate-300">Dinas Pendidikan dan Kebudayaan Sultra</p>
+                <div class="flex items-center gap-3">
+                    <div class="w-11 h-11 rounded-xl bg-white/10 p-1 backdrop-blur-xs border border-white/20 flex items-center justify-center shrink-0">
+                        <img src="{{ asset('logo.png') }}" alt="Logo BTIKP" class="w-full h-full object-contain">
+                    </div>
+                    <div>
+                        <span class="text-[10px] tracking-widest uppercase font-semibold text-cyan-300">Tiket Pendaftaran Resmi</span>
+                        <h2 class="text-base sm:text-lg font-bold tracking-tight">EduTech Festival BTIKP</h2>
+                        <p class="text-xs text-slate-300">Dinas Pendidikan dan Kebudayaan Sultra</p>
+                    </div>
                 </div>
                 <div class="text-right">
                     <span class="text-[10px] uppercase tracking-wider text-slate-400 block">Tahun</span>
-                    <span class="text-lg font-extrabold text-white">{{ date('Y') }}</span>
+                    <span class="text-base sm:text-lg font-extrabold text-white">{{ date('Y') }}</span>
                 </div>
             </div>
 
@@ -57,7 +62,8 @@
                     <img 
                         src="{{ $registration->profile_photo_url }}" 
                         alt="{{ $registration->full_name }}" 
-                        class="w-24 h-24 rounded-2xl object-cover shadow-md border-2 border-slate-100 shrink-0"
+                        onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name={{ urlencode($registration->full_name) }}&background=1E40AF&color=FFFFFF&size=200';"
+                        class="w-24 h-24 rounded-2xl object-cover shadow-md border-2 border-slate-100 shrink-0 bg-slate-100"
                     >
                     <div class="flex-1 text-center sm:text-left space-y-1">
                         <h3 class="text-lg font-bold text-slate-900">{{ $registration->full_name }}</h3>
@@ -109,7 +115,8 @@
             </div>
         </div>
 
-        <!-- Action Buttons (Hidden when printing) -->
+        <!-- Action Buttons (Commented out per user request) -->
+        {{--
         <div class="flex flex-col sm:flex-row items-center justify-center gap-3 print:hidden">
             <button 
                 type="button" 
@@ -132,6 +139,7 @@
                 <span>Daftarkan Karya Lain</span>
             </a>
         </div>
+        --}}
 
     </div>
 </x-layouts.app>

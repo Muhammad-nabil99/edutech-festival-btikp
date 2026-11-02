@@ -35,12 +35,18 @@ class Registration extends Model
     }
 
     /**
-     * URL publik untuk foto profil.
+     * URL publik untuk foto profil yang selalu dapat diakses.
      */
     public function getProfilePhotoUrlAttribute(): string
     {
-        if ($this->profile_photo_path && Storage::disk('public')->exists($this->profile_photo_path)) {
-            return Storage::disk('public')->url($this->profile_photo_path);
+        if (!empty($this->profile_photo_path)) {
+            // Gunakan route khusus streaming foto agar pasti berhasil tampil di semua perangkat/host
+            if (isset($this->id)) {
+                return route('registration.photo', $this->id);
+            }
+
+            // Fallback jika belum tersimpan id
+            return asset('storage/' . ltrim($this->profile_photo_path, '/'));
         }
 
         // Default placeholder avatar
