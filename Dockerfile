@@ -29,9 +29,9 @@ RUN composer install \
     --no-scripts
 
 # ==============================================================================
-# STAGE 3: Production Image (PHP 8.3 FPM Alpine)
+# STAGE 3: Production Image (PHP 8.4 FPM Alpine)
 # ==============================================================================
-FROM php:8.3-fpm-alpine
+FROM php:8.4-fpm-alpine
 
 # Set working directory
 WORKDIR /var/www/html
