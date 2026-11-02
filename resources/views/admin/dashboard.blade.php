@@ -221,54 +221,54 @@
         </div>
 
         <!-- ======================================================= -->
-        <!-- VIEW 1: TABLE VIEW (Fit, Rapi, Tanpa Text Wrap Anomali) -->
+        <!-- VIEW 1: TABLE VIEW (Fit, Polos, Bersih & Elegan)        -->
         <!-- ======================================================= -->
-        <div x-show="viewMode === 'table'" class="bg-white rounded-3xl border border-slate-200/90 shadow-sm overflow-hidden">
+        <div x-show="viewMode === 'table'" class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse text-xs sm:text-sm">
                     <thead>
-                        <tr class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white text-[11px] font-bold uppercase tracking-wider">
-                            <th class="py-4 px-5 whitespace-nowrap">
+                        <tr class="bg-slate-50/90 border-b border-slate-200/90 text-slate-500 text-[11px] font-bold uppercase tracking-wider">
+                            <th class="py-3.5 px-5 whitespace-nowrap">
                                 <div class="flex items-center gap-2">
-                                    <svg class="w-4 h-4 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                     </svg>
                                     <span>Peserta</span>
                                 </div>
                             </th>
-                            <th class="py-4 px-5 whitespace-nowrap">
+                            <th class="py-3.5 px-5 whitespace-nowrap">
                                 <div class="flex items-center gap-2">
-                                    <svg class="w-4 h-4 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                                     </svg>
                                     <span>Instansi &amp; Daerah</span>
                                 </div>
                             </th>
-                            <th class="py-4 px-5 whitespace-nowrap">
+                            <th class="py-3.5 px-5 whitespace-nowrap">
                                 <div class="flex items-center gap-2">
-                                    <svg class="w-4 h-4 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
                                     </svg>
                                     <span>Kategori Karya</span>
                                 </div>
                             </th>
-                            <th class="py-4 px-5 whitespace-nowrap">
+                            <th class="py-3.5 px-5 whitespace-nowrap">
                                 <div class="flex items-center gap-2">
-                                    <svg class="w-4 h-4 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                                     </svg>
                                     <span>Kontak (WA / Email)</span>
                                 </div>
                             </th>
-                            <th class="py-4 px-5 whitespace-nowrap">
+                            <th class="py-3.5 px-5 whitespace-nowrap">
                                 <div class="flex items-center gap-2">
-                                    <svg class="w-4 h-4 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
                                     </svg>
                                     <span>Link Karya</span>
                                 </div>
                             </th>
-                            <th class="py-4 px-5 text-center whitespace-nowrap">
+                            <th class="py-3.5 px-5 text-center whitespace-nowrap">
                                 <span>Aksi</span>
                             </th>
                         </tr>
@@ -294,12 +294,12 @@
                                 ];
                             @endphp
                             <tr 
-                                class="hover:bg-blue-50/50 transition-colors group cursor-pointer"
+                                class="hover:bg-slate-50/70 transition-colors group cursor-pointer"
                                 @click="openDetail(@js($regPayload))"
                             >
                                 <!-- Peserta & Foto -->
-                                <td class="py-4 px-5">
-                                    <div class="flex items-center gap-3.5">
+                                <td class="py-3.5 px-5">
+                                    <div class="flex items-center gap-3">
                                         <div 
                                             @click.stop="previewImage = '{{ $reg->profile_photo_url }}'"
                                             class="relative shrink-0 group/img focus:outline-hidden"
@@ -309,22 +309,19 @@
                                                 src="{{ $reg->profile_photo_url }}" 
                                                 alt="{{ $reg->full_name }}" 
                                                 onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name={{ urlencode($reg->full_name) }}&background=1E40AF&color=FFFFFF&size=200';"
-                                                class="w-12 h-12 rounded-2xl object-cover border-2 border-white shadow-md ring-2 ring-slate-100 group-hover/img:ring-blue-400 group-hover/img:scale-105 transition-all bg-slate-100"
+                                                class="w-10 h-10 rounded-xl object-cover border border-slate-200/80 shadow-2xs group-hover/img:scale-105 transition-all bg-slate-100"
                                             >
-                                            <div class="absolute inset-0 rounded-2xl bg-black/25 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center text-white">
-                                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <div class="absolute inset-0 rounded-xl bg-black/20 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center text-white">
+                                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7" />
                                                 </svg>
                                             </div>
                                         </div>
-                                        <div class="space-y-1">
-                                            <div class="font-extrabold text-slate-900 group-hover:text-blue-700 transition-colors whitespace-nowrap">
+                                        <div class="space-y-0.5">
+                                            <div class="font-semibold text-slate-800 group-hover:text-blue-600 transition-colors whitespace-nowrap">
                                                 {{ $reg->full_name }}
                                             </div>
-                                            <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg bg-blue-50/80 border border-blue-200/80 text-[11px] font-mono font-bold text-blue-800 shadow-2xs whitespace-nowrap">
-                                                <svg class="w-3 h-3 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
-                                                </svg>
+                                            <div class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-100 text-[11px] font-mono font-medium whitespace-nowrap">
                                                 <span>{{ $reg->registration_number }}</span>
                                             </div>
                                         </div>
@@ -332,13 +329,13 @@
                                 </td>
 
                                 <!-- Instansi & Daerah -->
-                                <td class="py-4 px-5">
-                                    <div class="space-y-1">
-                                        <div class="font-bold text-slate-900 tracking-wide text-xs uppercase whitespace-nowrap">
+                                <td class="py-3.5 px-5">
+                                    <div class="space-y-0.5">
+                                        <div class="font-medium text-slate-800 text-xs tracking-wide uppercase whitespace-nowrap">
                                             {{ $reg->school_name }}
                                         </div>
-                                        <div class="inline-flex items-center gap-1 text-[11px] font-medium text-slate-500 whitespace-nowrap">
-                                            <svg class="w-3.5 h-3.5 text-rose-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <div class="inline-flex items-center gap-1 text-[11px] text-slate-400 whitespace-nowrap">
+                                            <svg class="w-3 h-3 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                                             </svg>
@@ -348,32 +345,25 @@
                                 </td>
 
                                 <!-- Kategori -->
-                                <td class="py-4 px-5 whitespace-nowrap">
+                                <td class="py-3.5 px-5 whitespace-nowrap">
                                     @if ($reg->learning_category === 'gim_edukasi')
-                                        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-extrabold bg-gradient-to-r from-amber-50 to-orange-50 text-amber-900 border border-amber-300/80 shadow-2xs">
-                                            <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
-                                            <svg class="w-4 h-4 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                            </svg>
+                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-amber-50 text-amber-800 border border-amber-200/70">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
                                             <span>Gim Edukasi</span>
                                         </span>
                                     @else
-                                        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-extrabold bg-gradient-to-r from-cyan-50 to-blue-50 text-cyan-900 border border-cyan-300/80 shadow-2xs">
-                                            <span class="w-2 h-2 rounded-full bg-cyan-500 animate-pulse"></span>
-                                            <svg class="w-4 h-4 text-cyan-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                                            </svg>
+                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-sky-50 text-sky-800 border border-sky-200/70">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-sky-500"></span>
                                             <span>Media Interaktif</span>
                                         </span>
                                     @endif
                                 </td>
 
                                 <!-- Kontak -->
-                                <td class="py-4 px-5 whitespace-nowrap">
-                                    <div class="space-y-1.5">
-                                        <div class="flex items-center gap-1.5 text-xs text-slate-700 font-medium">
-                                            <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <td class="py-3.5 px-5 whitespace-nowrap">
+                                    <div class="space-y-1">
+                                        <div class="flex items-center gap-1.5 text-xs text-slate-600 font-normal">
+                                            <svg class="w-3 h-3 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                                             </svg>
                                             <span>{{ $reg->email }}</span>
@@ -383,9 +373,9 @@
                                                 href="{{ $reg->whatsapp_chat_url }}" 
                                                 target="_blank" 
                                                 rel="noopener noreferrer" 
-                                                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] shadow-sm shadow-emerald-600/20 hover:shadow-md transition-all hover:scale-102"
+                                                class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100/80 text-emerald-700 border border-emerald-200/70 font-medium text-[11px] transition-colors"
                                             >
-                                                <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
+                                                <svg class="w-3 h-3 fill-current" viewBox="0 0 24 24">
                                                     <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.007c.106.005.249-.04.39.299.144.347.491 1.2.534 1.288.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.353.101.173.449.741.963 1.2 1.014.904 1.868 1.185 2.134 1.315.265.13.42.115.578-.066.158-.181.677-.789.858-1.06.181-.271.36-.226.605-.136.245.09 1.545.728 1.811.86.265.132.441.198.505.311.063.113.063.655-.081 1.06z" />
                                                 </svg>
                                                 <span>Chat WA ({{ $reg->whatsapp_number }})</span>
@@ -395,29 +385,29 @@
                                 </td>
 
                                 <!-- Link Media -->
-                                <td class="py-4 px-5 whitespace-nowrap" @click.stop>
+                                <td class="py-3.5 px-5 whitespace-nowrap" @click.stop>
                                     <a 
                                         href="{{ $reg->media_link }}" 
                                         target="_blank" 
                                         rel="noopener noreferrer" 
-                                        class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-50 hover:bg-blue-50 border border-slate-200/90 hover:border-blue-300 text-blue-700 font-extrabold text-xs shadow-2xs hover:shadow-xs transition-all"
+                                        class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-50 hover:bg-blue-50 border border-slate-200/80 hover:border-blue-200 text-slate-700 hover:text-blue-700 font-medium text-xs transition-colors"
                                         title="{{ $reg->media_link }}"
                                     >
                                         <span>Buka Karya</span>
-                                        <svg class="w-3.5 h-3.5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <svg class="w-3.5 h-3.5 text-slate-400 group-hover:text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                                         </svg>
                                     </a>
                                 </td>
 
                                 <!-- Aksi -->
-                                <td class="py-4 px-5 text-center whitespace-nowrap" @click.stop>
+                                <td class="py-3.5 px-5 text-center whitespace-nowrap" @click.stop>
                                     <div class="inline-flex items-center gap-1">
                                         <!-- Tombol Lihat Detail -->
                                         <button 
                                             type="button" 
                                             @click="openDetail(@js($regPayload))"
-                                            class="p-2 rounded-xl text-slate-500 hover:text-blue-600 hover:bg-blue-50 transition cursor-pointer"
+                                            class="p-1.5 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition cursor-pointer"
                                             title="Lihat Detail Pendaftaran"
                                         >
                                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -437,7 +427,7 @@
                                             @method('DELETE')
                                             <button 
                                                 type="submit" 
-                                                class="p-2 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition cursor-pointer"
+                                                class="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition cursor-pointer"
                                                 title="Hapus data pendaftaran"
                                             >
                                                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
