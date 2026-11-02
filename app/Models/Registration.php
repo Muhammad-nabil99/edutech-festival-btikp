@@ -23,6 +23,14 @@ class Registration extends Model
     ];
 
     /**
+     * Mutator agar nama sekolah selalu disimpan dalam huruf kapital (UPPERCASE).
+     */
+    public function setSchoolNameAttribute(mixed $value): void
+    {
+        $this->attributes['school_name'] = mb_strtoupper(trim((string) $value));
+    }
+
+    /**
      * Kategori pembelajaran dalam label bahasa manusia yang rapi.
      */
     public function getCategoryLabelAttribute(): string

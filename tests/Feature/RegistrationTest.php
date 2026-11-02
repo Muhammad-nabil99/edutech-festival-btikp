@@ -59,7 +59,7 @@ class RegistrationTest extends TestCase
 
         $payload = [
             'full_name' => 'Ahmad Fauzan Pratama, S.Pd.',
-            'school_name' => 'SMAN 4 Kendari',
+            'school_name' => 'sman 4 kendari',
             'regency_city' => 'Kota Kendari',
             'email' => 'ahmad.fauzan@gmail.com',
             'whatsapp_number' => '085211223344',
@@ -73,6 +73,7 @@ class RegistrationTest extends TestCase
         $registration = Registration::where('email', 'ahmad.fauzan@gmail.com')->first();
         $this->assertNotNull($registration);
         $this->assertStringStartsWith('EDUTECH-' . date('Y') . '-', $registration->registration_number);
+        $this->assertEquals('SMAN 4 KENDARI', $registration->school_name);
         $this->assertEquals('6285211223344', $registration->whatsapp_number);
 
         Storage::disk('public')->assertExists($registration->profile_photo_path);

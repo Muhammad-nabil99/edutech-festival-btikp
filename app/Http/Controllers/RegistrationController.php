@@ -72,7 +72,7 @@ class RegistrationController extends Controller
             return Registration::create([
                 'registration_number' => $regNumber,
                 'full_name' => trim($validated['full_name']),
-                'school_name' => trim($validated['school_name']),
+                'school_name' => mb_strtoupper(trim($validated['school_name'])),
                 'regency_city' => $validated['regency_city'],
                 'email' => strtolower(trim($validated['email'])),
                 'whatsapp_number' => $formattedWa,
