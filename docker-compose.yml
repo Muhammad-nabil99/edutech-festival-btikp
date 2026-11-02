@@ -48,7 +48,7 @@ services:
     volumes:
       - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
       - edutech_public:/var/www/html/public:ro
-      - storage_public:/var/www/html/public/storage:ro
+      - storage_public:/var/www/html/storage/app/public:ro
     depends_on:
       - app
     networks:
