@@ -744,7 +744,7 @@
                         <!-- Tombol Hapus di dalam modal (Buka Pop-up Konfirmasi) -->
                         <button 
                             type="button" 
-                            @click="confirmDelete(selectedRegistration)"
+                            @click="confirmDelete(selectedRegistration); closeDetail();"
                             class="inline-flex items-center gap-1.5 text-xs font-semibold text-rose-600 hover:text-rose-800 px-3 py-2 rounded-xl hover:bg-rose-50 transition cursor-pointer"
                         >
                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -811,11 +811,18 @@
                 x-transition:leave-start="opacity-100 scale-100"
                 x-transition:leave-end="opacity-0 scale-95"
             >
-                <!-- Ikon Peringatan Hapus -->
-                <div class="w-16 h-16 rounded-3xl bg-rose-50 border border-rose-200 flex items-center justify-center mx-auto mb-4 text-rose-600 shadow-inner">
-                    <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
+                <!-- Ikon Peringatan & Avatar Peserta -->
+                <div class="relative w-20 h-20 mx-auto mb-4">
+                    <img 
+                        :src="deleteTarget?.profile_photo_url" 
+                        :alt="deleteTarget?.full_name" 
+                        class="w-20 h-20 rounded-3xl object-cover border-2 border-rose-200 shadow-md bg-slate-100"
+                    >
+                    <div class="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-rose-600 text-white flex items-center justify-center shadow-md border-2 border-white">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                    </div>
                 </div>
 
                 <h3 class="text-lg sm:text-xl font-extrabold text-slate-900 mb-1.5">
