@@ -40,11 +40,16 @@ class AdminAuthController extends Controller
         if (Auth::attempt($credentials, $remember)) {
             $request->session()->regenerate();
 
-            return redirect()->intended(route('admin.dashboard'))
+            $targetUrl = session()->pull('url.intended', route('admin.dashboard'));
+            if (str_starts_with($targetUrl, 'http://')) {
+                $targetUrl = 'https://' . substr($targetUrl, 7);
+            }
+
+            return redirect()->to($targetUrl)
                 ->with('status', 'Selamat datang kembali di Dashboard Panitia BTIKP!');
         }
 
-        return back()
+        return redirect()->route('admin.login')
             ->withInput($request->only('email', 'remember'))
             ->withErrors([
                 'email' => 'Kombinasi email dan kata sandi yang Anda masukkan tidak sesuai.',
