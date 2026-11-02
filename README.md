@@ -56,7 +56,50 @@ Aplikasi ini dirancang sebagai alternatif Google Forms yang jauh lebih menarik, 
 
 ---
 
-## 💻 Panduan Instalasi & Menjalankan Aplikasi
+## 🐳 Panduan Deployment dengan Docker (Siap Production)
+
+Aplikasi telah dilengkapi konfigurasi Docker production-ready (Multi-stage build PHP 8.3 FPM, Nginx, dan MySQL 8.4) beserta otomasi migrasi, seeder, dan link storage.
+
+### 1. Salin File Environment Docker
+```bash
+cp .env.docker.example .env
+```
+*(Sesuaikan `APP_URL`, `APP_PORT`, atau password database di `.env` sesuai server Anda).*
+
+### 2. Build & Jalankan Container
+```bash
+docker compose up -d --build
+```
+
+Container yang akan berjalan:
+- **`edutech_web`** (Nginx): Melayani web di port `8085` (atau port pilihan di `APP_PORT`).
+- **`edutech_app`** (PHP 8.3 FPM): Memproses logika Laravel, otomatis migrasi database, storage link, dan caching optimasi.
+- **`edutech_db`** (MySQL 8.4): Menyimpan basis data pendaftaran dengan volume persisten `edutech_mysql_data`.
+
+### 3. Akses Website
+- **Formulir Pendaftaran**: `http://localhost:8085` (atau IP server Anda)
+- **Portal Panitia**: `http://localhost:8085/admin/login`
+  - Email: `admin@btikp.sultra.go.id`
+  - Password: `adminbtikp2026!`
+
+### 4. Perintah Berguna Saat Deployment
+```bash
+# Cek log aplikasi secara real-time
+docker compose logs -f app
+
+# Masuk ke terminal container app
+docker compose exec app sh
+
+# Restart container
+docker compose restart
+
+# Hentikan container
+docker compose down
+```
+
+---
+
+## 💻 Panduan Menjalankan Manual (Tanpa Docker)
 
 ### 1. Clone Repositori
 ```bash
