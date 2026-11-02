@@ -26,7 +26,8 @@ RUN composer install \
     --prefer-dist \
     --no-progress \
     --optimize-autoloader \
-    --no-scripts
+    --no-scripts \
+    --ignore-platform-reqs
 
 # ==============================================================================
 # STAGE 3: Production Image (PHP 8.4 FPM Alpine)
