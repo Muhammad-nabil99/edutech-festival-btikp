@@ -108,7 +108,7 @@
 
         <!-- Filter & Search Panel -->
         <div class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/80 shadow-xs">
-            <form method="GET" action="{{ route('admin.dashboard') }}" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <form method="GET" action="{{ route('admin.dashboard', [], false) }}" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <!-- Search Box -->
                 <div class="lg:col-span-2">
                     <label for="search" class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">
@@ -290,7 +290,7 @@
                                     'profile_photo_url' => $reg->profile_photo_url,
                                     'media_link' => $reg->media_link,
                                     'created_at_formatted' => $reg->created_at ? $reg->created_at->translatedFormat('l, d F Y — H:i') . ' WITA' : '-',
-                                    'delete_url' => route('admin.registrations.destroy', $reg),
+                                    'delete_url' => route('admin.registrations.destroy', $reg, false),
                                 ];
                             @endphp
                             <tr 
@@ -419,7 +419,7 @@
                                         <!-- Tombol Hapus -->
                                         <form 
                                             method="POST" 
-                                            action="{{ route('admin.registrations.destroy', $reg) }}" 
+                                            action="{{ route('admin.registrations.destroy', $reg, false) }}" 
                                             onsubmit="return confirm('Apakah Anda yakin ingin menghapus data pendaftaran {{ $reg->full_name }} ({{ $reg->registration_number }})? Tindakan ini bersifat permanen.')"
                                             class="inline"
                                         >
@@ -486,7 +486,7 @@
                             'profile_photo_url' => $reg->profile_photo_url,
                             'media_link' => $reg->media_link,
                             'created_at_formatted' => $reg->created_at ? $reg->created_at->translatedFormat('l, d F Y — H:i') . ' WITA' : '-',
-                            'delete_url' => route('admin.registrations.destroy', $reg),
+                            'delete_url' => route('admin.registrations.destroy', $reg, false),
                         ];
                     @endphp
                     <div 
@@ -592,7 +592,7 @@
                                 </button>
                                 <form 
                                     method="POST" 
-                                    action="{{ route('admin.registrations.destroy', $reg) }}" 
+                                    action="{{ route('admin.registrations.destroy', $reg, false) }}" 
                                     onsubmit="return confirm('Apakah Anda yakin ingin menghapus pendaftaran {{ $reg->full_name }}?')"
                                     class="inline"
                                 >

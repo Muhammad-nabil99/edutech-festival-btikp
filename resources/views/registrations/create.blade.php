@@ -172,7 +172,7 @@
         </div>
 
         <!-- Form Submission -->
-        <form method="POST" action="{{ route('registration.store') }}" enctype="multipart/form-data" @submit="validateBeforeSubmit($event)" class="space-y-6">
+        <form method="POST" action="{{ route('registration.store', [], false) }}" enctype="multipart/form-data" @submit="validateBeforeSubmit($event)" class="space-y-6">
             @csrf
 
             <!-- ============================================== -->

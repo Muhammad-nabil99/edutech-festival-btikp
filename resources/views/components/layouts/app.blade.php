@@ -51,7 +51,7 @@
                         <a href="{{ route('admin.dashboard') }}" class="text-xs sm:text-sm font-semibold text-slate-700 hover:text-blue-600 px-3 py-2 rounded-lg hover:bg-slate-100 transition">
                             Dashboard Admin
                         </a>
-                        <form method="POST" action="{{ route('admin.logout') }}" class="inline">
+                        <form method="POST" action="{{ route('admin.logout', [], false) }}" class="inline">
                             @csrf
                             <button type="submit" class="text-xs sm:text-sm font-medium text-rose-600 hover:text-rose-700 px-3 py-1.5 rounded-lg hover:bg-rose-50 transition cursor-pointer">
                                 Keluar
