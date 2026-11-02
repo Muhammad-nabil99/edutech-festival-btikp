@@ -24,7 +24,6 @@ services:
       DB_USERNAME: root
       DB_PASSWORD: "${DB_PASSWORD:-password}"
       SESSION_DRIVER: database
-      SESSION_SECURE_COOKIE: "${SESSION_SECURE_COOKIE:-true}"
       FILESYSTEM_DISK: public
       AUTO_MIGRATE: "true"
       AUTO_SEED: "${AUTO_SEED:-true}"
