@@ -5,11 +5,18 @@
             viewMode: 'table', 
             previewImage: null, 
             selectedRegistration: null,
+            deleteTarget: null,
             openDetail(data) {
                 this.selectedRegistration = data;
             },
             closeDetail() {
                 this.selectedRegistration = null;
+            },
+            confirmDelete(data) {
+                this.deleteTarget = data;
+            },
+            closeDeleteModal() {
+                this.deleteTarget = null;
             }
         }"
     >
@@ -416,25 +423,17 @@
                                             </svg>
                                         </button>
 
-                                        <!-- Tombol Hapus -->
-                                        <form 
-                                            method="POST" 
-                                            action="{{ route('admin.registrations.destroy', $reg, false) }}" 
-                                            onsubmit="return confirm('Apakah Anda yakin ingin menghapus data pendaftaran {{ $reg->full_name }} ({{ $reg->registration_number }})? Tindakan ini bersifat permanen.')"
-                                            class="inline"
+                                        <!-- Tombol Hapus (Pop-up Konfirmasi) -->
+                                        <button 
+                                            type="button" 
+                                            @click.stop="confirmDelete(@js($regPayload))"
+                                            class="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition cursor-pointer"
+                                            title="Hapus data pendaftaran"
                                         >
-                                            @csrf
-                                            @method('DELETE')
-                                            <button 
-                                                type="submit" 
-                                                class="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition cursor-pointer"
-                                                title="Hapus data pendaftaran"
-                                            >
-                                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                </svg>
-                                            </button>
-                                        </form>
+                                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                            </svg>
+                                        </button>
                                     </div>
                                 </td>
                             </tr>
@@ -590,24 +589,16 @@
                                 >
                                     Detail
                                 </button>
-                                <form 
-                                    method="POST" 
-                                    action="{{ route('admin.registrations.destroy', $reg, false) }}" 
-                                    onsubmit="return confirm('Apakah Anda yakin ingin menghapus pendaftaran {{ $reg->full_name }}?')"
-                                    class="inline"
+                                <button 
+                                    type="button" 
+                                    @click.stop="confirmDelete(@js($regPayload))"
+                                    class="p-1.5 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition cursor-pointer"
+                                    title="Hapus data pendaftaran"
                                 >
-                                    @csrf
-                                    @method('DELETE')
-                                    <button 
-                                        type="submit" 
-                                        class="p-1.5 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition cursor-pointer"
-                                        title="Hapus"
-                                    >
-                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                        </svg>
-                                    </button>
-                                </form>
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -750,25 +741,17 @@
                 <!-- Modal Footer -->
                 <div class="p-4 sm:p-6 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
                     <div>
-                        <!-- Tombol Hapus di dalam modal -->
-                        <form 
-                            method="POST" 
-                            :action="selectedRegistration?.delete_url" 
-                            onsubmit="return confirm('Apakah Anda yakin ingin menghapus data ini?')"
-                            class="inline"
+                        <!-- Tombol Hapus di dalam modal (Buka Pop-up Konfirmasi) -->
+                        <button 
+                            type="button" 
+                            @click="confirmDelete(selectedRegistration)"
+                            class="inline-flex items-center gap-1.5 text-xs font-semibold text-rose-600 hover:text-rose-800 px-3 py-2 rounded-xl hover:bg-rose-50 transition cursor-pointer"
                         >
-                            @csrf
-                            @method('DELETE')
-                            <button 
-                                type="submit" 
-                                class="inline-flex items-center gap-1.5 text-xs font-semibold text-rose-600 hover:text-rose-800 px-3 py-2 rounded-xl hover:bg-rose-50 transition cursor-pointer"
-                            >
-                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                </svg>
-                                <span>Hapus Data</span>
-                            </button>
-                        </form>
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                            <span>Hapus Data</span>
+                        </button>
                     </div>
 
                     <div class="flex items-center gap-2">
@@ -800,6 +783,86 @@
                 >
                     Tutup Pratinjau
                 </button>
+            </div>
+        </div>
+
+        <!-- ======================================================= -->
+        <!-- MODAL POP-UP KONFIRMASI HAPUS PENDAFTAR                 -->
+        <!-- ======================================================= -->
+        <div 
+            x-show="deleteTarget !== null" 
+            x-cloak
+            class="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs"
+            x-transition:enter="transition ease-out duration-200"
+            x-transition:enter-start="opacity-0"
+            x-transition:enter-end="opacity-100"
+            x-transition:leave="transition ease-in duration-150"
+            x-transition:leave-start="opacity-100"
+            x-transition:leave-end="opacity-0"
+            @keydown.escape.window="closeDeleteModal()"
+        >
+            <div 
+                @click.outside="closeDeleteModal()"
+                class="bg-white rounded-3xl max-w-md w-full p-6 sm:p-7 text-center shadow-2xl border border-slate-200 relative overflow-hidden"
+                x-transition:enter="transition ease-out duration-200"
+                x-transition:enter-start="opacity-0 scale-95"
+                x-transition:enter-end="opacity-100 scale-100"
+                x-transition:leave="transition ease-in duration-150"
+                x-transition:leave-start="opacity-100 scale-100"
+                x-transition:leave-end="opacity-0 scale-95"
+            >
+                <!-- Ikon Peringatan Hapus -->
+                <div class="w-16 h-16 rounded-3xl bg-rose-50 border border-rose-200 flex items-center justify-center mx-auto mb-4 text-rose-600 shadow-inner">
+                    <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                </div>
+
+                <h3 class="text-lg sm:text-xl font-extrabold text-slate-900 mb-1.5">
+                    Hapus Data Pendaftar?
+                </h3>
+                <p class="text-xs sm:text-sm text-slate-500 mb-4">
+                    Apakah Anda yakin ingin menghapus data peserta ini dari sistem?
+                </p>
+
+                <!-- Box Detail Singkat Peserta -->
+                <div class="bg-slate-50 rounded-2xl p-4 border border-slate-200/80 text-left mb-5 space-y-1.5">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Nomor Registrasi</span>
+                        <span class="px-2 py-0.5 rounded text-[11px] font-mono font-bold bg-blue-50 text-blue-700" x-text="deleteTarget?.registration_number"></span>
+                    </div>
+                    <div class="text-sm font-bold text-slate-800" x-text="deleteTarget?.full_name"></div>
+                    <div class="text-xs text-slate-500" x-text="(deleteTarget?.school_name || '') + ' • ' + (deleteTarget?.regency_city || '')"></div>
+                </div>
+
+                <!-- Info Peringatan Permanen -->
+                <div class="p-3 rounded-xl bg-amber-50 border border-amber-200/80 text-amber-800 text-xs text-left flex items-start gap-2 mb-6">
+                    <svg class="w-4 h-4 text-amber-600 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                    <span>Tindakan ini bersifat permanen. Berkas foto dan data karya pendaftar akan terhapus.</span>
+                </div>
+
+                <!-- Tombol Aksi Batal / Hapus -->
+                <div class="flex items-center gap-3">
+                    <button 
+                        type="button" 
+                        @click="closeDeleteModal()"
+                        class="flex-1 py-2.5 px-4 rounded-xl border border-slate-300 hover:bg-slate-100 text-slate-700 font-bold text-xs transition cursor-pointer"
+                    >
+                        Batal
+                    </button>
+                    <form :action="deleteTarget?.delete_url" method="POST" class="flex-1">
+                        @csrf
+                        @method('DELETE')
+                        <button 
+                            type="submit" 
+                            class="w-full py-2.5 px-4 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-md shadow-rose-600/30 transition cursor-pointer"
+                        >
+                            Ya, Hapus Data
+                        </button>
+                    </form>
+                </div>
             </div>
         </div>
 
