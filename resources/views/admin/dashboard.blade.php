@@ -861,18 +861,13 @@
                 <!-- STATE 1: KONFIRMASI HAPUS (MERAH / ROSE)        -->
                 <!-- ============================================== -->
                 <div x-show="!deleteSuccess" class="space-y-4">
-                    <!-- Ikon Peringatan & Avatar Peserta -->
-                    <div class="relative w-20 h-20 mx-auto">
+                    <!-- Avatar Peserta -->
+                    <div class="w-20 h-20 mx-auto mb-2">
                         <img 
                             :src="deleteTarget?.profile_photo_url" 
                             :alt="deleteTarget?.full_name" 
-                            class="w-20 h-20 rounded-3xl object-cover border-2 border-rose-200 shadow-md bg-slate-100"
+                            class="w-20 h-20 rounded-3xl object-cover border border-slate-200 shadow-sm bg-slate-100"
                         >
-                        <div class="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-rose-600 text-white flex items-center justify-center shadow-md border-2 border-white">
-                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
-                        </div>
                     </div>
 
                     <div>
