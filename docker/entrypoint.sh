@@ -41,6 +41,9 @@ if [ ! -L "public/storage" ]; then
     php artisan storage:link || true
 fi
 
+# Pastikan tidak ada file hot sisa dev server agar Nginx menyajikan aset hasil compile Vite
+rm -f /var/www/html/public/hot /var/www/html/public-shared/hot 2>/dev/null || true
+
 # Sinkronkan file public (termasuk build Vite, logo, index.php) ke shared volume untuk Nginx
 if [ -d "/var/www/html/public-shared" ]; then
     echo "==> Menyinkronkan asset public ke Nginx shared volume..."

@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    @if(app()->isProduction() || request()->isSecure())
+    @if(request()->isSecure() || str_starts_with((string) config('app.url'), 'https://'))
     <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
     @endif
 
