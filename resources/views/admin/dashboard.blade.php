@@ -6,6 +6,9 @@
             previewImage: null, 
             selectedRegistration: null,
             deleteTarget: null,
+            isDeleting: false,
+            deleteSuccess: false,
+            deletedInfo: null,
             openDetail(data) {
                 this.selectedRegistration = data;
             },
@@ -13,10 +16,53 @@
                 this.selectedRegistration = null;
             },
             confirmDelete(data) {
+                this.deleteSuccess = false;
+                this.isDeleting = false;
+                this.deletedInfo = null;
                 this.deleteTarget = data;
             },
             closeDeleteModal() {
+                if (this.isDeleting) return;
+                if (this.deleteSuccess) {
+                    window.location.reload();
+                    return;
+                }
                 this.deleteTarget = null;
+                this.deleteSuccess = false;
+            },
+            async executeDelete() {
+                if (!this.deleteTarget || this.isDeleting) return;
+                this.isDeleting = true;
+                this.deletedInfo = { ...this.deleteTarget };
+                try {
+                    const token = document.querySelector('meta[name=csrf-token]')?.getAttribute('content') || '{{ csrf_token() }}';
+                    const res = await fetch(this.deleteTarget.delete_url, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': token,
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: JSON.stringify({
+                            _method: 'DELETE'
+                        })
+                    });
+                    if (res.ok) {
+                        this.deleteSuccess = true;
+                        this.isDeleting = false;
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 1800);
+                    } else {
+                        if (this.$refs.deleteForm) this.$refs.deleteForm.submit();
+                    }
+                } catch (e) {
+                    if (this.$refs.deleteForm) this.$refs.deleteForm.submit();
+                }
+            },
+            finishDelete() {
+                window.location.reload();
             }
         }"
     >
@@ -803,7 +849,7 @@
         >
             <div 
                 @click.outside="closeDeleteModal()"
-                class="bg-white rounded-3xl max-w-md w-full p-6 sm:p-7 text-center shadow-2xl border border-slate-200 relative overflow-hidden"
+                class="bg-white rounded-3xl max-w-md w-full p-6 sm:p-7 text-center shadow-2xl border border-slate-200 relative overflow-hidden transition-all duration-300"
                 x-transition:enter="transition ease-out duration-200"
                 x-transition:enter-start="opacity-0 scale-95"
                 x-transition:enter-end="opacity-100 scale-100"
@@ -811,64 +857,129 @@
                 x-transition:leave-start="opacity-100 scale-100"
                 x-transition:leave-end="opacity-0 scale-95"
             >
-                <!-- Ikon Peringatan & Avatar Peserta -->
-                <div class="relative w-20 h-20 mx-auto mb-4">
-                    <img 
-                        :src="deleteTarget?.profile_photo_url" 
-                        :alt="deleteTarget?.full_name" 
-                        class="w-20 h-20 rounded-3xl object-cover border-2 border-rose-200 shadow-md bg-slate-100"
-                    >
-                    <div class="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-rose-600 text-white flex items-center justify-center shadow-md border-2 border-white">
-                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                <!-- ============================================== -->
+                <!-- STATE 1: KONFIRMASI HAPUS (MERAH / ROSE)        -->
+                <!-- ============================================== -->
+                <div x-show="!deleteSuccess" class="space-y-4">
+                    <!-- Ikon Peringatan & Avatar Peserta -->
+                    <div class="relative w-20 h-20 mx-auto">
+                        <img 
+                            :src="deleteTarget?.profile_photo_url" 
+                            :alt="deleteTarget?.full_name" 
+                            class="w-20 h-20 rounded-3xl object-cover border-2 border-rose-200 shadow-md bg-slate-100"
+                        >
+                        <div class="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-rose-600 text-white flex items-center justify-center shadow-md border-2 border-white">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h3 class="text-lg sm:text-xl font-extrabold text-slate-900 mb-1">
+                            Hapus Data Pendaftar?
+                        </h3>
+                        <p class="text-xs sm:text-sm text-slate-500">
+                            Apakah Anda yakin ingin menghapus data peserta ini dari sistem?
+                        </p>
+                    </div>
+
+                    <!-- Box Detail Singkat Peserta -->
+                    <div class="bg-slate-50 rounded-2xl p-4 border border-slate-200/80 text-left space-y-1.5">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Nomor Registrasi</span>
+                            <span class="px-2 py-0.5 rounded text-[11px] font-mono font-bold bg-blue-50 text-blue-700" x-text="deleteTarget?.registration_number"></span>
+                        </div>
+                        <div class="text-sm font-bold text-slate-800" x-text="deleteTarget?.full_name"></div>
+                        <div class="text-xs text-slate-500" x-text="(deleteTarget?.school_name || '') + ' • ' + (deleteTarget?.regency_city || '')"></div>
+                    </div>
+
+                    <!-- Info Peringatan Permanen -->
+                    <div class="p-3 rounded-xl bg-amber-50 border border-amber-200/80 text-amber-800 text-xs text-left flex items-start gap-2">
+                        <svg class="w-4 h-4 text-amber-600 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
+                        <span>Tindakan ini bersifat permanen. Berkas foto dan data karya pendaftar akan terhapus.</span>
+                    </div>
+
+                    <!-- Tombol Aksi Batal / Hapus -->
+                    <div class="flex items-center gap-3 pt-1">
+                        <button 
+                            type="button" 
+                            :disabled="isDeleting"
+                            @click="closeDeleteModal()"
+                            class="flex-1 py-2.5 px-4 rounded-xl border border-slate-300 hover:bg-slate-100 disabled:opacity-50 text-slate-700 font-bold text-xs transition cursor-pointer"
+                        >
+                            Batal
+                        </button>
+                        <form x-ref="deleteForm" :action="deleteTarget?.delete_url" method="POST" class="flex-1" @submit.prevent="executeDelete()">
+                            @csrf
+                            @method('DELETE')
+                            <button 
+                                type="submit" 
+                                :disabled="isDeleting"
+                                class="w-full py-2.5 px-4 rounded-xl bg-rose-600 hover:bg-rose-700 disabled:bg-rose-400 text-white font-bold text-xs shadow-md shadow-rose-600/30 transition cursor-pointer flex items-center justify-center gap-2"
+                            >
+                                <svg x-show="isDeleting" class="animate-spin w-4 h-4 text-white" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                <span x-text="isDeleting ? 'Menghapus...' : 'Ya, Hapus Data'"></span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- ============================================== -->
+                <!-- STATE 2: SUKSES BERHASIL DIHAPUS (HIJAU / EMERALD) -->
+                <!-- ============================================== -->
+                <div 
+                    x-show="deleteSuccess" 
+                    x-cloak
+                    class="space-y-4 py-2"
+                    x-transition:enter="transition ease-out duration-300"
+                    x-transition:enter-start="opacity-0 scale-90"
+                    x-transition:enter-end="opacity-100 scale-100"
+                >
+                    <!-- Ikon Centang Hijau Elegan -->
+                    <div class="w-20 h-20 mx-auto rounded-3xl bg-emerald-50 border-2 border-emerald-200 flex items-center justify-center text-emerald-600 shadow-xl shadow-emerald-500/10">
+                        <svg class="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
                         </svg>
                     </div>
-                </div>
 
-                <h3 class="text-lg sm:text-xl font-extrabold text-slate-900 mb-1.5">
-                    Hapus Data Pendaftar?
-                </h3>
-                <p class="text-xs sm:text-sm text-slate-500 mb-4">
-                    Apakah Anda yakin ingin menghapus data peserta ini dari sistem?
-                </p>
-
-                <!-- Box Detail Singkat Peserta -->
-                <div class="bg-slate-50 rounded-2xl p-4 border border-slate-200/80 text-left mb-5 space-y-1.5">
-                    <div class="flex items-center justify-between">
-                        <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Nomor Registrasi</span>
-                        <span class="px-2 py-0.5 rounded text-[11px] font-mono font-bold bg-blue-50 text-blue-700" x-text="deleteTarget?.registration_number"></span>
+                    <div>
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200 mb-2">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                            Terhapus dari Database
+                        </span>
+                        <h3 class="text-xl font-extrabold text-slate-900 mb-1">
+                            Data Berhasil Dihapus!
+                        </h3>
+                        <p class="text-xs sm:text-sm text-slate-500">
+                            Data pendaftaran <span class="font-bold text-slate-800" x-text="deletedInfo?.full_name"></span> (<span class="font-mono text-emerald-700 font-semibold" x-text="deletedInfo?.registration_number"></span>) beserta berkas terkait telah berhasil dihapus.
+                        </p>
                     </div>
-                    <div class="text-sm font-bold text-slate-800" x-text="deleteTarget?.full_name"></div>
-                    <div class="text-xs text-slate-500" x-text="(deleteTarget?.school_name || '') + ' • ' + (deleteTarget?.regency_city || '')"></div>
-                </div>
 
-                <!-- Info Peringatan Permanen -->
-                <div class="p-3 rounded-xl bg-amber-50 border border-amber-200/80 text-amber-800 text-xs text-left flex items-start gap-2 mb-6">
-                    <svg class="w-4 h-4 text-amber-600 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                    </svg>
-                    <span>Tindakan ini bersifat permanen. Berkas foto dan data karya pendaftar akan terhapus.</span>
-                </div>
+                    <!-- Progress Info -->
+                    <div class="p-3 rounded-2xl bg-emerald-50/70 border border-emerald-200/80 text-emerald-800 text-xs flex items-center justify-center gap-2">
+                        <svg class="animate-spin w-3.5 h-3.5 text-emerald-600" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <span>Memperbarui daftar peserta secara otomatis...</span>
+                    </div>
 
-                <!-- Tombol Aksi Batal / Hapus -->
-                <div class="flex items-center gap-3">
                     <button 
                         type="button" 
-                        @click="closeDeleteModal()"
-                        class="flex-1 py-2.5 px-4 rounded-xl border border-slate-300 hover:bg-slate-100 text-slate-700 font-bold text-xs transition cursor-pointer"
+                        @click="finishDelete()"
+                        class="w-full py-3 px-5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-lg shadow-emerald-600/30 transition cursor-pointer flex items-center justify-center gap-2"
                     >
-                        Batal
+                        <span>Selesai</span>
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                        </svg>
                     </button>
-                    <form :action="deleteTarget?.delete_url" method="POST" class="flex-1">
-                        @csrf
-                        @method('DELETE')
-                        <button 
-                            type="submit" 
-                            class="w-full py-2.5 px-4 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-md shadow-rose-600/30 transition cursor-pointer"
-                        >
-                            Ya, Hapus Data
-                        </button>
-                    </form>
                 </div>
             </div>
         </div>

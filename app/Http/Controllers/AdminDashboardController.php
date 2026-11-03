@@ -124,7 +124,7 @@ class AdminDashboardController extends Controller
     /**
      * Hapus data pendaftaran.
      */
-    public function destroy(Registration $registration): RedirectResponse
+    public function destroy(Request $request, Registration $registration): \Symfony\Component\HttpFoundation\Response
     {
         // Hapus file foto dari disk jika ada
         if ($registration->profile_photo_path && Storage::disk('public')->exists($registration->profile_photo_path)) {
@@ -133,6 +133,13 @@ class AdminDashboardController extends Controller
 
         $regNum = $registration->registration_number;
         $registration->delete();
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => "Data pendaftaran {$regNum} berhasil dihapus.",
+            ]);
+        }
 
         return back()->with('status', "Data pendaftaran {$regNum} berhasil dihapus.");
     }

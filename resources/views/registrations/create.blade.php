@@ -357,7 +357,7 @@
                                 id="school_name" 
                                 name="school_name" 
                                 x-model="formData.school_name"
-                                @input="formData.school_name = $event.target.value.toUpperCase()"
+                                @blur="if (formData.school_name) formData.school_name = formData.school_name.toUpperCase()"
                                 value="{{ old('school_name') }}"
                                 placeholder="CONTOH: SMAN 1 KENDARI / SMPN 2 BAUBAU"
                                 class="w-full px-4 py-3 rounded-xl uppercase border {{ $errors->has('school_name') ? 'border-rose-400 bg-rose-50/30' : 'border-slate-300 focus:border-blue-500' }} focus:ring-4 focus:ring-blue-100 outline-none text-slate-800 text-sm transition"
