@@ -9,7 +9,8 @@
     @endif
 
     <title>{{ $title ?? 'EduTech Festival BTIKP — Pendaftaran Karya Digital' }}</title>
-    <link rel="icon" type="image/png" href="{{ asset('logoV2.png') }}">
+    <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}">
+    <link rel="shortcut icon" href="{{ asset('favicon.png') }}">
 
     <!-- Google Fonts: Plus Jakarta Sans -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -65,7 +66,7 @@
                             Formulir Pendaftaran
                         </a>
                         <a href="{{ route('admin.login') }}" class="inline-flex items-center gap-2 text-xs sm:text-sm font-medium text-slate-600 hover:text-slate-900 px-3 py-1.5 rounded-lg border border-slate-200 hover:border-slate-300 bg-white shadow-xs transition">
-                            <img src="{{ asset('logoV2.png') }}" alt="Logo" class="w-4 h-4 object-contain">
+                            <img src="{{ asset('logoV2.png') }}" alt="Logo" class="h-4 w-auto object-contain shrink-0">
                             <span>Panitia</span>
                         </a>
                     @endauth
