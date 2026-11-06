@@ -25,6 +25,15 @@ Route::get('/storage/{path}', function (string $path) {
     return response()->file($filePath);
 })->where('path', '.*');
 
+// Direct public asset fallback route untuk menjamin logo & favicon selalu dapat diakses
+Route::get('/{filename}.{ext}', function (string $filename, string $ext) {
+    $filePath = public_path("{$filename}.{$ext}");
+    if (!file_exists($filePath)) {
+        abort(404);
+    }
+    return response()->file($filePath);
+})->where('ext', 'png|jpg|jpeg|ico|svg|webp');
+
 /*
 |--------------------------------------------------------------------------
 | Rute Otentikasi Admin Panitia BTIKP
