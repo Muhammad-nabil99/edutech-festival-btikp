@@ -683,7 +683,7 @@
                 <div class="bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 px-6 sm:px-8 py-5 text-white flex items-center justify-between shrink-0">
                     <div class="flex items-center gap-3">
                         <div class="w-10 h-10 rounded-xl bg-white/10 p-1 backdrop-blur-xs border border-white/20 flex items-center justify-center shrink-0">
-                            <img src="{{ asset('logo.png') }}" alt="Logo BTIKP" class="w-full h-full object-contain">
+                            <img src="{{ asset('logo.jpeg') }}" alt="Logo BTIKP" class="w-full h-full object-contain">
                         </div>
                         <div>
                             <span class="text-[10px] tracking-widest uppercase font-semibold text-cyan-300">Detail Pendaftaran Peserta</span>

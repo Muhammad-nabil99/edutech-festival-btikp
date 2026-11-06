@@ -13,7 +13,7 @@
             <div class="p-6 sm:p-10 relative z-10">
                 <div class="flex items-center gap-4 mb-5">
                     <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-white/10 p-2 backdrop-blur-md border border-white/20 shadow-md flex items-center justify-center shrink-0">
-                        <img src="{{ asset('logo.png') }}" alt="Logo EduTech BTIKP" class="w-full h-full object-contain">
+                        <img src="{{ asset('logo.jpeg') }}" alt="Logo EduTech BTIKP" class="w-full h-full object-contain">
                     </div>
                     <div>
                         <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-white/10 text-cyan-300 border border-cyan-400/30 backdrop-blur-md">
