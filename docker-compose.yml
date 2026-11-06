@@ -26,7 +26,7 @@ services:
       SESSION_DRIVER: database
       FILESYSTEM_DISK: public
       AUTO_MIGRATE: "true"
-      AUTO_SEED: "${AUTO_SEED:-true}"
+      AUTO_SEED: "${AUTO_SEED:-false}"
     volumes:
       - storage_public:/var/www/html/storage/app/public
       - edutech_public:/var/www/html/public-shared
