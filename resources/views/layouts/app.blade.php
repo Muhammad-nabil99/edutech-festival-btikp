@@ -38,7 +38,7 @@
                 <!-- Brand / Logo -->
                 <a href="{{ route('registration.create') }}" class="flex items-center gap-3 group">
                     <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white p-1 border border-slate-200/80 flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform overflow-hidden">
-                        <img src="{{ asset('logoV2.png') }}" alt="Logo EduTech BTIKP" class="w-full h-full object-contain">
+                        <img src="{{ asset('logo.png') }}" alt="Logo EduTech BTIKP" class="w-full h-full object-contain">
                     </div>
                     <div>
                         <div class="flex items-center gap-2">
@@ -66,7 +66,7 @@
                             Formulir Pendaftaran
                         </a>
                         <a href="{{ route('admin.login') }}" class="inline-flex items-center gap-2 text-xs sm:text-sm font-medium text-slate-600 hover:text-slate-900 px-3 py-1.5 rounded-lg border border-slate-200 hover:border-slate-300 bg-white shadow-xs transition">
-                            <img src="{{ asset('logoV2.png') }}" alt="Logo" class="h-4 w-auto object-contain shrink-0">
+                            <img src="{{ asset('logo.png') }}" alt="Logo" class="h-4 w-auto object-contain shrink-0">
                             <span>Panitia</span>
                         </a>
                     @endauth
@@ -105,7 +105,7 @@
     <footer class="mt-auto border-t border-slate-200 bg-white/70 backdrop-blur-xs py-8">
         <div class="{{ $maxWidth ?? 'max-w-6xl' }} mx-auto px-4 sm:px-6 lg:px-8 text-center sm:text-left flex flex-col sm:flex-row items-center justify-between gap-4">
             <div class="flex items-center gap-3">
-                <img src="{{ asset('logoV2.png') }}" alt="Logo BTIKP" class="w-9 h-9 object-contain shrink-0 hidden sm:block">
+                <img src="{{ asset('logo.png') }}" alt="Logo BTIKP" class="w-9 h-9 object-contain shrink-0 hidden sm:block">
                 <div>
                     <p class="text-sm font-semibold text-slate-800">Balai Teknologi Informasi dan Komunikasi Pendidikan (BTIKP)</p>
                     <p class="text-xs text-slate-500">Dinas Pendidikan dan Kebudayaan Provinsi Sulawesi Tenggara &copy; {{ date('Y') }}. Seluruh hak cipta dilindungi.</p>
