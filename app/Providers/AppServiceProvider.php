@@ -20,7 +20,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        if (str_starts_with((string) config('app.url'), 'https://') || request()->isSecure()) {
+        if (str_starts_with((string) config('app.url'), 'https://') || (app()->has('request') && request()->isSecure())) {
             URL::forceScheme('https');
         }
     }

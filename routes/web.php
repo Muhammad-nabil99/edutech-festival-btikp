@@ -26,13 +26,13 @@ Route::get('/storage/{path}', function (string $path) {
 })->where('path', '.*');
 
 // Direct public asset fallback route untuk menjamin logo & favicon selalu dapat diakses
-Route::get('/{filename}.{ext}', function (string $filename, string $ext) {
-    $filePath = public_path("{$filename}.{$ext}");
-    if (!file_exists($filePath)) {
+Route::get('/{file}', function (string $file) {
+    $filePath = public_path($file);
+    if (!file_exists($filePath) || !is_file($filePath)) {
         abort(404);
     }
     return response()->file($filePath);
-})->where('ext', 'png|jpg|jpeg|ico|svg|webp');
+})->where('file', '.*\.(png|jpg|jpeg|ico|svg|webp)');
 
 /*
 |--------------------------------------------------------------------------
