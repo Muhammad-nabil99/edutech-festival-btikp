@@ -4,7 +4,7 @@
             <!-- Header -->
             <div class="text-center mb-8">
                 <div class="w-20 h-20 mx-auto mb-4 p-2 rounded-2xl bg-slate-50 border border-slate-200/80 shadow-sm flex items-center justify-center">
-                    <img src="{{ asset('logo.jpeg') }}" alt="Logo BTIKP" class="w-full h-full object-contain">
+                    <img src="{{ asset('logoV2.png') }}" alt="Logo BTIKP" class="w-full h-full object-contain">
                 </div>
                 <h1 class="text-xl font-extrabold text-slate-900 tracking-tight">Portal Panitia BTIKP</h1>
                 <p class="text-xs text-slate-500 mt-1">Masuk untuk mengelola pendaftar EduTech Festival</p>
