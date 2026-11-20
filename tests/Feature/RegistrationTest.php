@@ -156,6 +156,15 @@ class RegistrationTest extends TestCase
         $response->assertSee('Ekspor CSV / Excel');
     }
 
+    public function test_public_logo_asset_can_be_accessed(): void
+    {
+        $response = $this->get('/logo.png');
+        $response->assertStatus(200);
+
+        $faviconResponse = $this->get('/favicon.png');
+        $faviconResponse->assertStatus(200);
+    }
+
     /**
      * Test export CSV pendaftar oleh admin.
      */

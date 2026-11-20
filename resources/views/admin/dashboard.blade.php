@@ -11,13 +11,26 @@
             deleteSuccess: false,
             deletedInfo: null,
             
-            // Top 10 Slots State
+            // Top 10 Slots State & Reactive Map
             top10Slots: {
                 gim: {{ $stats['top10_gim'] }},
                 media: {{ $stats['top10_media'] }},
                 total: {{ $stats['top10_total'] }}
             },
             togglingTop10Id: null,
+            curatedMap: {
+                @foreach ($registrations as $r)
+                    {{ $r->id }}: {{ $r->is_curated_top10 ? 'true' : 'false' }},
+                @endforeach
+            },
+            isCurated(id) {
+                return !!this.curatedMap[id];
+            },
+            isSlotFull(cat) {
+                if (cat === 'gim_edukasi') return this.top10Slots.gim >= 10;
+                if (cat === 'media_pembelajaran_interaktif') return this.top10Slots.media >= 10;
+                return false;
+            },
 
             // Setting Modal State
             showSettingModal: false,
@@ -85,15 +98,16 @@
 
             // Interactive Toggle Top 10
             async toggleTop10(reg) {
-                if (this.togglingTop10Id) return;
+                if (!reg || this.togglingTop10Id) return;
 
                 // Check quota limit locally before sending
-                const isAdding = !reg.is_curated_top10;
+                const currentlyCurated = this.isCurated(reg.id);
+                const isAdding = !currentlyCurated;
                 const isGim = reg.learning_category === 'gim_edukasi';
                 const currentCount = isGim ? this.top10Slots.gim : this.top10Slots.media;
 
                 if (isAdding && currentCount >= 10) {
-                    alert('Slot Top 10 untuk kategori ' + reg.category_label + ' sudah penuh (maksimal 10 karya). Batalkan karya lain terlebih dahulu jika ingin menggantinya.');
+                    alert('Slot Top 10 untuk kategori ' + (reg.category_label || (isGim ? 'Gim Edukasi' : 'Media Interaktif')) + ' sudah penuh (maksimal 10 karya). Batalkan karya lain terlebih dahulu jika ingin menggantinya.');
                     return;
                 }
 
@@ -111,6 +125,7 @@
                     });
                     const data = await res.json();
                     if (res.ok && data.success) {
+                        this.curatedMap[reg.id] = data.is_curated;
                         reg.is_curated_top10 = data.is_curated;
                         if (this.selectedRegistration && this.selectedRegistration.id === reg.id) {
                             this.selectedRegistration.is_curated_top10 = data.is_curated;
@@ -136,36 +151,6 @@
             }
         }"
     >
-        <!-- Top Alert Notification Banner -->
-        <div class="rounded-2xl bg-gradient-to-r from-emerald-50/90 via-emerald-50/50 to-teal-50/90 border border-emerald-200/80 p-4 shadow-xs flex items-center justify-between transition-all">
-            <div class="flex items-center space-x-3.5">
-                <div class="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                </div>
-                <div>
-                    <h4 class="text-xs sm:text-sm font-bold text-emerald-950">Selamat datang kembali di Dashboard Panitia BTIKP!</h4>
-                    <p class="text-[11px] sm:text-xs text-emerald-700/90 mt-0.5">
-                        Statistik karya, kurasi Top 10, dan rekap penilaian Dewan Juri disinkronkan secara real-time.
-                    </p>
-                </div>
-            </div>
-            <div class="flex items-center gap-2">
-                <button 
-                    type="button" 
-                    @click="showSettingModal = true"
-                    class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-emerald-200 text-emerald-800 text-xs font-bold hover:bg-emerald-50 transition shadow-2xs cursor-pointer"
-                >
-                    <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                    <span>Status Pendaftaran: <strong>{{ $registrationSetting->isOpen() ? 'Dibuka' : 'Ditutup' }}</strong></span>
-                </button>
-            </div>
-        </div>
-
         <!-- Dashboard Header & Top Actions -->
         <div class="flex flex-col md:flex-row md:items-end justify-between gap-5">
             <div>
@@ -183,12 +168,23 @@
 
             <!-- Action Buttons -->
             <div class="flex items-center gap-2.5 flex-wrap">
+                <!-- Status Pendaftaran Pill Button -->
+                <button 
+                    type="button" 
+                    @click="showSettingModal = true"
+                    class="inline-flex items-center justify-center gap-2 px-3.5 py-2.5 text-xs font-bold rounded-xl border shadow-xs transition cursor-pointer {{ $registrationSetting->isOpen() ? 'bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100' : 'bg-rose-50 text-rose-800 border-rose-200 hover:bg-rose-100' }}"
+                    title="Klik untuk mengubah status jadwal dan formulir pendaftaran"
+                >
+                    <span class="w-2 h-2 rounded-full {{ $registrationSetting->isOpen() ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500' }}"></span>
+                    <span>Status Form: <strong>{{ $registrationSetting->isOpen() ? 'Dibuka' : 'Ditutup' }}</strong></span>
+                </button>
+
                 <button 
                     type="button" 
                     @click="showSettingModal = true"
                     class="inline-flex items-center justify-center px-4 py-2.5 text-xs font-bold text-slate-700 bg-white border border-slate-200 hover:border-slate-300 rounded-xl shadow-xs hover:bg-slate-50 transition cursor-pointer"
                 >
-                    <svg class="w-4 h-4 mr-1.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg class="w-4 h-4 mr-1.5 text-slate-500 shrink-0 block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
                     </svg>
                     <span>Jadwal &amp; Form</span>
@@ -218,75 +214,75 @@
         </div>
 
         <!-- Metric Stat Cards (Eduxon Style from code.html) -->
-        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <section class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
             <!-- Metric 1: Total Pendaftar -->
-            <div class="bg-white rounded-3xl p-5 border border-slate-100 shadow-xs hover:shadow-soft transition-all duration-300 relative overflow-hidden group">
-                <div class="flex items-center justify-between mb-4">
-                    <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Total Pendaftar</span>
-                    <div class="w-10 h-10 rounded-2xl bg-purple-50 text-[#5e43f3] flex items-center justify-center ring-4 ring-purple-50/50 group-hover:scale-110 transition-transform">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="bg-white rounded-3xl p-4 sm:p-5 border border-slate-100 shadow-xs hover:shadow-soft transition-all duration-300 relative overflow-hidden group">
+                <div class="flex items-center justify-between mb-3 sm:mb-4">
+                    <span class="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-400 truncate">Total Pendaftar</span>
+                    <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-2xl bg-purple-50 text-[#5e43f3] flex items-center justify-center ring-4 ring-purple-50/50 group-hover:scale-110 transition-transform shrink-0">
+                        <svg class="w-4 h-4 sm:w-5 sm:h-5 shrink-0 block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                         </svg>
                     </div>
                 </div>
-                <div class="flex items-baseline space-x-2">
-                    <span class="text-3xl font-extrabold text-slate-900 tracking-tight">{{ number_format($stats['total']) }}</span>
-                    <span class="text-xs font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">Terkonfirmasi</span>
+                <div class="flex items-baseline gap-1.5 sm:gap-2 flex-nowrap shrink-0 overflow-hidden">
+                    <span class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight font-mono whitespace-nowrap shrink-0 leading-none">{{ number_format($stats['total']) }}</span>
+                    <span class="text-[10px] sm:text-xs font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full whitespace-nowrap shrink-0 leading-none">Terkonfirmasi</span>
                 </div>
-                <p class="text-xs text-slate-400 mt-2 font-medium">Peserta terdaftar di sistem</p>
+                <p class="text-[11px] sm:text-xs text-slate-400 mt-2 font-medium truncate">Peserta terdaftar di sistem</p>
             </div>
 
             <!-- Metric 2: Gim Edukasi -->
-            <div class="bg-white rounded-3xl p-5 border border-slate-100 shadow-xs hover:shadow-soft transition-all duration-300 relative overflow-hidden group">
-                <div class="flex items-center justify-between mb-4">
-                    <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Gim Edukasi</span>
-                    <div class="w-10 h-10 rounded-2xl bg-amber-50 text-amber-500 flex items-center justify-center ring-4 ring-amber-50/50 group-hover:scale-110 transition-transform">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="bg-white rounded-3xl p-4 sm:p-5 border border-slate-100 shadow-xs hover:shadow-soft transition-all duration-300 relative overflow-hidden group">
+                <div class="flex items-center justify-between mb-3 sm:mb-4">
+                    <span class="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-400 truncate">Gim Edukasi</span>
+                    <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-2xl bg-amber-50 text-amber-500 flex items-center justify-center ring-4 ring-amber-50/50 group-hover:scale-110 transition-transform shrink-0">
+                        <svg class="w-4 h-4 sm:w-5 sm:h-5 shrink-0 block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                     </div>
                 </div>
-                <div class="flex items-baseline space-x-2">
-                    <span class="text-3xl font-extrabold text-amber-500 tracking-tight">{{ number_format($stats['gim_edukasi']) }}</span>
-                    <span class="text-xs font-medium text-slate-400">Karya Game</span>
+                <div class="flex items-baseline gap-1.5 sm:gap-2 flex-nowrap shrink-0 overflow-hidden">
+                    <span class="text-2xl sm:text-3xl font-extrabold text-amber-500 tracking-tight font-mono whitespace-nowrap shrink-0 leading-none">{{ number_format($stats['gim_edukasi']) }}</span>
+                    <span class="text-[10px] sm:text-xs font-medium text-slate-400 whitespace-nowrap shrink-0 leading-none">Karya Game</span>
                 </div>
-                <p class="text-xs text-slate-400 mt-2 font-medium">Karya game interaktif terkirim</p>
+                <p class="text-[11px] sm:text-xs text-slate-400 mt-2 font-medium truncate">Karya game terkirim</p>
             </div>
 
             <!-- Metric 3: Media Pembelajaran Interaktif -->
-            <div class="bg-white rounded-3xl p-5 border border-slate-100 shadow-xs hover:shadow-soft transition-all duration-300 relative overflow-hidden group">
-                <div class="flex items-center justify-between mb-4">
-                    <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Media Interaktif</span>
-                    <div class="w-10 h-10 rounded-2xl bg-sky-50 text-sky-600 flex items-center justify-center ring-4 ring-sky-50/50 group-hover:scale-110 transition-transform">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="bg-white rounded-3xl p-4 sm:p-5 border border-slate-100 shadow-xs hover:shadow-soft transition-all duration-300 relative overflow-hidden group">
+                <div class="flex items-center justify-between mb-3 sm:mb-4">
+                    <span class="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-400 truncate">Media Interaktif</span>
+                    <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-2xl bg-sky-50 text-sky-600 flex items-center justify-center ring-4 ring-sky-50/50 group-hover:scale-110 transition-transform shrink-0">
+                        <svg class="w-4 h-4 sm:w-5 sm:h-5 shrink-0 block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                         </svg>
                     </div>
                 </div>
-                <div class="flex items-baseline space-x-2">
-                    <span class="text-3xl font-extrabold text-sky-600 tracking-tight">{{ number_format($stats['media_interaktif']) }}</span>
-                    <span class="text-xs font-medium text-slate-400">Multimedia</span>
+                <div class="flex items-baseline gap-1.5 sm:gap-2 flex-nowrap shrink-0 overflow-hidden">
+                    <span class="text-2xl sm:text-3xl font-extrabold text-sky-600 tracking-tight font-mono whitespace-nowrap shrink-0 leading-none">{{ number_format($stats['media_interaktif']) }}</span>
+                    <span class="text-[10px] sm:text-xs font-medium text-slate-400 whitespace-nowrap shrink-0 leading-none">Multimedia</span>
                 </div>
-                <p class="text-xs text-slate-400 mt-2 font-medium">Modul &amp; web interaktif</p>
+                <p class="text-[11px] sm:text-xs text-slate-400 mt-2 font-medium truncate">Modul &amp; web interaktif</p>
             </div>
 
             <!-- Metric 4: Sebaran Wilayah -->
-            <div class="bg-white rounded-3xl p-5 border border-slate-100 shadow-xs hover:shadow-soft transition-all duration-300 relative overflow-hidden group">
-                <div class="flex items-center justify-between mb-4">
-                    <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Sebaran Wilayah</span>
-                    <div class="w-10 h-10 rounded-2xl bg-purple-50 text-[#5e43f3] flex items-center justify-center ring-4 ring-purple-50/50 group-hover:scale-110 transition-transform">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="bg-white rounded-3xl p-4 sm:p-5 border border-slate-100 shadow-xs hover:shadow-soft transition-all duration-300 relative overflow-hidden group">
+                <div class="flex items-center justify-between mb-3 sm:mb-4">
+                    <span class="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-400 truncate">Sebaran Wilayah</span>
+                    <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-2xl bg-purple-50 text-[#5e43f3] flex items-center justify-center ring-4 ring-purple-50/50 group-hover:scale-110 transition-transform shrink-0">
+                        <svg class="w-4 h-4 sm:w-5 sm:h-5 shrink-0 block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                         </svg>
                     </div>
                 </div>
-                <div class="flex items-baseline space-x-2">
-                    <span class="text-3xl font-extrabold text-[#5e43f3] tracking-tight">{{ $stats['distinct_regions'] }}</span>
-                    <span class="text-xs font-medium text-slate-400">/ 17 Daerah</span>
+                <div class="flex items-baseline gap-1.5 sm:gap-2 flex-nowrap shrink-0 overflow-hidden">
+                    <span class="text-2xl sm:text-3xl font-extrabold text-[#5e43f3] tracking-tight font-mono whitespace-nowrap shrink-0 leading-none">{{ $stats['distinct_regions'] }}</span>
+                    <span class="text-[10px] sm:text-xs font-medium text-slate-400 whitespace-nowrap shrink-0 leading-none">/ 17 Daerah</span>
                 </div>
-                <p class="text-xs text-slate-400 mt-2 font-medium">Kabupaten &amp; Kota se-Sultra</p>
+                <p class="text-[11px] sm:text-xs text-slate-400 mt-2 font-medium truncate">Kabupaten &amp; Kota se-Sultra</p>
             </div>
         </section>
 
@@ -313,12 +309,12 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 flex-1 max-w-xl">
                     <!-- Gim Edukasi Slot -->
                     <div class="bg-white p-4 rounded-2xl border border-amber-200/80 shadow-2xs space-y-2">
-                        <div class="flex items-center justify-between text-xs">
-                            <span class="font-bold text-slate-800 flex items-center gap-1.5">
-                                <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+                        <div class="flex items-center justify-between text-xs gap-2">
+                            <span class="font-bold text-slate-800 flex items-center gap-1.5 whitespace-nowrap shrink-0">
+                                <span class="w-2.5 h-2.5 rounded-full bg-amber-500 shrink-0"></span>
                                 Gim Edukasi
                             </span>
-                            <span class="font-mono font-extrabold text-amber-700">
+                            <span class="font-mono font-extrabold text-amber-700 whitespace-nowrap shrink-0">
                                 <span x-text="top10Slots.gim">{{ $stats['top10_gim'] }}</span> / 10 Slot
                             </span>
                         </div>
@@ -329,20 +325,20 @@
                                 :style="'width: ' + (top10Slots.gim * 10) + '%'"
                             ></div>
                         </div>
-                        <div class="flex items-center justify-between text-[11px] text-slate-400">
-                            <span x-text="top10Slots.gim >= 10 ? 'Slot Kategori Penuh' : (10 - top10Slots.gim) + ' slot tersisa'"></span>
-                            <a href="{{ route('admin.dashboard', ['tab' => 'top10_gim']) }}" class="text-[#5e43f3] font-bold hover:underline">Lihat Karya &rarr;</a>
+                        <div class="flex items-center justify-between text-[11px] text-slate-400 gap-2">
+                            <span class="truncate" x-text="top10Slots.gim >= 10 ? 'Slot Kategori Penuh' : (10 - top10Slots.gim) + ' slot tersisa'"></span>
+                            <a href="{{ route('admin.dashboard', ['tab' => 'top10_gim']) }}" class="text-[#5e43f3] font-bold hover:underline whitespace-nowrap shrink-0">Lihat Karya &rarr;</a>
                         </div>
                     </div>
 
                     <!-- Media Interaktif Slot -->
                     <div class="bg-white p-4 rounded-2xl border border-sky-200/80 shadow-2xs space-y-2">
-                        <div class="flex items-center justify-between text-xs">
-                            <span class="font-bold text-slate-800 flex items-center gap-1.5">
-                                <span class="w-2.5 h-2.5 rounded-full bg-sky-500"></span>
+                        <div class="flex items-center justify-between text-xs gap-2">
+                            <span class="font-bold text-slate-800 flex items-center gap-1.5 whitespace-nowrap shrink-0">
+                                <span class="w-2.5 h-2.5 rounded-full bg-sky-500 shrink-0"></span>
                                 Media Interaktif
                             </span>
-                            <span class="font-mono font-extrabold text-sky-700">
+                            <span class="font-mono font-extrabold text-sky-700 whitespace-nowrap shrink-0">
                                 <span x-text="top10Slots.media">{{ $stats['top10_media'] }}</span> / 10 Slot
                             </span>
                         </div>
@@ -353,9 +349,9 @@
                                 :style="'width: ' + (top10Slots.media * 10) + '%'"
                             ></div>
                         </div>
-                        <div class="flex items-center justify-between text-[11px] text-slate-400">
-                            <span x-text="top10Slots.media >= 10 ? 'Slot Kategori Penuh' : (10 - top10Slots.media) + ' slot tersisa'"></span>
-                            <a href="{{ route('admin.dashboard', ['tab' => 'top10_media']) }}" class="text-[#5e43f3] font-bold hover:underline">Lihat Karya &rarr;</a>
+                        <div class="flex items-center justify-between text-[11px] text-slate-400 gap-2">
+                            <span class="truncate" x-text="top10Slots.media >= 10 ? 'Slot Kategori Penuh' : (10 - top10Slots.media) + ' slot tersisa'"></span>
+                            <a href="{{ route('admin.dashboard', ['tab' => 'top10_media']) }}" class="text-[#5e43f3] font-bold hover:underline whitespace-nowrap shrink-0">Lihat Karya &rarr;</a>
                         </div>
                     </div>
                 </div>
@@ -595,7 +591,8 @@
                                     ];
                                 @endphp
                                 <tr 
-                                    class="hover:bg-slate-50/80 transition-colors group cursor-pointer"
+                                    class="transition-colors group cursor-pointer"
+                                    :class="isCurated({{ $reg->id }}) ? 'bg-amber-50/50 hover:bg-amber-50/80 border-l-4 border-l-amber-500' : 'hover:bg-slate-50/80'"
                                     @click="openDetail(@js($regPayload))"
                                 >
                                     <!-- Peserta -->
@@ -652,37 +649,35 @@
                                             @endif
 
                                             <!-- Prominent Top 10 Badge if Selected -->
-                                            @if ($reg->is_curated_top10)
-                                                <div>
-                                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-2xs">
-                                                        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                                                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                                                        </svg>
-                                                        <span>Top 10 Terbaik</span>
-                                                    </span>
-                                                </div>
-                                            @endif
+                                            <div x-show="isCurated({{ $reg->id }})" x-cloak>
+                                                <span class="inline-flex items-center justify-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-2xs whitespace-nowrap leading-none shrink-0 align-middle">
+                                                    <svg class="w-3 h-3 shrink-0 block" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                                    </svg>
+                                                    <span class="leading-none">Top 10 Terbaik</span>
+                                                </span>
+                                            </div>
                                         </div>
                                     </td>
 
                                     <!-- Kontak -->
                                     <td class="py-4 px-4" @click.stop>
                                         <div class="space-y-1">
-                                            <div class="text-slate-600 font-medium flex items-center gap-1.5">
-                                                <svg class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <div class="text-slate-600 font-medium flex items-center gap-1.5 whitespace-nowrap">
+                                                <svg class="w-3 h-3 text-slate-400 shrink-0 block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                                                 </svg>
-                                                <span>{{ $reg->email }}</span>
+                                                <span class="truncate">{{ $reg->email }}</span>
                                             </div>
                                             <a 
-                                                class="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-semibold bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition-colors border border-emerald-200" 
+                                                class="inline-flex items-center justify-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition-colors border border-emerald-200 whitespace-nowrap leading-none shrink-0" 
                                                 href="{{ $reg->whatsapp_chat_url }}" 
                                                 target="_blank"
                                             >
-                                                <svg class="w-3 h-3 mr-1 text-emerald-600" fill="currentColor" viewBox="0 0 24 24">
+                                                <svg class="w-3 h-3 text-emerald-600 shrink-0 block" fill="currentColor" viewBox="0 0 24 24">
                                                     <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.007c.106.005.249-.04.39.299.144.347.491 1.2.534 1.288.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.353.101.173.449.741.963 1.2 1.014.904 1.868 1.185 2.134 1.315.265.13.42.115.578-.066.158-.181.677-.789.858-1.06.181-.271.36-.226.605-.136.245.09 1.545.728 1.811.86.265.132.441.198.505.311.063.113.063.655-.081 1.06z" />
                                                 </svg>
-                                                <span>Chat WA ({{ $reg->whatsapp_number }})</span>
+                                                <span class="leading-none">Chat WA ({{ $reg->whatsapp_number }})</span>
                                             </a>
                                         </div>
                                     </td>
@@ -690,13 +685,13 @@
                                     <!-- Link Karya -->
                                     <td class="py-4 px-4" @click.stop>
                                         <a 
-                                            class="inline-flex items-center px-3.5 py-1.5 rounded-xl border border-slate-200 text-slate-700 font-semibold hover:border-[#5e43f3] hover:text-[#5e43f3] hover:bg-purple-50/50 transition-all shadow-2xs" 
+                                            class="inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-xl border border-slate-200 text-slate-700 font-semibold hover:border-[#5e43f3] hover:text-[#5e43f3] hover:bg-purple-50/50 transition-all shadow-2xs whitespace-nowrap leading-none shrink-0" 
                                             href="{{ $reg->media_link }}" 
                                             target="_blank" 
                                             rel="noopener noreferrer"
                                         >
-                                            <span>Buka Karya</span>
-                                            <svg class="w-3.5 h-3.5 ml-1.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <span class="leading-none">Buka Karya</span>
+                                            <svg class="w-3.5 h-3.5 text-slate-400 shrink-0 block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                                             </svg>
                                         </a>
@@ -704,38 +699,30 @@
 
                                     <!-- Tombol Toggle Kurasi Top 10 (Interactive Action) -->
                                     <td class="py-4 px-4 text-center" @click.stop>
-                                        @if ($reg->is_curated_top10)
-                                            <button 
-                                                type="button" 
-                                                @click="toggleTop10(@js($regPayload))"
-                                                :disabled="togglingTop10Id === {{ $reg->id }}"
-                                                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-100 hover:bg-rose-100 text-amber-900 hover:text-rose-700 border border-amber-300 hover:border-rose-300 transition-all cursor-pointer shadow-2xs"
-                                                title="Klik untuk membatalkan status Top 10"
-                                            >
-                                                <svg class="w-3.5 h-3.5 text-amber-600" fill="currentColor" viewBox="0 0 20 20">
+                                        <button 
+                                            type="button" 
+                                            @click="toggleTop10(@js($regPayload))"
+                                            :disabled="togglingTop10Id === {{ $reg->id }} || (!isCurated({{ $reg->id }}) && isSlotFull('{{ $reg->learning_category }}'))"
+                                            class="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap leading-none shrink-0 align-middle transition-all cursor-pointer shadow-2xs"
+                                            :class="isCurated({{ $reg->id }}) 
+                                                ? 'bg-amber-500 hover:bg-rose-600 text-white shadow-md shadow-amber-500/25 border border-amber-500 hover:border-rose-600' 
+                                                : (isSlotFull('{{ $reg->learning_category }}') 
+                                                    ? 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed' 
+                                                    : 'bg-white hover:bg-purple-50 text-[#5e43f3] hover:text-indigo-700 border border-purple-200 hover:border-purple-300')"
+                                            :title="isCurated({{ $reg->id }}) ? 'Karya terpilih Top 10 (Klik untuk membatalkan)' : (isSlotFull('{{ $reg->learning_category }}') ? 'Slot Top 10 kategori ini sudah penuh' : 'Pilih karya ini masuk nominasi Top 10')"
+                                        >
+                                            <template x-if="isCurated({{ $reg->id }})">
+                                                <svg class="w-3.5 h-3.5 shrink-0 block text-white" fill="currentColor" viewBox="0 0 20 20">
                                                     <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                                                 </svg>
-                                                <span>Batal Top 10</span>
-                                            </button>
-                                        @else
-                                            @php
-                                                $isGimFull = $reg->learning_category === 'gim_edukasi' && $stats['top10_gim'] >= 10;
-                                                $isMediaFull = $reg->learning_category === 'media_pembelajaran_interaktif' && $stats['top10_media'] >= 10;
-                                                $isSlotFull = $isGimFull || $isMediaFull;
-                                            @endphp
-                                            <button 
-                                                type="button" 
-                                                @click="toggleTop10(@js($regPayload))"
-                                                :disabled="togglingTop10Id === {{ $reg->id }}"
-                                                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold {{ $isSlotFull ? 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed' : 'bg-white hover:bg-purple-50 text-[#5e43f3] hover:text-indigo-700 border border-purple-200 hover:border-purple-300 shadow-2xs' }} transition-all cursor-pointer"
-                                                title="{{ $isSlotFull ? 'Slot Top 10 kategori ini sudah penuh (10/10)' : 'Pilih karya ini masuk nominasi Top 10' }}"
-                                            >
-                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            </template>
+                                            <template x-if="!isCurated({{ $reg->id }})">
+                                                <svg class="w-3.5 h-3.5 shrink-0 block text-current" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
                                                 </svg>
-                                                <span>{{ $isSlotFull ? 'Slot Penuh' : 'Pilih Top 10' }}</span>
-                                            </button>
-                                        @endif
+                                            </template>
+                                            <span class="leading-none" x-text="isCurated({{ $reg->id }}) ? '⭐ Terpilih Top 10' : (isSlotFull('{{ $reg->learning_category }}') ? 'Slot Penuh' : 'Pilih Top 10')"></span>
+                                        </button>
                                     </td>
 
                                     <!-- Aksi Detail & Hapus -->
@@ -816,7 +803,8 @@
                             ];
                         @endphp
                         <div 
-                            class="bg-white rounded-3xl p-5 border {{ $reg->is_curated_top10 ? 'border-amber-300 ring-2 ring-amber-100' : 'border-slate-100' }} shadow-xs hover:shadow-soft transition-all cursor-pointer flex flex-col justify-between group"
+                            class="bg-white rounded-3xl p-5 border shadow-xs hover:shadow-soft transition-all cursor-pointer flex flex-col justify-between group"
+                            :class="isCurated({{ $reg->id }}) ? 'border-amber-400 ring-2 ring-amber-300/50 bg-gradient-to-b from-amber-50/30 via-white to-white' : 'border-slate-100'"
                             @click="openDetail(@js($regPayload))"
                         >
                             <div>
@@ -833,14 +821,14 @@
                                             </span>
                                         @endif
 
-                                        @if ($reg->is_curated_top10)
-                                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-2xs">
+                                        <div x-show="isCurated({{ $reg->id }})" x-cloak>
+                                            <span class="inline-flex items-center justify-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-2xs whitespace-nowrap leading-none shrink-0 align-middle">
                                                 ⭐ Top 10
                                             </span>
-                                        @endif
+                                        </div>
                                     </div>
 
-                                    <span class="text-[11px] font-mono font-bold text-[#5e43f3] bg-purple-50 px-2 py-0.5 rounded-md border border-purple-200">
+                                    <span class="text-[11px] font-mono font-bold text-[#5e43f3] bg-purple-50 px-2 py-0.5 rounded-md border border-purple-200 whitespace-nowrap shrink-0">
                                         {{ $reg->registration_number }}
                                     </span>
                                 </div>
@@ -902,23 +890,30 @@
                             <!-- Card Footer Action Buttons -->
                             <div class="pt-3 border-t border-slate-100 flex items-center justify-between gap-2" @click.stop>
                                 <!-- Toggle Top 10 Button -->
-                                @if ($reg->is_curated_top10)
-                                    <button 
-                                        type="button" 
-                                        @click="toggleTop10(@js($regPayload))"
-                                        class="px-3 py-1.5 rounded-xl bg-amber-100 hover:bg-rose-100 text-amber-900 hover:text-rose-700 text-xs font-bold transition cursor-pointer"
-                                    >
-                                        Batal Top 10
-                                    </button>
-                                @else
-                                    <button 
-                                        type="button" 
-                                        @click="toggleTop10(@js($regPayload))"
-                                        class="px-3 py-1.5 rounded-xl bg-purple-50 hover:bg-purple-100 text-[#5e43f3] text-xs font-bold transition cursor-pointer"
-                                    >
-                                        + Pilih Top 10
-                                    </button>
-                                @endif
+                                <button 
+                                    type="button" 
+                                    @click="toggleTop10(@js($regPayload))"
+                                    :disabled="togglingTop10Id === {{ $reg->id }} || (!isCurated({{ $reg->id }}) && isSlotFull('{{ $reg->learning_category }}'))"
+                                    class="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap leading-none shrink-0 align-middle transition cursor-pointer shadow-2xs"
+                                    :class="isCurated({{ $reg->id }}) 
+                                        ? 'bg-amber-500 hover:bg-rose-600 text-white shadow-md shadow-amber-500/25 border border-amber-500 hover:border-rose-600' 
+                                        : (isSlotFull('{{ $reg->learning_category }}') 
+                                            ? 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed' 
+                                            : 'bg-purple-50 hover:bg-purple-100 text-[#5e43f3] border border-purple-200/80')"
+                                    :title="isCurated({{ $reg->id }}) ? 'Karya terpilih Top 10 (Klik untuk membatalkan)' : (isSlotFull('{{ $reg->learning_category }}') ? 'Slot Top 10 kategori ini sudah penuh' : 'Pilih karya ini masuk nominasi Top 10')"
+                                >
+                                    <template x-if="isCurated({{ $reg->id }})">
+                                        <svg class="w-3.5 h-3.5 shrink-0 block text-white" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                        </svg>
+                                    </template>
+                                    <template x-if="!isCurated({{ $reg->id }})">
+                                        <svg class="w-3.5 h-3.5 shrink-0 block text-current" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                                        </svg>
+                                    </template>
+                                    <span class="leading-none" x-text="isCurated({{ $reg->id }}) ? '⭐ Terpilih Top 10' : (isSlotFull('{{ $reg->learning_category }}') ? 'Slot Penuh' : '+ Pilih Top 10')"></span>
+                                </button>
 
                                 <div class="flex items-center gap-1">
                                     <button 
@@ -1120,11 +1115,11 @@
         <div 
             x-show="selectedRegistration" 
             x-cloak
-            class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs"
+            class="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-5 bg-slate-900/70 backdrop-blur-xs overflow-hidden"
             @keydown.escape.window="closeDetail()"
         >
             <div 
-                class="relative w-full max-w-2xl bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden transform transition-all max-h-[90vh] flex flex-col"
+                class="relative w-full max-w-2xl bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden transform transition-all my-auto max-h-[92vh] sm:max-h-[90vh] flex flex-col"
                 @click.away="closeDetail()"
             >
                 <!-- Top Header -->
@@ -1232,10 +1227,18 @@
                         <button 
                             type="button" 
                             @click="toggleTop10(selectedRegistration)"
-                            class="px-4 py-2 rounded-xl text-xs font-bold transition shadow-xs cursor-pointer"
-                            :class="selectedRegistration?.is_curated_top10 ? 'bg-amber-100 hover:bg-rose-100 text-amber-900 hover:text-rose-700 border border-amber-300' : 'bg-[#5e43f3] hover:bg-indigo-700 text-white'"
+                            :disabled="togglingTop10Id === selectedRegistration?.id || (!isCurated(selectedRegistration?.id) && isSlotFull(selectedRegistration?.learning_category))"
+                            class="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap leading-none shrink-0 align-middle transition shadow-xs cursor-pointer"
+                            :class="isCurated(selectedRegistration?.id) 
+                                ? 'bg-amber-500 hover:bg-rose-600 text-white shadow-md shadow-amber-500/25 border border-amber-500 hover:border-rose-600' 
+                                : (isSlotFull(selectedRegistration?.learning_category) 
+                                    ? 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed' 
+                                    : 'bg-[#5e43f3] hover:bg-indigo-700 text-white')"
                         >
-                            <span x-text="selectedRegistration?.is_curated_top10 ? '⭐ Batalkan dari Top 10' : '⭐ Masukkan ke Top 10 Terbaik'"></span>
+                            <svg class="w-3.5 h-3.5 shrink-0 block" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                            </svg>
+                            <span class="leading-none" x-text="isCurated(selectedRegistration?.id) ? '⭐ Batalkan dari Top 10' : (isSlotFull(selectedRegistration?.learning_category) ? 'Slot Kategori Penuh' : '⭐ Masukkan ke Top 10 Terbaik')"></span>
                         </button>
 
                         <button 
@@ -1264,11 +1267,11 @@
         <div 
             x-show="showSettingModal" 
             x-cloak
-            class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs"
+            class="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-5 bg-slate-900/70 backdrop-blur-xs overflow-y-auto"
             @keydown.escape.window="showSettingModal = false"
         >
             <div 
-                class="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden transform transition-all"
+                class="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden transform transition-all my-auto max-h-[92vh] flex flex-col"
                 @click.away="showSettingModal = false"
             >
                 <div class="px-6 py-5 bg-gradient-to-r from-slate-900 to-[#5e43f3] text-white flex items-center justify-between">
@@ -1379,11 +1382,11 @@
         <div 
             x-show="editingJudge !== null" 
             x-cloak
-            class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs"
+            class="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-5 bg-slate-900/70 backdrop-blur-xs overflow-y-auto"
             @keydown.escape.window="editingJudge = null"
         >
             <div 
-                class="relative w-full max-w-md bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden transform transition-all"
+                class="relative w-full max-w-md bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden transform transition-all my-auto max-h-[92vh] flex flex-col"
                 @click.away="editingJudge = null"
             >
                 <div class="px-6 py-5 bg-gradient-to-r from-slate-900 to-[#5e43f3] text-white flex items-center justify-between">
@@ -1440,7 +1443,7 @@
         <div 
             x-show="deleteTarget !== null" 
             x-cloak
-            class="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs"
+            class="fixed inset-0 z-[9999] overflow-y-auto flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-xs"
             @keydown.escape.window="closeDeleteModal()"
         >
             <div 
@@ -1548,7 +1551,7 @@
         <div 
             x-show="previewImage" 
             x-cloak
-            class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-xs p-4"
+            class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-xs p-4"
             @click.self="previewImage = null"
         >
             <div class="relative bg-white rounded-3xl p-4 max-w-sm w-full text-center shadow-2xl">

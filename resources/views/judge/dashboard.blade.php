@@ -251,63 +251,63 @@
         <div 
             x-show="scoringWork !== null" 
             x-cloak
-            class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto"
+            class="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-6 bg-slate-900/70 backdrop-blur-xs overflow-hidden"
             @keydown.escape.window="closeScoring()"
         >
             <div 
-                class="relative w-full max-w-2xl bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden transform transition-all my-8 max-h-[92vh] flex flex-col"
+                class="relative w-full max-w-2xl bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden transform transition-all my-auto max-h-[92vh] sm:max-h-[88vh] flex flex-col"
                 @click.away="closeScoring()"
             >
-                <!-- Top Header -->
-                <div class="px-6 py-5 bg-gradient-to-r from-slate-900 via-indigo-950 to-[#5e43f3] text-white flex items-center justify-between shrink-0">
-                    <div>
-                        <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-purple-500/30 text-purple-200 border border-purple-300/30 mb-1">
+                <!-- Top Header (Always Visible & Pinned) -->
+                <div class="px-5 py-3.5 sm:px-6 sm:py-4 bg-gradient-to-r from-slate-900 via-indigo-950 to-[#5e43f3] text-white flex items-center justify-between shrink-0">
+                    <div class="min-w-0 pr-3">
+                        <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-purple-500/30 text-purple-200 border border-purple-300/30 mb-0.5">
                             <span>Rubrik Penilaian Bab IV</span>
                         </div>
-                        <h3 class="text-base font-bold" x-text="'Lembar Nilai: ' + (scoringWork?.full_name || '')"></h3>
-                        <p class="text-xs text-purple-200" x-text="(scoringWork?.school_name || '') + ' • ' + (scoringWork?.category_label || '')"></p>
+                        <h3 class="text-sm sm:text-base font-bold truncate" x-text="'Lembar Nilai: ' + (scoringWork?.full_name || '')"></h3>
+                        <p class="text-[11px] sm:text-xs text-purple-200 truncate" x-text="(scoringWork?.school_name || '') + ' • ' + (scoringWork?.category_label || '')"></p>
                     </div>
-                    <button type="button" @click="closeScoring()" class="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white">
+                    <button type="button" @click="closeScoring()" class="p-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white shrink-0 transition cursor-pointer" title="Tutup lembar nilai">
                         <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                         </svg>
                     </button>
                 </div>
 
-                <!-- Scrollable Rubric Form -->
-                <div class="p-6 sm:p-7 overflow-y-auto space-y-6">
+                <!-- Scrollable Rubric Form (Fits and Scrolls Smoothly Inside Modal) -->
+                <div class="p-4 sm:p-6 overflow-y-auto space-y-4 sm:space-y-5 flex-1 min-h-0">
                     <!-- Tautan Cek Karya -->
-                    <div class="p-3.5 rounded-2xl bg-purple-50 border border-purple-200 flex items-center justify-between text-xs">
-                        <span class="font-bold text-[#5e43f3]">Tautan Karya Peserta:</span>
+                    <div class="p-3 sm:p-3.5 rounded-2xl bg-purple-50 border border-purple-200 flex items-center justify-between text-xs gap-3">
+                        <span class="font-bold text-[#5e43f3] whitespace-nowrap">Tautan Karya Peserta:</span>
                         <a 
                             :href="scoringWork?.media_link" 
                             target="_blank" 
-                            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#5e43f3] text-white font-bold hover:bg-indigo-700 transition"
+                            class="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#5e43f3] text-white text-xs font-bold hover:bg-indigo-700 transition whitespace-nowrap shrink-0 shadow-2xs"
                         >
                             <span>Buka Media Karya Digital</span>
-                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <svg class="w-3.5 h-3.5 shrink-0 block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                             </svg>
                         </a>
                     </div>
 
                     <!-- ASPEK 1: Pedagogis & Subjek Materi (Bobot 30%) -->
-                    <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2.5">
-                        <div class="flex items-center justify-between">
-                            <div>
+                    <div class="p-3.5 sm:p-4 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2">
+                        <div class="flex items-center justify-between gap-3">
+                            <div class="min-w-0 flex-1">
                                 <span class="text-xs font-extrabold text-slate-900 block">1. Aspek Pedagogis &amp; Subjek Materi</span>
                                 <span class="text-[11px] font-bold text-[#5e43f3]">Bobot: 30%</span>
                             </div>
-                            <div class="flex items-center gap-1">
+                            <div class="flex items-center gap-1.5 shrink-0">
                                 <input 
                                     type="number" 
                                     min="0" 
                                     max="100" 
                                     step="0.5" 
                                     x-model.number="pedagogical" 
-                                    class="w-20 px-3 py-1.5 rounded-xl border border-slate-300 font-mono font-bold text-center text-sm focus:border-[#5e43f3] bg-white"
+                                    class="w-20 px-3 py-1.5 rounded-xl border border-slate-300 font-mono font-bold text-center text-sm focus:border-[#5e43f3] bg-white outline-none focus:ring-2 focus:ring-purple-100"
                                 >
-                                <span class="text-xs font-bold text-slate-500">/ 100</span>
+                                <span class="text-xs font-bold text-slate-500 whitespace-nowrap">/ 100</span>
                             </div>
                         </div>
                         <div class="text-[11px] text-slate-500 bg-white p-2.5 rounded-xl border border-slate-100 leading-relaxed">
@@ -319,22 +319,22 @@
                     </div>
 
                     <!-- ASPEK 2: Kreativitas & Desain Visual (Bobot 30%) -->
-                    <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2.5">
-                        <div class="flex items-center justify-between">
-                            <div>
+                    <div class="p-3.5 sm:p-4 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2">
+                        <div class="flex items-center justify-between gap-3">
+                            <div class="min-w-0 flex-1">
                                 <span class="text-xs font-extrabold text-slate-900 block">2. Aspek Kreativitas &amp; Desain Visual</span>
                                 <span class="text-[11px] font-bold text-[#5e43f3]">Bobot: 30%</span>
                             </div>
-                            <div class="flex items-center gap-1">
+                            <div class="flex items-center gap-1.5 shrink-0">
                                 <input 
                                     type="number" 
                                     min="0" 
                                     max="100" 
                                     step="0.5" 
                                     x-model.number="creativity" 
-                                    class="w-20 px-3 py-1.5 rounded-xl border border-slate-300 font-mono font-bold text-center text-sm focus:border-[#5e43f3] bg-white"
+                                    class="w-20 px-3 py-1.5 rounded-xl border border-slate-300 font-mono font-bold text-center text-sm focus:border-[#5e43f3] bg-white outline-none focus:ring-2 focus:ring-purple-100"
                                 >
-                                <span class="text-xs font-bold text-slate-500">/ 100</span>
+                                <span class="text-xs font-bold text-slate-500 whitespace-nowrap">/ 100</span>
                             </div>
                         </div>
                         <div class="text-[11px] text-slate-500 bg-white p-2.5 rounded-xl border border-slate-100 leading-relaxed">
@@ -346,22 +346,22 @@
                     </div>
 
                     <!-- ASPEK 3: Kualitas Teknis & Interaktivitas (Bobot 25%) -->
-                    <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2.5">
-                        <div class="flex items-center justify-between">
-                            <div>
+                    <div class="p-3.5 sm:p-4 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2">
+                        <div class="flex items-center justify-between gap-3">
+                            <div class="min-w-0 flex-1">
                                 <span class="text-xs font-extrabold text-slate-900 block">3. Aspek Kualitas Teknis &amp; Interaktivitas</span>
                                 <span class="text-[11px] font-bold text-[#5e43f3]">Bobot: 25%</span>
                             </div>
-                            <div class="flex items-center gap-1">
+                            <div class="flex items-center gap-1.5 shrink-0">
                                 <input 
                                     type="number" 
                                     min="0" 
                                     max="100" 
                                     step="0.5" 
                                     x-model.number="technical" 
-                                    class="w-20 px-3 py-1.5 rounded-xl border border-slate-300 font-mono font-bold text-center text-sm focus:border-[#5e43f3] bg-white"
+                                    class="w-20 px-3 py-1.5 rounded-xl border border-slate-300 font-mono font-bold text-center text-sm focus:border-[#5e43f3] bg-white outline-none focus:ring-2 focus:ring-purple-100"
                                 >
-                                <span class="text-xs font-bold text-slate-500">/ 100</span>
+                                <span class="text-xs font-bold text-slate-500 whitespace-nowrap">/ 100</span>
                             </div>
                         </div>
                         <div class="text-[11px] text-slate-500 bg-white p-2.5 rounded-xl border border-slate-100 leading-relaxed">
@@ -373,22 +373,22 @@
                     </div>
 
                     <!-- ASPEK 4: Presentasi & Dampak Penerapan (Bobot 15%) -->
-                    <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2.5">
-                        <div class="flex items-center justify-between">
-                            <div>
+                    <div class="p-3.5 sm:p-4 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2">
+                        <div class="flex items-center justify-between gap-3">
+                            <div class="min-w-0 flex-1">
                                 <span class="text-xs font-extrabold text-slate-900 block">4. Aspek Presentasi &amp; Dampak Penerapan</span>
                                 <span class="text-[11px] font-bold text-[#5e43f3]">Bobot: 15%</span>
                             </div>
-                            <div class="flex items-center gap-1">
+                            <div class="flex items-center gap-1.5 shrink-0">
                                 <input 
                                     type="number" 
                                     min="0" 
                                     max="100" 
                                     step="0.5" 
                                     x-model.number="presentation" 
-                                    class="w-20 px-3 py-1.5 rounded-xl border border-slate-300 font-mono font-bold text-center text-sm focus:border-[#5e43f3] bg-white"
+                                    class="w-20 px-3 py-1.5 rounded-xl border border-slate-300 font-mono font-bold text-center text-sm focus:border-[#5e43f3] bg-white outline-none focus:ring-2 focus:ring-purple-100"
                                 >
-                                <span class="text-xs font-bold text-slate-500">/ 100</span>
+                                <span class="text-xs font-bold text-slate-500 whitespace-nowrap">/ 100</span>
                             </div>
                         </div>
                         <div class="text-[11px] text-slate-500 bg-white p-2.5 rounded-xl border border-slate-100 leading-relaxed">
@@ -405,21 +405,21 @@
                             Catatan Masukan / Ulasan Dewan Juri (Opsional)
                         </label>
                         <textarea 
-                            rows="3" 
+                            rows="2" 
                             x-model="notes" 
                             placeholder="Tuliskan catatan evaluasi, keunggulan karya, atau masukan pengembangan..."
-                            class="w-full px-3.5 py-2.5 text-xs rounded-2xl border border-slate-300 focus:border-[#5e43f3] focus:ring-2 focus:ring-purple-100 outline-none"
+                            class="w-full px-3.5 py-2 text-xs rounded-2xl border border-slate-300 focus:border-[#5e43f3] focus:ring-2 focus:ring-purple-100 outline-none"
                         ></textarea>
                     </div>
 
                     <!-- Total Nilai Terhitung Otomatis -->
-                    <div class="p-4 rounded-2xl bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 flex items-center justify-between">
+                    <div class="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 flex items-center justify-between">
                         <div>
                             <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">Nilai Akhir Berbobot (100%):</span>
                             <span class="text-xs text-purple-700">(30% P + 30% K + 25% T + 15% Pr)</span>
                         </div>
-                        <div class="text-right">
-                            <span class="text-3xl font-extrabold text-[#5e43f3] tracking-tight font-mono" x-text="calculatedTotal"></span>
+                        <div class="text-right flex items-baseline gap-1">
+                            <span class="text-2xl sm:text-3xl font-extrabold text-[#5e43f3] tracking-tight font-mono" x-text="calculatedTotal"></span>
                             <span class="text-xs font-bold text-slate-400">/ 100</span>
                         </div>
                     </div>
@@ -432,18 +432,18 @@
                     </template>
                 </div>
 
-                <!-- Modal Footer -->
-                <div class="p-4 sm:p-6 bg-slate-50 border-t border-slate-200 flex items-center justify-between gap-3 shrink-0">
-                    <button type="button" @click="closeScoring()" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl">
+                <!-- Modal Footer (Always Visible & Pinned) -->
+                <div class="p-4 sm:p-5 bg-slate-50 border-t border-slate-200 flex items-center justify-between gap-3 shrink-0">
+                    <button type="button" @click="closeScoring()" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition cursor-pointer">
                         Tutup
                     </button>
                     <button 
                         type="button" 
                         @click="submitScore()" 
                         :disabled="isSubmittingScore"
-                        class="px-6 py-2.5 text-xs font-bold text-white bg-[#5e43f3] hover:bg-indigo-700 rounded-xl shadow-xs transition cursor-pointer flex items-center gap-2"
+                        class="px-5 sm:px-6 py-2.5 text-xs font-bold text-white bg-[#5e43f3] hover:bg-indigo-700 rounded-xl shadow-xs transition cursor-pointer flex items-center justify-center gap-2"
                     >
-                        <svg x-show="isSubmittingScore" class="animate-spin w-4 h-4 text-white" fill="none" viewBox="0 0 24 24">
+                        <svg x-show="isSubmittingScore" x-cloak class="animate-spin w-4 h-4 text-white" fill="none" viewBox="0 0 24 24">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg>
@@ -459,11 +459,11 @@
         <div 
             x-show="showProfileModal" 
             x-cloak
-            class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs"
+            class="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-xs overflow-y-auto"
             @keydown.escape.window="showProfileModal = false"
         >
             <div 
-                class="relative w-full max-w-md bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden transform transition-all"
+                class="relative w-full max-w-md bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden transform transition-all my-auto max-h-[90vh] flex flex-col"
                 @click.away="showProfileModal = false"
             >
                 <div class="px-6 py-5 bg-gradient-to-r from-slate-900 to-[#5e43f3] text-white flex items-center justify-between">

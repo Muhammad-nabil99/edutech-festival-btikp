@@ -35,6 +35,10 @@
         .ambient-glow-mint {
             background: radial-gradient(circle, rgba(16, 185, 129, 0.08) 0%, rgba(240, 253, 244, 0) 70%);
         }
+        @keyframes toastProgress {
+            from { width: 100%; }
+            to { width: 0%; }
+        }
     </style>
 </head>
 <body class="min-h-screen flex flex-col font-sans antialiased text-slate-800 relative selection:bg-[#5e43f3] selection:text-white overflow-x-hidden">
@@ -49,7 +53,7 @@
             <div class="flex items-center justify-between h-20">
                 <!-- Brand / Logo & Agency Badge -->
                 <a href="{{ route('registration.create') }}" class="flex items-center gap-3.5 group">
-                    <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-[#5e43f3] via-[#8b5cf6] to-indigo-400 p-1 flex items-center justify-center shadow-lg shadow-[#5e43f3]/25 ring-4 ring-indigo-50 group-hover:scale-105 transition-transform overflow-hidden">
+                    <div class="w-11 h-11 rounded-2xl bg-white border border-slate-200/80 p-1 flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform overflow-hidden">
                         <img src="{{ asset('logo.png') }}" alt="Logo EduTech BTIKP" class="w-full h-full object-contain">
                     </div>
                     <div>
@@ -121,35 +125,68 @@
     </header>
 
     <!-- Main Content -->
-    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
-        <!-- Flash Status Message -->
-        @if (session('status'))
-            <div class="mb-6 rounded-2xl bg-gradient-to-r from-emerald-50/90 via-emerald-50/50 to-teal-50/90 border border-emerald-200/80 p-4 shadow-xs flex items-center justify-between transition-all animate-fade-in">
-                <div class="flex items-center space-x-3.5">
-                    <div class="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                    </div>
-                    <div>
-                        <h4 class="text-xs sm:text-sm font-bold text-emerald-950">{{ session('status') }}</h4>
-                    </div>
-                </div>
-            </div>
-        @endif
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 relative">
+        <!-- Floating Toast Notification System (Auto-slides away after 5s) -->
+        @if (session('status') || session('error'))
+            <div 
+                class="fixed top-5 right-5 z-[99999] max-w-sm sm:max-w-md w-[calc(100vw-2.5rem)] pointer-events-none"
+                x-data="{ show: true }"
+                x-init="setTimeout(() => show = false, 5000)"
+            >
+                <div 
+                    x-show="show"
+                    x-cloak
+                    x-transition:enter="transform ease-out duration-400 transition"
+                    x-transition:enter-start="translate-y-2 opacity-0 sm:translate-y-0 sm:translate-x-6 scale-95"
+                    x-transition:enter-end="translate-y-0 opacity-100 sm:translate-x-0 scale-100"
+                    x-transition:leave="transform ease-in duration-400 transition"
+                    x-transition:leave-start="opacity-100 translate-x-0 scale-100"
+                    x-transition:leave-end="opacity-0 translate-x-12 scale-95"
+                    class="pointer-events-auto bg-white/95 backdrop-blur-md rounded-2xl shadow-xl shadow-slate-900/10 border {{ session('status') ? 'border-emerald-200' : 'border-rose-200' }} p-4 relative overflow-hidden flex items-start gap-3.5 group"
+                >
+                    @if (session('status'))
+                        <!-- Success Icon -->
+                        <div class="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-200/80 flex items-center justify-center shrink-0 shadow-2xs">
+                            <svg class="w-5 h-5 shrink-0 block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                        </div>
+                        <div class="flex-1 min-w-0 pr-4">
+                            <h4 class="text-xs font-extrabold uppercase tracking-wider text-emerald-800">Berhasil</h4>
+                            <p class="text-xs font-semibold text-slate-700 mt-0.5 leading-relaxed break-words">{{ session('status') }}</p>
+                        </div>
+                        <!-- 5-Second Animated Progress Bar -->
+                        <div class="absolute bottom-0 left-0 h-1 bg-gradient-to-r from-emerald-500 to-teal-400 rounded-b-2xl transition-all"
+                             style="animation: toastProgress 5s linear forwards;">
+                        </div>
+                    @else
+                        <!-- Error Icon -->
+                        <div class="w-9 h-9 rounded-xl bg-rose-50 text-rose-600 border border-rose-200/80 flex items-center justify-center shrink-0 shadow-2xs">
+                            <svg class="w-5 h-5 shrink-0 block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
+                        </div>
+                        <div class="flex-1 min-w-0 pr-4">
+                            <h4 class="text-xs font-extrabold uppercase tracking-wider text-rose-800">Perhatian</h4>
+                            <p class="text-xs font-semibold text-slate-700 mt-0.5 leading-relaxed break-words">{{ session('error') }}</p>
+                        </div>
+                        <!-- 5-Second Animated Progress Bar -->
+                        <div class="absolute bottom-0 left-0 h-1 bg-gradient-to-r from-rose-500 to-red-400 rounded-b-2xl transition-all"
+                             style="animation: toastProgress 5s linear forwards;">
+                        </div>
+                    @endif
 
-        <!-- Flash Error Message -->
-        @if (session('error'))
-            <div class="mb-6 rounded-2xl bg-gradient-to-r from-rose-50/90 via-rose-50/50 to-red-50/90 border border-rose-200/80 p-4 shadow-xs flex items-center justify-between transition-all animate-fade-in">
-                <div class="flex items-center space-x-3.5">
-                    <div class="w-9 h-9 rounded-xl bg-rose-500/10 text-rose-600 flex items-center justify-center shrink-0">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    <!-- Close Button -->
+                    <button 
+                        type="button" 
+                        @click="show = false"
+                        class="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition shrink-0 cursor-pointer"
+                        title="Tutup pemberitahuan"
+                    >
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                         </svg>
-                    </div>
-                    <div>
-                        <h4 class="text-xs sm:text-sm font-bold text-rose-950">{{ session('error') }}</h4>
-                    </div>
+                    </button>
                 </div>
             </div>
         @endif
