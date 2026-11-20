@@ -11,17 +11,61 @@
             <div class="h-2.5 w-full bg-gradient-to-r from-blue-500 via-indigo-400 to-cyan-400"></div>
 
             <div class="p-6 sm:p-10 relative z-10">
-                <div class="flex items-center gap-4 mb-5">
-                    <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-white p-2.5 shadow-lg border border-white/80 flex items-center justify-center shrink-0">
-                        <img src="{{ asset('logo.png') }}" alt="Logo EduTech BTIKP" class="w-full h-full object-contain">
-                    </div>
-                    <div>
-                        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-white/10 text-cyan-300 border border-cyan-400/30 backdrop-blur-md">
-                            <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
-                            Pendaftaran Dibuka &bull; BTIKP Sultra
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
+                    <div class="flex items-center gap-4">
+                        <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-white p-2.5 shadow-lg border border-white/80 flex items-center justify-center shrink-0">
+                            <img src="{{ asset('logo.png') }}" alt="Logo EduTech BTIKP" class="w-full h-full object-contain">
                         </div>
-                        <p class="text-xs text-slate-300 font-medium mt-1">Balai Teknologi Informasi dan Komunikasi Pendidikan</p>
+                        <div>
+                            @if ($setting->isOpen())
+                                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 backdrop-blur-md">
+                                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                                    <span>Pendaftaran Dibuka &bull; BTIKP Sultra</span>
+                                </div>
+                            @elseif ($setting->getStatus() === 'not_yet_open')
+                                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-amber-500/20 text-amber-300 border border-amber-400/30 backdrop-blur-md">
+                                    <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+                                    <span>Segera Dibuka &bull; BTIKP Sultra</span>
+                                </div>
+                            @else
+                                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-rose-500/20 text-rose-300 border border-rose-400/30 backdrop-blur-md">
+                                    <span class="w-2 h-2 rounded-full bg-rose-400"></span>
+                                    <span>Pendaftaran Ditutup &bull; BTIKP Sultra</span>
+                                </div>
+                            @endif
+                            <p class="text-xs text-slate-300 font-medium mt-1">Balai Teknologi Informasi dan Komunikasi Pendidikan</p>
+                        </div>
                     </div>
+
+                    <!-- Countdown Timer Widget (Front-facing Requirement) -->
+                    @if ($setting->getCountdownTarget())
+                        <div class="bg-white/10 backdrop-blur-md border border-white/20 p-3 sm:p-4 rounded-2xl text-center self-start sm:self-auto shrink-0 shadow-lg" x-show="countdown.targetIso">
+                            <span class="text-[10px] sm:text-[11px] font-bold text-cyan-200 uppercase tracking-wider block mb-1">
+                                {{ $setting->getStatus() === 'not_yet_open' ? 'Pendaftaran Dibuka Dalam' : 'Batas Waktu Pendaftaran' }}
+                            </span>
+                            <div class="flex items-center justify-center gap-1.5 sm:gap-2 text-slate-100 font-mono">
+                                <div class="bg-black/30 px-2 py-1 rounded-lg">
+                                    <span class="text-sm sm:text-base font-extrabold text-white" x-text="countdown.days">00</span>
+                                    <span class="text-[9px] text-slate-300 block -mt-1 font-sans">Hari</span>
+                                </div>
+                                <span class="font-bold text-cyan-300">:</span>
+                                <div class="bg-black/30 px-2 py-1 rounded-lg">
+                                    <span class="text-sm sm:text-base font-extrabold text-white" x-text="countdown.hours">00</span>
+                                    <span class="text-[9px] text-slate-300 block -mt-1 font-sans">Jam</span>
+                                </div>
+                                <span class="font-bold text-cyan-300">:</span>
+                                <div class="bg-black/30 px-2 py-1 rounded-lg">
+                                    <span class="text-sm sm:text-base font-extrabold text-white" x-text="countdown.minutes">00</span>
+                                    <span class="text-[9px] text-slate-300 block -mt-1 font-sans">Mnt</span>
+                                </div>
+                                <span class="font-bold text-cyan-300">:</span>
+                                <div class="bg-black/30 px-2 py-1 rounded-lg">
+                                    <span class="text-sm sm:text-base font-extrabold text-cyan-300" x-text="countdown.seconds">00</span>
+                                    <span class="text-[9px] text-slate-300 block -mt-1 font-sans">Dtk</span>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
                 </div>
 
                 <h1 class="text-2xl sm:text-4xl font-extrabold tracking-tight text-white mb-3">
@@ -171,6 +215,7 @@
             </div>
         </div>
 
+        @if ($setting->isOpen())
         <!-- Form Submission -->
         <form method="POST" action="{{ route('registration.store', [], false) }}" enctype="multipart/form-data" @submit="validateBeforeSubmit($event)" class="space-y-6">
             @csrf
@@ -566,6 +611,74 @@
                 </button>
             </div>
         </form>
+        @else
+        <!-- NOTICE SCREEN KETIKA PENDAFTARAN DITUTUP / BELUM DIBUKA -->
+        <div class="bg-white rounded-3xl p-8 sm:p-12 border border-slate-200/80 shadow-md text-center max-w-2xl mx-auto space-y-6">
+            <div class="w-20 h-20 mx-auto rounded-3xl {{ $setting->getStatus() === 'not_yet_open' ? 'bg-amber-50 text-amber-500 border border-amber-200' : 'bg-rose-50 text-rose-500 border border-rose-200' }} flex items-center justify-center shadow-inner">
+                @if ($setting->getStatus() === 'not_yet_open')
+                    <svg class="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                @else
+                    <svg class="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                @endif
+            </div>
+
+            <div>
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold {{ $setting->getStatus() === 'not_yet_open' ? 'bg-amber-100 text-amber-800' : 'bg-rose-100 text-rose-800' }} mb-3">
+                    {{ $setting->getStatus() === 'not_yet_open' ? 'Menunggu Jadwal Dibuka' : 'Pendaftaran Ditutup' }}
+                </span>
+                <h2 class="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
+                    {{ $setting->getStatusMessage() }}
+                </h2>
+                <p class="text-xs sm:text-sm text-slate-500 mt-2 max-w-md mx-auto leading-relaxed">
+                    @if ($setting->getStatus() === 'not_yet_open')
+                        Formulir pendaftaran karya inovasi digital akan dibuka otomatis sesuai jadwal yang ditentukan oleh panitia BTIKP.
+                    @else
+                        Masa penerimaan berkas pendaftaran karya inovasi pembelajaran digital EduTech Festival telah berakhir. Terima kasih atas partisipasi Anda.
+                    @endif
+                </p>
+            </div>
+
+            @if ($setting->getCountdownTarget())
+                <div class="p-5 rounded-2xl bg-slate-50 border border-slate-200/80 max-w-sm mx-auto space-y-2">
+                    <span class="text-xs font-bold text-slate-500 uppercase tracking-wider block">
+                        {{ $setting->getStatus() === 'not_yet_open' ? 'Waktu Menuju Dibuka:' : 'Waktu Hitung Mundur:' }}
+                    </span>
+                    <div class="flex items-center justify-center gap-2 text-slate-800 font-mono">
+                        <div class="bg-white px-3 py-1.5 rounded-xl border border-slate-200">
+                            <span class="text-lg font-extrabold text-[#5e43f3]" x-text="countdown.days">00</span>
+                            <span class="text-[10px] text-slate-400 block -mt-1 font-sans">Hari</span>
+                        </div>
+                        <span class="font-bold text-slate-400">:</span>
+                        <div class="bg-white px-3 py-1.5 rounded-xl border border-slate-200">
+                            <span class="text-lg font-extrabold text-[#5e43f3]" x-text="countdown.hours">00</span>
+                            <span class="text-[10px] text-slate-400 block -mt-1 font-sans">Jam</span>
+                        </div>
+                        <span class="font-bold text-slate-400">:</span>
+                        <div class="bg-white px-3 py-1.5 rounded-xl border border-slate-200">
+                            <span class="text-lg font-extrabold text-[#5e43f3]" x-text="countdown.minutes">00</span>
+                            <span class="text-[10px] text-slate-400 block -mt-1 font-sans">Mnt</span>
+                        </div>
+                        <span class="font-bold text-slate-400">:</span>
+                        <div class="bg-white px-3 py-1.5 rounded-xl border border-slate-200">
+                            <span class="text-lg font-extrabold text-[#5e43f3]" x-text="countdown.seconds">00</span>
+                            <span class="text-[10px] text-slate-400 block -mt-1 font-sans">Dtk</span>
+                        </div>
+                    </div>
+                </div>
+            @endif
+
+            <div class="pt-4 border-t border-slate-100 flex items-center justify-center gap-3">
+                <a href="{{ route('admin.login') }}" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition">
+                    <img src="{{ asset('logo.png') }}" alt="Logo" class="w-4 h-4 object-contain">
+                    <span>Portal Masuk Panitia &amp; Juri</span>
+                </a>
+            </div>
+        </div>
+        @endif
 
     </div>
 
@@ -580,6 +693,37 @@
                 photoPreview: '{{ old('temp_photo') ? asset('storage/' . old('temp_photo')) : '' }}',
                 tempPhoto: '{{ old('temp_photo', '') }}',
                 fileName: '{{ old('temp_photo') ? 'Foto tersimpan sebelumnya' : '' }}',
+                countdown: {
+                    days: '00',
+                    hours: '00',
+                    minutes: '00',
+                    seconds: '00',
+                    targetIso: '{{ $setting->getCountdownTarget() }}',
+                    init() {
+                        if (!this.targetIso) return;
+                        const target = new Date(this.targetIso).getTime();
+                        const update = () => {
+                            const now = new Date().getTime();
+                            const diff = target - now;
+                            if (diff <= 0) {
+                                this.days = '00';
+                                this.hours = '00';
+                                this.minutes = '00';
+                                this.seconds = '00';
+                                return;
+                            }
+                            this.days = String(Math.floor(diff / (1000 * 60 * 60 * 24))).padStart(2, '0');
+                            this.hours = String(Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))).padStart(2, '0');
+                            this.minutes = String(Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))).padStart(2, '0');
+                            this.seconds = String(Math.floor((diff % (1000 * 60)) / 1000)).padStart(2, '0');
+                        };
+                        update();
+                        setInterval(update, 1000);
+                    }
+                },
+                init() {
+                    this.countdown.init();
+                },
                 formData: {
                     full_name: '{{ old('full_name', '') }}',
                     school_name: '{{ old('school_name', '') }}',

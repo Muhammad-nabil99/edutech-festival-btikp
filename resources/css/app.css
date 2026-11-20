@@ -2,8 +2,45 @@
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
+@source '../views/**/*.blade.php';
 
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+    --color-brand-50: #f5f3ff;
+    --color-brand-100: #ede9fe;
+    --color-brand-200: #ddd6fe;
+    --color-brand-300: #c4b5fd;
+    --color-brand-400: #a78bfa;
+    --color-brand-500: #8b5cf6;
+    --color-brand-600: #5e43f3;
+    --color-brand-700: #4d32d7;
+    --color-brand-800: #3f25b2;
+    --color-brand-900: #321d8f;
+
+    --color-accent-coral: #FF4D6B;
+    --color-accent-amber: #F59E0B;
+    --color-accent-teal: #0D9488;
+    --color-accent-emerald: #10B981;
+    --color-accent-sky: #0284C7;
+
+    --shadow-soft: 0 10px 30px -5px rgba(94, 67, 243, 0.07);
+    --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.03), 0 1px 3px rgba(0, 0, 0, 0.05);
+    --shadow-floating: 0 20px 40px -15px rgba(94, 67, 243, 0.15);
+}
+
+.ambient-glow-purple {
+    background: radial-gradient(circle, rgba(94, 67, 243, 0.12) 0%, rgba(245, 243, 255, 0) 70%);
+}
+
+.ambient-glow-mint {
+    background: radial-gradient(circle, rgba(16, 185, 129, 0.08) 0%, rgba(240, 253, 244, 0) 70%);
+}
+
+.badge-gradient {
+    background: linear-gradient(135deg, #5E43F3 0%, #8B5CF6 100%);
+}
+
+[x-cloak] {
+    display: none !important;
 }

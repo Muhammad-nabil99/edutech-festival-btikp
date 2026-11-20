@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Registration;
+use App\Models\RegistrationSetting;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
@@ -14,16 +15,67 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Akun Administrator BTIKP
+        // 1. Akun Administrator BTIKP
         User::updateOrCreate(
             ['email' => 'admin@btikp.sultra.go.id'],
             [
                 'name' => 'Administrator BTIKP',
+                'username' => 'admin',
+                'role' => 'admin',
                 'password' => Hash::make('adminbtikp2026!'),
             ]
         );
 
-        // Dummy Data Pendaftar Awal untuk Demo/Preview
+        // 2. Tiga Akun Dewan Juri (Role: judge)
+        $judges = [
+            [
+                'name' => 'Dewan Juri 1 (Gim & Multimedia)',
+                'username' => 'juri1',
+                'email' => 'juri1@edutech.btikp.id',
+                'role' => 'judge',
+                'password' => 'Juri1#Edutech92kQ',
+            ],
+            [
+                'name' => 'Dewan Juri 2 (Pedagogik & Kurikulum)',
+                'username' => 'juri2',
+                'email' => 'juri2@edutech.btikp.id',
+                'role' => 'judge',
+                'password' => 'Juri2#Btikp74vLm',
+            ],
+            [
+                'name' => 'Dewan Juri 3 (Desain Visual & IT)',
+                'username' => 'juri3',
+                'email' => 'juri3@edutech.btikp.id',
+                'role' => 'judge',
+                'password' => 'Juri3#Sultra85xPz',
+            ],
+        ];
+
+        foreach ($judges as $judge) {
+            User::updateOrCreate(
+                ['username' => $judge['username']],
+                [
+                    'name' => $judge['name'],
+                    'email' => $judge['email'],
+                    'role' => $judge['role'],
+                    'password' => Hash::make($judge['password']),
+                ]
+            );
+        }
+
+        // 3. Pengaturan Registrasi Awal (Default: Buka)
+        RegistrationSetting::firstOrCreate(
+            ['id' => 1],
+            [
+                'mode' => 'manual',
+                'is_open' => true,
+                'start_time' => null,
+                'end_time' => null,
+                'closed_message' => 'Pendaftaran ditutup',
+            ]
+        );
+
+        // 4. Data Pendaftar Awal untuk Demo/Preview
         if (Registration::count() === 0) {
             Registration::create([
                 'registration_number' => 'EDUTECH-2026-0001',
@@ -35,6 +87,8 @@ class DatabaseSeeder extends Seeder
                 'learning_category' => 'media_pembelajaran_interaktif',
                 'profile_photo_path' => 'profile-photos/sample-avatar.png',
                 'media_link' => 'https://canva.com/design/DAFexample/view',
+                'is_curated_top10' => true,
+                'curated_at' => now(),
             ]);
 
             Registration::create([
@@ -47,6 +101,8 @@ class DatabaseSeeder extends Seeder
                 'learning_category' => 'gim_edukasi',
                 'profile_photo_path' => 'profile-photos/sample-avatar2.png',
                 'media_link' => 'https://itch.io/sample-game-edutech',
+                'is_curated_top10' => true,
+                'curated_at' => now(),
             ]);
         }
     }

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -10,30 +11,43 @@ use Illuminate\View\View;
 class AdminAuthController extends Controller
 {
     /**
-     * Tampilkan halaman login untuk panitia BTIKP.
+     * Tampilkan halaman login untuk panitia dan dewan juri.
      */
     public function showLogin(): View|RedirectResponse
     {
         if (Auth::check()) {
-            return redirect()->route('admin.dashboard');
+            return Auth::user()->isJudge()
+                ? redirect()->route('judge.dashboard')
+                : redirect()->route('admin.dashboard');
         }
 
         return view('admin.login');
     }
 
     /**
-     * Memproses otentikasi login admin.
+     * Memproses otentikasi login admin dan dewan juri (bisa menggunakan Email atau Username).
      */
     public function login(Request $request): RedirectResponse
     {
-        $credentials = $request->validate([
-            'email' => ['required', 'email'],
+        // Mendukung input dari form dengan nama 'login' atau 'email'
+        $loginInput = trim((string) ($request->input('login') ?: $request->input('email')));
+
+        $request->merge(['login_identifier' => $loginInput]);
+
+        $request->validate([
+            'login_identifier' => ['required', 'string'],
             'password' => ['required', 'string'],
         ], [
-            'email.required' => 'Email wajib diisi.',
-            'email.email' => 'Format email tidak valid.',
+            'login_identifier.required' => 'Email atau Username wajib diisi.',
             'password.required' => 'Kata sandi wajib diisi.',
         ]);
+
+        $fieldType = filter_var($loginInput, FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
+
+        $credentials = [
+            $fieldType => $loginInput,
+            'password' => $request->input('password'),
+        ];
 
         $remember = $request->boolean('remember');
 
@@ -41,19 +55,27 @@ class AdminAuthController extends Controller
             $request->session()->regenerate();
             session()->forget('url.intended');
 
-            return redirect('/admin/dashboard')
+            /** @var User $user */
+            $user = Auth::user();
+
+            if ($user->isJudge()) {
+                return redirect()->route('judge.dashboard')
+                    ->with('status', "Selamat datang, {$user->name}! Silakan lakukan penilaian karya Top 10.");
+            }
+
+            return redirect()->route('admin.dashboard')
                 ->with('status', 'Selamat datang kembali di Dashboard Panitia BTIKP!');
         }
 
-        return redirect('/admin/login')
-            ->withInput($request->only('email', 'remember'))
+        return redirect()->route('admin.login')
+            ->withInput($request->only('email', 'login', 'remember'))
             ->withErrors([
-                'email' => 'Kombinasi email dan kata sandi yang Anda masukkan tidak sesuai.',
+                'email' => 'Kombinasi akun (email/username) dan kata sandi yang Anda masukkan tidak sesuai.',
             ]);
     }
 
     /**
-     * Logout admin.
+     * Logout pengguna (admin atau dewan juri).
      */
     public function logout(Request $request): RedirectResponse
     {
@@ -62,6 +84,6 @@ class AdminAuthController extends Controller
         $request->session()->regenerateToken();
 
         return redirect()->route('admin.login')
-            ->with('status', 'Anda telah berhasil keluar.');
+            ->with('status', 'Anda telah berhasil keluar dari sistem.');
     }
 }

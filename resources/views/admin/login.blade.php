@@ -1,4 +1,4 @@
-<x-layouts.app title="Masuk Portal Panitia — EduTech Festival BTIKP">
+<x-layouts.app title="Masuk Portal Panitia & Dewan Juri — EduTech Festival BTIKP">
     <div class="max-w-md mx-auto">
         <div class="bg-white rounded-3xl p-8 border border-slate-200/80 shadow-xl shadow-slate-200/50">
             <!-- Header -->
@@ -6,31 +6,33 @@
                 <div class="w-20 h-20 mx-auto mb-4 p-2 rounded-2xl bg-slate-50 border border-slate-200/80 shadow-sm flex items-center justify-center">
                     <img src="{{ asset('logo.png') }}" alt="Logo BTIKP" class="w-full h-full object-contain">
                 </div>
-                <h1 class="text-xl font-extrabold text-slate-900 tracking-tight">Portal Panitia BTIKP</h1>
-                <p class="text-xs text-slate-500 mt-1">Masuk untuk mengelola pendaftar EduTech Festival</p>
+                <h1 class="text-xl font-extrabold text-slate-900 tracking-tight">Portal Panitia & Dewan Juri</h1>
+                <p class="text-xs text-slate-500 mt-1">Masuk untuk mengelola pendaftar atau menilai karya EduTech Festival</p>
             </div>
 
             <!-- Form -->
-            <form method="POST" action="" class="space-y-5">
+            <form method="POST" action="{{ route('admin.login.post') }}" class="space-y-5">
                 @csrf
 
                 <div>
-                    <label for="email" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
-                        Alamat Email Panitia
+                    <label for="login" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                        Alamat Email atau Username
                     </label>
                     <input 
-                        type="email" 
-                        id="email" 
-                        name="email" 
-                        value="{{ old('email', 'admin@btikp.sultra.go.id') }}"
-                        placeholder="admin@btikp.sultra.go.id"
-                        class="w-full px-4 py-3 rounded-xl border {{ $errors->has('email') ? 'border-rose-400 bg-rose-50/30' : 'border-slate-300 focus:border-blue-500' }} focus:ring-4 focus:ring-blue-100 outline-none text-slate-800 text-sm transition"
+                        type="text" 
+                        id="login" 
+                        name="login" 
+                        value="{{ old('login', old('email', 'admin@btikp.sultra.go.id')) }}"
+                        placeholder="Contoh: admin atau juri1"
+                        class="w-full px-4 py-3 rounded-xl border {{ $errors->has('email') || $errors->has('login') || $errors->has('login_identifier') ? 'border-rose-400 bg-rose-50/30' : 'border-slate-300 focus:border-blue-500' }} focus:ring-4 focus:ring-blue-100 outline-none text-slate-800 text-sm transition"
                         required
                         autofocus
                     >
-                    @error('email')
-                        <p class="mt-1.5 text-xs text-rose-600 font-medium">{{ $message }}</p>
-                    @enderror
+                    @if ($errors->has('email') || $errors->has('login') || $errors->has('login_identifier'))
+                        <p class="mt-1.5 text-xs text-rose-600 font-medium">
+                            {{ $errors->first('email') ?: ($errors->first('login') ?: $errors->first('login_identifier')) }}
+                        </p>
+                    @endif
                 </div>
 
                 <div>
@@ -76,4 +78,3 @@
         </div>
     </div>
 </x-layouts.app>
-

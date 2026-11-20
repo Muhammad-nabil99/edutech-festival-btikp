@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreRegistrationRequest;
 use App\Models\Registration;
+use App\Models\RegistrationSetting;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -58,8 +59,11 @@ class RegistrationController extends Controller
      */
     public function create(): View
     {
+        $setting = RegistrationSetting::current();
+
         return view('registrations.create', [
             'regions' => self::REGION_LIST,
+            'setting' => $setting,
         ]);
     }
 
@@ -68,6 +72,15 @@ class RegistrationController extends Controller
      */
     public function store(StoreRegistrationRequest $request): RedirectResponse
     {
+        $setting = RegistrationSetting::current();
+
+        // Validasi apakah pendaftaran masih dibuka
+        if (!$setting->isOpen()) {
+            return back()
+                ->withInput()
+                ->withErrors(['registration' => $setting->getStatusMessage()]);
+        }
+
         $validated = $request->validated();
 
         // Normalisasi nomor WA
@@ -107,6 +120,7 @@ class RegistrationController extends Controller
                 'learning_category' => $validated['learning_category'],
                 'profile_photo_path' => $photoPath,
                 'media_link' => trim($validated['media_link']),
+                'is_curated_top10' => false,
             ]);
         });
 

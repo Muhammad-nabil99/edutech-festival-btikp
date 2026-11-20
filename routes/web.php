@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AdminAuthController;
 use App\Http\Controllers\AdminDashboardController;
+use App\Http\Controllers\JudgeDashboardController;
 use App\Http\Controllers\RegistrationController;
 use Illuminate\Support\Facades\Route;
 
@@ -36,7 +37,7 @@ Route::get('/{file}', function (string $file) {
 
 /*
 |--------------------------------------------------------------------------
-| Rute Otentikasi Admin Panitia BTIKP
+| Rute Otentikasi Admin & Dewan Juri
 |--------------------------------------------------------------------------
 */
 Route::get('/admin/login', [AdminAuthController::class, 'showLogin'])->name('admin.login');
@@ -46,11 +47,25 @@ Route::post('/admin/logout', [AdminAuthController::class, 'logout'])->name('admi
 
 /*
 |--------------------------------------------------------------------------
-| Rute Dashboard & Manajemen Admin (Perlu Autentikasi)
+| Rute Dashboard & Manajemen Admin (Khusus Role: admin)
 |--------------------------------------------------------------------------
 */
-Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
     Route::get('/registrations/export', [AdminDashboardController::class, 'export'])->name('registrations.export');
+    Route::post('/registrations/{registration}/toggle-top10', [AdminDashboardController::class, 'toggleTop10'])->name('registrations.toggle-top10');
+    Route::post('/settings/registration', [AdminDashboardController::class, 'updateRegistrationSetting'])->name('settings.registration');
+    Route::put('/judges/{judge}', [AdminDashboardController::class, 'updateJudge'])->name('judges.update');
     Route::delete('/registrations/{registration}', [AdminDashboardController::class, 'destroy'])->name('registrations.destroy');
+});
+
+/*
+|--------------------------------------------------------------------------
+| Rute Penilaian & Dashboard Dewan Juri (Khusus Role: judge)
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth', 'judge'])->prefix('judge')->name('judge.')->group(function () {
+    Route::get('/dashboard', [JudgeDashboardController::class, 'index'])->name('dashboard');
+    Route::post('/works/{registration}/score', [JudgeDashboardController::class, 'saveScore'])->name('works.score');
+    Route::put('/profile', [JudgeDashboardController::class, 'updateProfile'])->name('profile.update');
 });
