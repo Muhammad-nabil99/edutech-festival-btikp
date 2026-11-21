@@ -47,7 +47,7 @@ class StoreRegistrationRequest extends FormRequest
             'full_name' => ['required', 'string', 'min:3', 'max:150'],
             'school_name' => ['required', 'string', 'min:3', 'max:150'],
             'regency_city' => ['required', 'string', 'in:' . implode(',', $regencies)],
-            'email' => ['required', 'string', 'email:rfc', 'max:150', 'unique:registrations,email'],
+            'email' => ['required', 'string', 'email:rfc', 'max:150'],
             'whatsapp_number' => ['required', 'string', 'regex:/^(\+62|62|0)8[1-9][0-9]{7,11}$/'],
             'learning_category' => ['required', 'in:gim_edukasi,media_pembelajaran_interaktif'],
             'profile_photo' => $hasTempPhoto 
@@ -74,7 +74,6 @@ class StoreRegistrationRequest extends FormRequest
             'regency_city.in' => 'Kabupaten/Kota yang dipilih harus berada di wilayah Sulawesi Tenggara.',
             'email.required' => 'Alamat email wajib diisi.',
             'email.email' => 'Format alamat email tidak valid.',
-            'email.unique' => 'Alamat email ini sudah terdaftar sebelumnya.',
             'whatsapp_number.required' => 'Nomor WhatsApp aktif wajib diisi.',
             'whatsapp_number.regex' => 'Format nomor WhatsApp tidak valid. Gunakan format contoh: 08123456789 atau +628123456789.',
             'learning_category.required' => 'Silakan pilih salah satu kategori pembelajaran.',

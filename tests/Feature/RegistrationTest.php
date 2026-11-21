@@ -134,6 +134,49 @@ class RegistrationTest extends TestCase
     }
 
     /**
+     * Test pendaftar dapat mendaftar berkali-kali menggunakan email yang sama.
+     */
+    public function test_user_can_register_multiple_times_with_same_email(): void
+    {
+        Storage::fake('public');
+
+        $email = 'guru.multikarya@gmail.com';
+
+        // Pendaftaran 1 (Kategori Gim Edukasi)
+        $payload1 = [
+            'full_name' => 'Guru Hebat Sultra',
+            'school_name' => 'SMAN 1 KENDARI',
+            'regency_city' => 'Kota Kendari',
+            'email' => $email,
+            'whatsapp_number' => '081234567890',
+            'learning_category' => 'gim_edukasi',
+            'profile_photo' => UploadedFile::fake()->image('photo1.jpg', 300, 300),
+            'media_link' => 'https://drive.google.com/karya1',
+        ];
+
+        $response1 = $this->post('/register', $payload1);
+        $response1->assertSessionHasNoErrors();
+
+        // Pendaftaran 2 (Kategori Media Pembelajaran Interaktif dengan email yang sama)
+        $payload2 = [
+            'full_name' => 'Guru Hebat Sultra',
+            'school_name' => 'SMAN 1 KENDARI',
+            'regency_city' => 'Kota Kendari',
+            'email' => $email,
+            'whatsapp_number' => '081234567890',
+            'learning_category' => 'media_pembelajaran_interaktif',
+            'profile_photo' => UploadedFile::fake()->image('photo2.jpg', 300, 300),
+            'media_link' => 'https://drive.google.com/karya2',
+        ];
+
+        $response2 = $this->post('/register', $payload2);
+        $response2->assertSessionHasNoErrors();
+
+        // Verifikasi bahwa terdapat 2 record pendaftaran dengan email yang sama di database
+        $this->assertEquals(2, Registration::where('email', $email)->count());
+    }
+
+    /**
      * Test akses dashboard admin membutuhkan login.
      */
     public function test_guest_cannot_access_admin_dashboard(): void
