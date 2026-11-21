@@ -86,6 +86,9 @@
             suggestionSuccessMsg: null,
 
             openSuggestionModal(work) {
+                if (!work.profile_photo_url) {
+                    work.profile_photo_url = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(work.full_name || 'Peserta') + '&background=5E43F3&color=FFFFFF&size=200';
+                }
                 this.suggestionWork = work;
                 this.suggestionError = null;
                 this.suggestionSuccessMsg = null;
@@ -270,6 +273,9 @@
             },
 
             openScoring(work) {
+                if (!work.profile_photo_url) {
+                    work.profile_photo_url = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(work.full_name || 'Peserta') + '&background=5E43F3&color=FFFFFF&size=200';
+                }
                 this.scoringWork = work;
                 const existingScore = work.judge_scores && work.judge_scores.length > 0 ? work.judge_scores[0] : null;
                 this.pedagogical = existingScore ? existingScore.pedagogical_score : 80;
@@ -1194,7 +1200,12 @@
                     <!-- Identitas Peserta -->
                     <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex items-center justify-between gap-4">
                         <div class="flex items-center gap-3">
-                            <img :src="scoringWork?.profile_photo_url" class="w-11 h-11 rounded-xl object-cover border border-slate-200 bg-white">
+                            <img 
+                                :src="scoringWork?.profile_photo_url || ('https://ui-avatars.com/api/?name=' + encodeURIComponent(scoringWork?.full_name || 'Peserta') + '&background=5E43F3&color=FFFFFF&size=200')" 
+                                :alt="scoringWork?.full_name"
+                                class="w-11 h-11 rounded-xl object-cover border border-slate-200 bg-white shrink-0 shadow-2xs"
+                                x-on:error="$event.target.src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(scoringWork?.full_name || 'Peserta') + '&background=5E43F3&color=FFFFFF&size=200'"
+                            >
                             <div>
                                 <h4 class="font-extrabold text-slate-900 text-sm" x-text="scoringWork?.full_name"></h4>
                                 <p class="text-xs text-slate-600" x-text="scoringWork?.school_name + ' • ' + scoringWork?.regency_city"></p>
@@ -1696,9 +1707,10 @@
 
                         <div class="flex items-center gap-3.5">
                             <img 
-                                :src="suggestionWork?.profile_photo_url" 
+                                :src="suggestionWork?.profile_photo_url || ('https://ui-avatars.com/api/?name=' + encodeURIComponent(suggestionWork?.full_name || 'Peserta') + '&background=5E43F3&color=FFFFFF&size=200')" 
                                 :alt="suggestionWork?.full_name" 
                                 class="w-13 h-13 rounded-2xl object-cover border border-slate-200 shadow-2xs bg-slate-100 shrink-0"
+                                x-on:error="$event.target.src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(suggestionWork?.full_name || 'Peserta') + '&background=5E43F3&color=FFFFFF&size=200'"
                             >
                             <div class="min-w-0 flex-1">
                                 <h4 class="font-extrabold text-slate-900 text-sm truncate" x-text="suggestionWork?.full_name"></h4>

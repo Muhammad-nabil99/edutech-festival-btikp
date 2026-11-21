@@ -37,6 +37,15 @@ class Registration extends Model
     }
 
     /**
+     * Accessor yang otomatis disertakan dalam serialization JSON / JavaScript.
+     */
+    protected $appends = [
+        'profile_photo_url',
+        'category_label',
+        'whatsapp_chat_url',
+    ];
+
+    /**
      * Mutator agar nama sekolah selalu disimpan dalam huruf kapital (UPPERCASE).
      */
     public function setSchoolNameAttribute(mixed $value): void
