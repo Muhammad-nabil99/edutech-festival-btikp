@@ -150,51 +150,39 @@
                 this.editingJudge = { ...judge, password: '' };
             },
 
-            // Hovered Judge Overview Popover (Exact width 487px, height 280px)
+            // Hovered & Modal Judge Overview State
             hoveredJudge: null,
             hoverPos: { x: 0, y: 0 },
             hoverTimeout: null,
+            isJudgeModalOpen: false,
 
             showJudgeOverview(judgeData, event) {
+                if (window.innerWidth < 768) return;
                 clearTimeout(this.hoverTimeout);
+                if (this.isJudgeModalOpen) return;
+
                 const rect = event ? event.currentTarget.getBoundingClientRect() : null;
-                const isMobile = window.innerWidth < 520;
-                const cardW = isMobile ? Math.min(487, window.innerWidth - 24) : 487;
+                const cardW = 487;
                 const cardH = 280;
 
-                let x, y;
-                if (isMobile) {
-                    x = Math.max(12, Math.floor((window.innerWidth - cardW) / 2));
-                    if (rect) {
-                        if (rect.bottom + cardH + 12 < window.innerHeight) {
-                            y = rect.bottom + 8;
-                        } else if (rect.top - cardH - 8 > 12) {
-                            y = rect.top - cardH - 8;
-                        } else {
-                            y = Math.max(12, Math.floor((window.innerHeight - cardH) / 2));
-                        }
-                    } else {
-                        y = Math.max(12, Math.floor((window.innerHeight - cardH) / 2));
-                    }
-                } else {
-                    x = rect ? rect.left + (rect.width / 2) - (cardW / 2) : 20;
-                    if (x < 15) x = 15;
-                    if (x + cardW > window.innerWidth - 15) {
-                        x = window.innerWidth - cardW - 15;
-                    }
-
-                    y = rect ? rect.bottom + 8 : 20;
-                    if (y + cardH > window.innerHeight - 15) {
-                        y = rect.top - cardH - 8;
-                    }
-                    if (y < 10) y = 10;
+                let x = rect ? rect.left + (rect.width / 2) - (cardW / 2) : 20;
+                if (x < 15) x = 15;
+                if (x + cardW > window.innerWidth - 15) {
+                    x = window.innerWidth - cardW - 15;
                 }
 
-                this.hoverPos = { x, y, width: cardW };
+                let y = rect ? rect.bottom + 8 : 20;
+                if (y + cardH > window.innerHeight - 15) {
+                    y = rect.top - cardH - 8;
+                }
+                if (y < 10) y = 10;
+
+                this.hoverPos = { x, y };
                 this.hoveredJudge = judgeData;
             },
 
             hideJudgeOverview() {
+                if (this.isJudgeModalOpen) return;
                 this.hoverTimeout = setTimeout(() => {
                     this.hoveredJudge = null;
                 }, 180);
@@ -204,17 +192,23 @@
                 clearTimeout(this.hoverTimeout);
             },
 
-            toggleJudgeOverview(judgeData, event) {
+            openJudgeModal(judgeData) {
                 clearTimeout(this.hoverTimeout);
-                if (this.hoveredJudge && this.hoveredJudge.code === judgeData.code) {
-                    this.hoveredJudge = null;
-                } else {
-                    this.showJudgeOverview(judgeData, event);
-                }
+                this.hoveredJudge = judgeData;
+                this.isJudgeModalOpen = true;
+            },
+
+            closeJudgeModal() {
+                this.isJudgeModalOpen = false;
+                this.hoveredJudge = null;
+            },
+
+            toggleJudgeOverview(judgeData, event) {
+                this.openJudgeModal(judgeData);
             },
 
             get isAnyModalOpen() {
-                return !!(this.selectedRegistration || this.previewImage || this.showSettingModal || this.editingJudge || this.deleteTarget);
+                return !!(this.selectedRegistration || this.previewImage || this.showSettingModal || this.editingJudge || this.deleteTarget || this.isJudgeModalOpen);
             },
 
             init() {
@@ -810,7 +804,7 @@
                                                         class="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-extrabold shadow-2xs ring-1 ring-white cursor-pointer hover:scale-125 transition-transform {{ $s->user->judge_code === 'J1' ? 'bg-indigo-600 text-white' : ($s->user->judge_code === 'J2' ? 'bg-emerald-600 text-white' : ($s->user->judge_code === 'J3' ? 'bg-amber-600 text-white' : 'bg-purple-600 text-white')) }}"
                                                         @mouseenter="showJudgeOverview(@js($jData), $event)"
                                                         @mouseleave="hideJudgeOverview()"
-                                                        @click.stop="toggleJudgeOverview(@js($jData), $event)"
+                                                        @click.stop="openJudgeModal(@js($jData))"
                                                     >
                                                         {{ $s->user->judge_code ?? ('J' . $s->user_id) }}
                                                     </div>
@@ -1091,7 +1085,7 @@
                                                     class="w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-extrabold shadow-2xs ring-1 ring-white cursor-pointer hover:scale-125 transition-transform {{ $s->user->judge_code === 'J1' ? 'bg-indigo-600 text-white' : ($s->user->judge_code === 'J2' ? 'bg-emerald-600 text-white' : ($s->user->judge_code === 'J3' ? 'bg-amber-600 text-white' : 'bg-purple-600 text-white')) }}"
                                                     @mouseenter="showJudgeOverview(@js($jData), $event)"
                                                     @mouseleave="hideJudgeOverview()"
-                                                    @click.stop="toggleJudgeOverview(@js($jData), $event)"
+                                                    @click.stop="openJudgeModal(@js($jData))"
                                                 >
                                                     {{ $s->user->judge_code ?? ('J' . $s->user_id) }}
                                                 </div>
@@ -1788,10 +1782,10 @@
         </div>
 
         <!-- ======================================================= -->
-        <!-- FLOATING JUDGE OVERVIEW POPOVER (Responsive & 487x280)  -->
+        <!-- 1. FLOATING HOVER POPOVER (DESKTOP MOUSE HOVER)        -->
         <!-- ======================================================= -->
         <div 
-            x-show="hoveredJudge !== null" 
+            x-show="!isJudgeModalOpen && hoveredJudge !== null" 
             x-cloak
             x-transition:enter="transition ease-out duration-150"
             x-transition:enter-start="opacity-0 translate-y-1 scale-98"
@@ -1799,35 +1793,35 @@
             x-transition:leave="transition ease-in duration-100"
             x-transition:leave-start="opacity-100 translate-y-0 scale-100"
             x-transition:leave-end="opacity-0 translate-y-1 scale-98"
-            class="fixed z-[999999] pointer-events-auto select-none"
-            :style="`left: ${hoverPos.x}px; top: ${hoverPos.y}px; width: ${hoverPos.width || 487}px; max-width: calc(100vw - 24px);`"
+            class="hidden md:block fixed z-[999998] pointer-events-auto select-none"
+            :style="`left: ${hoverPos.x}px; top: ${hoverPos.y}px; width: 487px; height: 280px;`"
             @mouseenter="keepJudgeOverview()"
             @mouseleave="hideJudgeOverview()"
         >
-            <div class="w-full max-w-[487px] min-h-[280px] bg-white rounded-2xl shadow-2xl border border-slate-200/90 overflow-hidden flex flex-col relative text-slate-800">
+            <div class="w-[487px] h-[280px] bg-white rounded-2xl shadow-2xl border border-slate-200/90 overflow-hidden flex flex-col relative text-slate-800">
                 <!-- Header Banner with Gradient -->
                 <div 
-                    class="min-h-[76px] sm:min-h-[84px] px-4 sm:px-5 py-3 sm:py-4 text-white relative flex items-center justify-between bg-gradient-to-r"
+                    class="h-[84px] px-5 py-4 text-white relative flex items-center justify-between bg-gradient-to-r"
                     :class="hoveredJudge?.color || 'from-indigo-600 via-indigo-700 to-indigo-900'"
                 >
                     <!-- Background Pattern Accent -->
                     <div class="absolute inset-0 opacity-15 pointer-events-none bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:12px_12px]"></div>
 
-                    <div class="flex items-center gap-3 sm:gap-3.5 relative z-10 min-w-0 pr-2">
+                    <div class="flex items-center gap-3.5 relative z-10">
                         <!-- Big Judge Avatar -->
-                        <div class="w-11 h-11 sm:w-13 sm:h-13 rounded-xl sm:rounded-2xl bg-white/20 backdrop-blur-md border border-white/40 flex items-center justify-center font-extrabold text-lg sm:text-xl shadow-md text-white tracking-wider shrink-0" x-text="hoveredJudge?.code"></div>
+                        <div class="w-13 h-13 rounded-2xl bg-white/20 backdrop-blur-md border border-white/40 flex items-center justify-center font-extrabold text-xl shadow-md text-white tracking-wider" x-text="hoveredJudge?.code"></div>
                         
                         <div class="min-w-0">
                             <div class="flex items-center gap-2">
-                                <h4 class="font-bold text-sm sm:text-base text-white truncate max-w-[170px] xs:max-w-[210px] sm:max-w-[240px]" x-text="hoveredJudge?.name"></h4>
-                                <span class="px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] font-bold bg-white/25 border border-white/30 text-white uppercase tracking-wider backdrop-blur-xs shrink-0">
+                                <h4 class="font-bold text-base text-white truncate max-w-[240px]" x-text="hoveredJudge?.name"></h4>
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-white/25 border border-white/30 text-white uppercase tracking-wider backdrop-blur-xs">
                                     Dewan Juri
                                 </span>
                             </div>
-                            <div class="text-[11px] sm:text-xs text-white/90 font-medium flex items-center gap-1.5 mt-0.5 flex-wrap">
+                            <div class="text-xs text-white/90 font-medium flex items-center gap-1.5 mt-0.5">
                                 <span class="font-mono text-white/90">@<span x-text="hoveredJudge?.username"></span></span>
                                 <span class="text-white/60">•</span>
-                                <span class="inline-flex items-center gap-1 text-[10px] sm:text-[11px] text-emerald-200 font-medium">
+                                <span class="inline-flex items-center gap-1 text-[11px] text-emerald-200 font-medium">
                                     <span class="w-1.5 h-1.5 rounded-full bg-emerald-300 animate-pulse"></span>
                                     Aktif Menilai
                                 </span>
@@ -1835,29 +1829,19 @@
                         </div>
                     </div>
 
-                    <!-- Badge Kode Juri & Close Button (Mobile Friendly) -->
-                    <div class="flex items-center gap-2 relative z-10 shrink-0">
-                        <span class="px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-xl font-mono font-black text-[11px] sm:text-xs shadow-sm" :class="hoveredJudge?.badgeColor || 'bg-white text-indigo-700'" x-text="'KODE: ' + (hoveredJudge?.code || '-')"></span>
-                        <button 
-                            type="button" 
-                            @click="hoveredJudge = null" 
-                            class="sm:hidden w-7 h-7 rounded-lg bg-black/20 text-white flex items-center justify-center hover:bg-black/30 transition cursor-pointer"
-                            title="Tutup"
-                        >
-                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                        </button>
+                    <!-- Badge Kode Juri -->
+                    <div class="text-right relative z-10">
+                        <span class="px-2.5 py-1 rounded-xl font-mono font-black text-xs shadow-sm" :class="hoveredJudge?.badgeColor || 'bg-white text-indigo-700'" x-text="'KODE: ' + (hoveredJudge?.code || '-')"></span>
                     </div>
                 </div>
 
-                <!-- Body Info Grid -->
-                <div class="p-3.5 sm:p-4 flex-1 flex flex-col justify-between text-xs bg-slate-50/70 gap-2.5">
+                <!-- Body Info Grid (280px total height - 84px header = 196px body) -->
+                <div class="p-4 flex-1 flex flex-col justify-between text-xs bg-slate-50/70">
                     <!-- Row 1: Email & Rekomendasi Info -->
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5">
-                        <div class="p-2 sm:p-2.5 rounded-xl bg-white border border-slate-200/80 shadow-2xs">
-                            <div class="text-[9px] sm:text-[10px] uppercase font-bold text-slate-400 tracking-wider mb-0.5 flex items-center gap-1">
-                                <svg class="w-3 h-3 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <div class="grid grid-cols-2 gap-2.5">
+                        <div class="p-2.5 rounded-xl bg-white border border-slate-200/80 shadow-2xs">
+                            <div class="text-[10px] uppercase font-bold text-slate-400 tracking-wider mb-0.5 flex items-center gap-1">
+                                <svg class="w-3 h-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                                 </svg>
                                 Email Akun Juri
@@ -1865,9 +1849,9 @@
                             <div class="font-semibold text-slate-800 text-[11px] truncate" :title="hoveredJudge?.email" x-text="hoveredJudge?.email || '-'"></div>
                         </div>
 
-                        <div class="p-2 sm:p-2.5 rounded-xl bg-white border border-slate-200/80 shadow-2xs">
-                            <div class="text-[9px] sm:text-[10px] uppercase font-bold text-slate-400 tracking-wider mb-0.5 flex items-center gap-1">
-                                <svg class="w-3 h-3 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <div class="p-2.5 rounded-xl bg-white border border-slate-200/80 shadow-2xs">
+                            <div class="text-[10px] uppercase font-bold text-slate-400 tracking-wider mb-0.5 flex items-center gap-1">
+                                <svg class="w-3 h-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
                                 Waktu Rekomendasi
@@ -1877,25 +1861,147 @@
                     </div>
 
                     <!-- Row 2: Fokus Bidang Penilaian -->
-                    <div class="p-2 sm:p-2.5 rounded-xl bg-purple-50/70 border border-purple-200/60 text-purple-950">
-                        <div class="text-[9px] sm:text-[10px] uppercase font-bold text-purple-700 tracking-wider mb-0.5 flex items-center gap-1">
-                            <svg class="w-3 h-3 text-purple-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <div class="p-2.5 rounded-xl bg-purple-50/70 border border-purple-200/60 text-purple-950">
+                        <div class="text-[10px] uppercase font-bold text-purple-700 tracking-wider mb-0.5 flex items-center gap-1">
+                            <svg class="w-3 h-3 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138z" />
                             </svg>
                             Fokus Penilaian &amp; Keahlian
                         </div>
-                        <div class="font-medium text-[11px] leading-snug line-clamp-2 sm:line-clamp-1 text-purple-900" x-text="hoveredJudge?.focus || 'Evaluasi Inovasi Pembelajaran Digital BTIKP'"></div>
+                        <div class="font-medium text-[11px] leading-snug line-clamp-1 text-purple-900" x-text="hoveredJudge?.focus || 'Evaluasi Inovasi Pembelajaran Digital BTIKP'"></div>
                     </div>
 
                     <!-- Footer Note: Keabsahan Juri -->
-                    <div class="flex items-center justify-between pt-1 border-t border-slate-200/60 text-[9px] sm:text-[10px] text-slate-500">
+                    <div class="flex items-center justify-between pt-1 border-t border-slate-200/60 text-[10px] text-slate-500">
                         <span class="flex items-center gap-1.5 font-semibold text-emerald-700">
-                            <svg class="w-3.5 h-3.5 text-emerald-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                             </svg>
                             <span>Dewan Juri Terverifikasi BTIKP Sultra</span>
                         </span>
-                        <span class="text-slate-400 font-mono text-[9px] sm:text-[10px]">Portal EduTech 2026</span>
+                        <span class="text-slate-400 font-mono text-[10px]">Portal EduTech 2026</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ======================================================= -->
+        <!-- 2. MODAL DIALOG JURI (RESPONSIVE KESEMUA JENIS LAYAR)   -->
+        <!-- ======================================================= -->
+        <div 
+            x-show="isJudgeModalOpen && hoveredJudge !== null" 
+            x-cloak
+            x-transition:enter="transition ease-out duration-200"
+            x-transition:enter-start="opacity-0"
+            x-transition:enter-end="opacity-100"
+            x-transition:leave="transition ease-in duration-150"
+            x-transition:leave-start="opacity-100"
+            x-transition:leave-end="opacity-0"
+            class="fixed inset-0 z-[999999] flex items-center justify-center p-3 sm:p-5 bg-slate-900/60 backdrop-blur-xs overflow-y-auto"
+            @click.self="closeJudgeModal()"
+            @keydown.escape.window="closeJudgeModal()"
+        >
+            <div 
+                x-show="isJudgeModalOpen && hoveredJudge !== null"
+                x-transition:enter="transition ease-out duration-200"
+                x-transition:enter-start="opacity-0 scale-95 translate-y-2"
+                x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                x-transition:leave="transition ease-in duration-150"
+                x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+                x-transition:leave-end="opacity-0 scale-95 translate-y-2"
+                class="w-full max-w-[487px] bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden flex flex-col my-auto relative text-slate-800 transform"
+            >
+                <!-- Header Banner -->
+                <div 
+                    class="px-5 py-4 text-white relative flex items-center justify-between bg-gradient-to-r"
+                    :class="hoveredJudge?.color || 'from-indigo-600 via-indigo-700 to-indigo-900'"
+                >
+                    <div class="absolute inset-0 opacity-15 pointer-events-none bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:12px_12px]"></div>
+
+                    <div class="flex items-center gap-3.5 relative z-10 min-w-0 pr-2">
+                        <div class="w-12 h-12 sm:w-13 sm:h-13 rounded-2xl bg-white/20 backdrop-blur-md border border-white/40 flex items-center justify-center font-extrabold text-xl shadow-md text-white tracking-wider shrink-0" x-text="hoveredJudge?.code"></div>
+                        
+                        <div class="min-w-0">
+                            <div class="flex items-center gap-2">
+                                <h4 class="font-bold text-sm sm:text-base text-white truncate max-w-[200px] sm:max-w-[240px]" x-text="hoveredJudge?.name"></h4>
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-white/25 border border-white/30 text-white uppercase tracking-wider backdrop-blur-xs shrink-0">
+                                    Dewan Juri
+                                </span>
+                            </div>
+                            <div class="text-xs text-white/90 font-medium flex items-center gap-1.5 mt-0.5 flex-wrap">
+                                <span class="font-mono text-white/90">@<span x-text="hoveredJudge?.username"></span></span>
+                                <span class="text-white/60">•</span>
+                                <span class="inline-flex items-center gap-1 text-[11px] text-emerald-200 font-medium">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-300 animate-pulse"></span>
+                                    Aktif Menilai
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-2 relative z-10 shrink-0">
+                        <span class="px-2.5 py-1 rounded-xl font-mono font-black text-xs shadow-sm" :class="hoveredJudge?.badgeColor || 'bg-white text-indigo-700'" x-text="'KODE: ' + (hoveredJudge?.code || '-')"></span>
+                        <button 
+                            type="button" 
+                            @click="closeJudgeModal()"
+                            class="w-7 h-7 rounded-xl bg-white/20 hover:bg-white/30 text-white flex items-center justify-center transition cursor-pointer"
+                            title="Tutup"
+                        >
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Body Info Grid (Full Responsive) -->
+                <div class="p-4 sm:p-5 flex-1 flex flex-col justify-between text-xs bg-slate-50/70 gap-3">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                        <div class="p-3 rounded-2xl bg-white border border-slate-200/80 shadow-2xs">
+                            <div class="text-[10px] uppercase font-bold text-slate-400 tracking-wider mb-1 flex items-center gap-1.5">
+                                <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                </svg>
+                                <span>Email Akun Juri</span>
+                            </div>
+                            <div class="font-bold text-slate-800 text-xs truncate" :title="hoveredJudge?.email" x-text="hoveredJudge?.email || '-'"></div>
+                        </div>
+
+                        <div class="p-3 rounded-2xl bg-white border border-slate-200/80 shadow-2xs">
+                            <div class="text-[10px] uppercase font-bold text-slate-400 tracking-wider mb-1 flex items-center gap-1.5">
+                                <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span>Waktu Rekomendasi</span>
+                            </div>
+                            <div class="font-bold text-slate-800 text-xs truncate" x-text="hoveredJudge?.suggested_at || '-'"></div>
+                        </div>
+                    </div>
+
+                    <div class="p-3.5 rounded-2xl bg-purple-50/80 border border-purple-200/70 text-purple-950">
+                        <div class="text-[10px] uppercase font-bold text-purple-700 tracking-wider mb-1 flex items-center gap-1.5">
+                            <svg class="w-3.5 h-3.5 text-purple-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138z" />
+                            </svg>
+                            <span>Fokus Penilaian &amp; Keahlian</span>
+                        </div>
+                        <div class="font-semibold text-xs leading-relaxed text-purple-900" x-text="hoveredJudge?.focus || 'Evaluasi Inovasi Pembelajaran Digital BTIKP'"></div>
+                    </div>
+
+                    <div class="flex items-center justify-between pt-2 border-t border-slate-200/70 text-xs text-slate-500">
+                        <span class="flex items-center gap-1.5 font-bold text-emerald-700">
+                            <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                            </svg>
+                            <span>Dewan Juri Terverifikasi BTIKP Sultra</span>
+                        </span>
+                        <button 
+                            type="button" 
+                            @click="closeJudgeModal()"
+                            class="px-3 py-1 rounded-lg bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold text-xs transition cursor-pointer"
+                        >
+                            Tutup
+                        </button>
                     </div>
                 </div>
             </div>
