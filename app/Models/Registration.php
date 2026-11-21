@@ -95,6 +95,40 @@ class Registration extends Model
     }
 
     /**
+     * Relasi ke rekomendasi / usulan Top 10 dari dewan juri.
+     */
+    public function judgeSuggestions(): HasMany
+    {
+        return $this->hasMany(JudgeSuggestion::class, 'registration_id');
+    }
+
+    /**
+     * Cek apakah karya ini disarankan oleh dewan juri tertentu.
+     */
+    public function isSuggestedBy(int|User $user): bool
+    {
+        $userId = $user instanceof User ? $user->id : $user;
+
+        if ($this->relationLoaded('judgeSuggestions')) {
+            return $this->judgeSuggestions->contains('user_id', $userId);
+        }
+
+        return $this->judgeSuggestions()->where('user_id', $userId)->exists();
+    }
+
+    /**
+     * Jumlah saran juri yang diperoleh karya ini.
+     */
+    public function getSuggestionsCountAttribute(): int
+    {
+        if ($this->relationLoaded('judgeSuggestions')) {
+            return $this->judgeSuggestions->count();
+        }
+
+        return $this->judgeSuggestions()->count();
+    }
+
+    /**
      * Rata-rata nilai total dari seluruh juri.
      */
     public function getAverageScoreAttribute(): float

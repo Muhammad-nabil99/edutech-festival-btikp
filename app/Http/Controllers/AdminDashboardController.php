@@ -70,8 +70,30 @@ class AdminDashboardController extends Controller
             }
         }
 
-        $registrations = $query->with('judgeScores.judge')
-            ->latest('id')
+        // Filter Rekomendasi / Saran Dewan Juri
+        if ($suggestionFilter = $request->input('suggestion_filter')) {
+            if ($suggestionFilter === 'suggested_3') {
+                $query->has('judgeSuggestions', '=', 3);
+            } elseif ($suggestionFilter === 'suggested_any') {
+                $query->has('judgeSuggestions', '>=', 1);
+            } elseif ($suggestionFilter === 'no_suggestion') {
+                $query->doesntHave('judgeSuggestions');
+            }
+        }
+
+        // Pengurutan (Sorting)
+        $sortBy = $request->input('sort_by', 'latest');
+        if ($sortBy === 'most_suggested') {
+            $query->withCount('judgeSuggestions')
+                  ->orderByDesc('judge_suggestions_count')
+                  ->latest('id');
+        } elseif ($sortBy === 'oldest') {
+            $query->withCount('judgeSuggestions')->oldest('id');
+        } else {
+            $query->withCount('judgeSuggestions')->latest('id');
+        }
+
+        $registrations = $query->with(['judgeScores.judge', 'judgeSuggestions.user'])
             ->paginate(12)
             ->withQueryString();
 
@@ -115,6 +137,8 @@ class AdminDashboardController extends Controller
                 'category' => $request->input('category', ''),
                 'regency' => $request->input('regency', ''),
                 'curated' => $request->input('curated', ''),
+                'suggestion_filter' => $request->input('suggestion_filter', ''),
+                'sort_by' => $sortBy,
             ],
         ]);
     }

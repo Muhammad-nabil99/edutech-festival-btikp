@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\JudgeScore;
+use App\Models\JudgeSuggestion;
 use App\Models\Registration;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -15,6 +16,8 @@ class JudgeFeatureTest extends TestCase
 
     private User $admin;
     private User $judge;
+    private User $judge2;
+    private User $judge3;
 
     protected function setUp(): void
     {
@@ -32,6 +35,22 @@ class JudgeFeatureTest extends TestCase
             'name' => 'Dewan Juri 1',
             'username' => 'juri1_sultra',
             'email' => 'juri1@edutech.btikp.id',
+            'role' => 'judge',
+            'password' => Hash::make('password123'),
+        ]);
+
+        $this->judge2 = User::create([
+            'name' => 'Dewan Juri 2',
+            'username' => 'juri2_sultra',
+            'email' => 'juri2@edutech.btikp.id',
+            'role' => 'judge',
+            'password' => Hash::make('password123'),
+        ]);
+
+        $this->judge3 = User::create([
+            'name' => 'Dewan Juri 3',
+            'username' => 'juri3_sultra',
+            'email' => 'juri3@edutech.btikp.id',
             'role' => 'judge',
             'password' => Hash::make('password123'),
         ]);
@@ -69,27 +88,25 @@ class JudgeFeatureTest extends TestCase
      */
     public function test_role_access_boundaries_between_admin_and_judge(): void
     {
-        // Juri mencoba akses dashboard admin
         $judgeToAdmin = $this->actingAs($this->judge)->get(route('admin.dashboard'));
         $judgeToAdmin->assertRedirect(route('judge.dashboard'));
 
-        // Admin mencoba akses dashboard juri
         $adminToJudge = $this->actingAs($this->admin)->get(route('judge.dashboard'));
         $adminToJudge->assertRedirect(route('admin.dashboard'));
     }
 
     /**
-     * Test dewan juri hanya dapat melihat karya yang masuk nominasi Top 10.
+     * Test dewan juri memiliki 3 tab pemisah di dashboard.
      */
-    public function test_judge_dashboard_only_displays_top10_works(): void
+    public function test_judge_dashboard_tabs_structure(): void
     {
-        // Karya 1: Masuk Top 10
+        // Karya 1: Finalis (Top 10 disetujui Admin)
         $top10Work = Registration::create([
             'registration_number' => 'EDUTECH-2026-0001',
-            'full_name' => 'Karya Unggulan Top 10',
+            'full_name' => 'Karya Unggulan Finalis',
             'school_name' => 'SMAN 1 KENDARI',
             'regency_city' => 'Kota Kendari',
-            'email' => 'top10@example.com',
+            'email' => 'finalis@example.com',
             'whatsapp_number' => '628111111111',
             'learning_category' => 'gim_edukasi',
             'profile_photo_path' => 'profile-photos/sample.jpg',
@@ -98,7 +115,7 @@ class JudgeFeatureTest extends TestCase
             'curated_at' => now(),
         ]);
 
-        // Karya 2: Belum masuk Top 10
+        // Karya 2: Pendaftar Reguler
         $regularWork = Registration::create([
             'registration_number' => 'EDUTECH-2026-0002',
             'full_name' => 'Karya Pendaftar Reguler',
@@ -112,16 +129,167 @@ class JudgeFeatureTest extends TestCase
             'is_curated_top10' => false,
         ]);
 
-        $response = $this->actingAs($this->judge)->get(route('judge.dashboard'));
-        $response->assertStatus(200);
-        $response->assertSee('Karya Unggulan Top 10');
-        $response->assertDontSee('Karya Pendaftar Reguler');
+        // Juri menyarankan karya reguler
+        JudgeSuggestion::create([
+            'user_id' => $this->judge->id,
+            'registration_id' => $regularWork->id,
+        ]);
+
+        // 1. Tab Finalis (Default): hanya menampilkan karya yang disetujui Admin
+        $responseFinalists = $this->actingAs($this->judge)->get(route('judge.dashboard', ['tab' => 'finalists']));
+        $responseFinalists->assertStatus(200);
+        $responseFinalists->assertSee('Karya Unggulan Finalis');
+
+        // 2. Tab Semua Peserta: menampilkan seluruh peserta
+        $responseAll = $this->actingAs($this->judge)->get(route('judge.dashboard', ['tab' => 'all']));
+        $responseAll->assertStatus(200);
+        $responseAll->assertSee('Karya Unggulan Finalis');
+        $responseAll->assertSee('Karya Pendaftar Reguler');
+
+        // 3. Tab Saran Saya: menampilkan karya yang disarankan oleh juri ini
+        $responseMySuggestions = $this->actingAs($this->judge)->get(route('judge.dashboard', ['tab' => 'my_suggestions']));
+        $responseMySuggestions->assertStatus(200);
+        $responseMySuggestions->assertSee('Karya Pendaftar Reguler');
     }
 
     /**
-     * Test dewan juri dapat memberikan nilai dengan bobot 4 aspek rubrik Bab IV.
+     * Test dewan juri dapat menyarankan dan membatalkan saran (toggle suggest) karya untuk Top 10.
      */
-    public function test_judge_can_submit_score_with_weighted_aspects(): void
+    public function test_judge_can_toggle_suggestion_for_top10(): void
+    {
+        $work = Registration::create([
+            'registration_number' => 'EDUTECH-2026-0010',
+            'full_name' => 'Karya Calon Top 10',
+            'school_name' => 'SMAN 2 KENDARI',
+            'regency_city' => 'Kota Kendari',
+            'email' => 'calon@example.com',
+            'whatsapp_number' => '628123456789',
+            'learning_category' => 'gim_edukasi',
+            'profile_photo_path' => 'profile-photos/sample.jpg',
+            'media_link' => 'https://itch.io/test-game',
+            'is_curated_top10' => false,
+        ]);
+
+        // 1. Juri 1 memberi saran
+        $res1 = $this->actingAs($this->judge)
+            ->postJson(route('judge.works.toggle-suggest', $work));
+
+        $res1->assertStatus(200)
+            ->assertJson([
+                'success' => true,
+                'is_suggested' => true,
+                'suggestions_count' => 1,
+            ]);
+
+        $this->assertDatabaseHas('judge_suggestions', [
+            'user_id' => $this->judge->id,
+            'registration_id' => $work->id,
+        ]);
+
+        // 2. Juri 1 membatalkan saran
+        $res2 = $this->actingAs($this->judge)
+            ->postJson(route('judge.works.toggle-suggest', $work));
+
+        $res2->assertStatus(200)
+            ->assertJson([
+                'success' => true,
+                'is_suggested' => false,
+                'suggestions_count' => 0,
+            ]);
+
+        $this->assertDatabaseMissing('judge_suggestions', [
+            'user_id' => $this->judge->id,
+            'registration_id' => $work->id,
+        ]);
+    }
+
+    /**
+     * Test kuota saran juri dibatasi maksimal 10 karya per kategori.
+     */
+    public function test_judge_suggestion_quota_enforced_at_10_per_category(): void
+    {
+        // Buat 10 karya gim edukasi dan sarankan semuanya
+        for ($i = 1; $i <= 10; $i++) {
+            $w = Registration::create([
+                'registration_number' => sprintf('EDUTECH-2026-%04d', $i),
+                'full_name' => "Peserta Gim {$i}",
+                'school_name' => 'SMA CONTOH',
+                'regency_city' => 'Kota Kendari',
+                'email' => "gim{$i}@example.com",
+                'whatsapp_number' => '62812345678',
+                'learning_category' => 'gim_edukasi',
+                'profile_photo_path' => 'profile-photos/sample.jpg',
+                'media_link' => 'https://itch.io/sample',
+            ]);
+
+            JudgeSuggestion::create([
+                'user_id' => $this->judge->id,
+                'registration_id' => $w->id,
+            ]);
+        }
+
+        // Coba sarankan karya gim ke-11
+        $work11 = Registration::create([
+            'registration_number' => 'EDUTECH-2026-0011',
+            'full_name' => 'Peserta Gim 11',
+            'school_name' => 'SMA CONTOH',
+            'regency_city' => 'Kota Kendari',
+            'email' => 'gim11@example.com',
+            'whatsapp_number' => '62812345678',
+            'learning_category' => 'gim_edukasi',
+            'profile_photo_path' => 'profile-photos/sample.jpg',
+            'media_link' => 'https://itch.io/sample',
+        ]);
+
+        $response = $this->actingAs($this->judge)
+            ->postJson(route('judge.works.toggle-suggest', $work11));
+
+        $response->assertStatus(422)
+            ->assertJson([
+                'success' => false,
+            ]);
+
+        $this->assertDatabaseMissing('judge_suggestions', [
+            'user_id' => $this->judge->id,
+            'registration_id' => $work11->id,
+        ]);
+    }
+
+    /**
+     * Test dewan juri hanya dapat memberi nilai pada karya yang masuk Top 10 (Finalis).
+     */
+    public function test_judge_cannot_score_non_finalist_work(): void
+    {
+        $nonFinalist = Registration::create([
+            'registration_number' => 'EDUTECH-2026-0099',
+            'full_name' => 'Karya Non Finalis',
+            'school_name' => 'SMAN 1 KENDARI',
+            'regency_city' => 'Kota Kendari',
+            'email' => 'bukanfinalis@example.com',
+            'whatsapp_number' => '6281234567890',
+            'learning_category' => 'gim_edukasi',
+            'profile_photo_path' => 'profile-photos/sample.jpg',
+            'media_link' => 'https://canva.com/view',
+            'is_curated_top10' => false,
+        ]);
+
+        $payload = [
+            'pedagogical_score' => 90,
+            'creativity_score' => 80,
+            'technical_score' => 85,
+            'presentation_score' => 90,
+        ];
+
+        $response = $this->actingAs($this->judge)
+            ->postJson(route('judge.works.score', $nonFinalist), $payload);
+
+        $response->assertStatus(403);
+    }
+
+    /**
+     * Test dewan juri dapat memberikan nilai dengan bobot 4 aspek rubrik Bab IV pada Finalis.
+     */
+    public function test_judge_can_submit_score_with_weighted_aspects_on_finalist(): void
     {
         $work = Registration::create([
             'registration_number' => 'EDUTECH-2026-0001',
@@ -165,6 +333,50 @@ class JudgeFeatureTest extends TestCase
         $this->assertNotNull($score);
         $this->assertEquals(85.75, $score->total_score);
         $this->assertEquals('Karya sangat inovatif dan materi kurikulum terstruktur rapi.', $score->notes);
+    }
+
+    /**
+     * Test jika admin membatalkan karya dari Top 10, nilai juri tidak terhapus dari database.
+     */
+    public function test_unselecting_top10_retains_scores_in_database(): void
+    {
+        $work = Registration::create([
+            'registration_number' => 'EDUTECH-2026-0001',
+            'full_name' => 'Karya Media Interaktif',
+            'school_name' => 'SMAN 1 KENDARI',
+            'regency_city' => 'Kota Kendari',
+            'email' => 'peserta@example.com',
+            'whatsapp_number' => '6281234567890',
+            'learning_category' => 'media_pembelajaran_interaktif',
+            'profile_photo_path' => 'profile-photos/sample.jpg',
+            'media_link' => 'https://canva.com/view',
+            'is_curated_top10' => true,
+        ]);
+
+        // Juri memberi nilai
+        JudgeScore::create([
+            'user_id' => $this->judge->id,
+            'registration_id' => $work->id,
+            'pedagogical_score' => 80,
+            'creativity_score' => 80,
+            'technical_score' => 80,
+            'presentation_score' => 80,
+            'total_score' => 80.0,
+        ]);
+
+        // Admin uncurate
+        $this->actingAs($this->admin)
+            ->postJson(route('admin.registrations.toggle-top10', $work));
+
+        $work->refresh();
+        $this->assertFalse($work->is_curated_top10);
+
+        // Nilai tetap ada di database
+        $this->assertDatabaseHas('judge_scores', [
+            'user_id' => $this->judge->id,
+            'registration_id' => $work->id,
+            'total_score' => 80.0,
+        ]);
     }
 
     /**

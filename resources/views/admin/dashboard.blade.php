@@ -148,6 +148,70 @@
 
             openJudgeEdit(judge) {
                 this.editingJudge = { ...judge, password: '' };
+            },
+
+            // Hovered Judge Overview Popover (Exact width 487px, height 280px)
+            hoveredJudge: null,
+            hoverPos: { x: 0, y: 0 },
+            hoverTimeout: null,
+
+            showJudgeOverview(judgeData, event) {
+                clearTimeout(this.hoverTimeout);
+                const rect = event.currentTarget.getBoundingClientRect();
+                const cardW = 487;
+                const cardH = 280;
+
+                // Smart X positioning (centered on trigger, bounded within viewport)
+                let x = rect.left + (rect.width / 2) - (cardW / 2);
+                if (x < 15) x = 15;
+                if (x + cardW > window.innerWidth - 15) {
+                    x = window.innerWidth - cardW - 15;
+                }
+
+                // Smart Y positioning (prefer below, fallback above)
+                let y = rect.bottom + 8;
+                if (y + cardH > window.innerHeight - 15) {
+                    y = rect.top - cardH - 8;
+                }
+                if (y < 10) y = 10;
+
+                this.hoverPos = { x, y };
+                this.hoveredJudge = judgeData;
+            },
+
+            hideJudgeOverview() {
+                this.hoverTimeout = setTimeout(() => {
+                    this.hoveredJudge = null;
+                }, 180);
+            },
+
+            keepJudgeOverview() {
+                clearTimeout(this.hoverTimeout);
+            },
+
+            toggleJudgeOverview(judgeData, event) {
+                clearTimeout(this.hoverTimeout);
+                if (this.hoveredJudge && this.hoveredJudge.code === judgeData.code) {
+                    this.hoveredJudge = null;
+                } else {
+                    this.showJudgeOverview(judgeData, event);
+                }
+            },
+
+            get isAnyModalOpen() {
+                return !!(this.selectedRegistration || this.previewImage || this.showSettingModal || this.editingJudge || this.deleteTarget);
+            },
+
+            init() {
+                this.$watch('isAnyModalOpen', (isOpen) => {
+                    if (isOpen) {
+                        document.body.classList.add('overflow-hidden');
+                        document.documentElement.classList.add('overflow-hidden');
+                    } else {
+                        document.body.classList.remove('overflow-hidden');
+                        document.documentElement.classList.remove('overflow-hidden');
+                    }
+                });
             }
         }"
     >
@@ -410,10 +474,10 @@
             <section class="bg-white rounded-3xl p-6 sm:p-7 border border-slate-100 shadow-xs">
                 <form method="GET" action="{{ route('admin.dashboard') }}" class="space-y-4">
                     <input type="hidden" name="tab" value="{{ $filters['tab'] }}">
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3 sm:gap-4">
                         <!-- Field 1: Pencarian Kata Kunci -->
                         <div class="space-y-1.5">
-                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Pencarian Kata Kunci</label>
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Pencarian Peserta</label>
                             <div class="relative">
                                 <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -424,7 +488,7 @@
                                     type="text" 
                                     name="search" 
                                     value="{{ $filters['search'] }}" 
-                                    placeholder="Cari nama, sekolah, email..." 
+                                    placeholder="Nama, sekolah, email..." 
                                     class="w-full pl-10 pr-4 py-2.5 text-xs rounded-2xl border border-slate-200 bg-slate-50/50 text-slate-700 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-[#5e43f3] transition-all"
                                 >
                             </div>
@@ -432,14 +496,14 @@
 
                         <!-- Field 2: Kategori Pembelajaran -->
                         <div class="space-y-1.5">
-                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Kategori Pembelajaran</label>
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Kategori Lomba</label>
                             <select 
                                 name="category" 
                                 class="w-full px-3.5 py-2.5 text-xs rounded-2xl border border-slate-200 bg-slate-50/50 text-slate-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-[#5e43f3] transition-all cursor-pointer"
                             >
                                 <option value="">Semua Kategori</option>
                                 <option value="gim_edukasi" {{ $filters['category'] === 'gim_edukasi' ? 'selected' : '' }}>Gim Edukasi</option>
-                                <option value="media_pembelajaran_interaktif" {{ $filters['category'] === 'media_pembelajaran_interaktif' ? 'selected' : '' }}>Media Pembelajaran Interaktif</option>
+                                <option value="media_pembelajaran_interaktif" {{ $filters['category'] === 'media_pembelajaran_interaktif' ? 'selected' : '' }}>Media Interaktif</option>
                             </select>
                         </div>
 
@@ -466,9 +530,36 @@
                                 name="curated" 
                                 class="w-full px-3.5 py-2.5 text-xs rounded-2xl border border-slate-200 bg-slate-50/50 text-slate-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-[#5e43f3] transition-all cursor-pointer"
                             >
-                                <option value="">Semua Status Nominasi</option>
-                                <option value="top10_only" {{ $filters['curated'] === 'top10_only' ? 'selected' : '' }}>⭐ Top 10 Terpilih Saja</option>
+                                <option value="">Semua Status</option>
+                                <option value="top10_only" {{ $filters['curated'] === 'top10_only' ? 'selected' : '' }}>⭐ Top 10 Terpilih</option>
                                 <option value="regular_only" {{ $filters['curated'] === 'regular_only' ? 'selected' : '' }}>Belum Masuk Top 10</option>
+                            </select>
+                        </div>
+
+                        <!-- Field 5: Rekomendasi Dewan Juri -->
+                        <div class="space-y-1.5">
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Saran Dewan Juri</label>
+                            <select 
+                                name="suggestion_filter" 
+                                class="w-full px-3.5 py-2.5 text-xs rounded-2xl border border-slate-200 bg-slate-50/50 text-slate-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-[#5e43f3] transition-all cursor-pointer"
+                            >
+                                <option value="">Semua Rekomendasi</option>
+                                <option value="suggested_3" {{ ($filters['suggestion_filter'] ?? '') === 'suggested_3' ? 'selected' : '' }}>⭐ 3 Juri Sepakat</option>
+                                <option value="suggested_any" {{ ($filters['suggestion_filter'] ?? '') === 'suggested_any' ? 'selected' : '' }}>Disarankan &ge; 1 Juri</option>
+                                <option value="no_suggestion" {{ ($filters['suggestion_filter'] ?? '') === 'no_suggestion' ? 'selected' : '' }}>Belum Ada Saran Juri</option>
+                            </select>
+                        </div>
+
+                        <!-- Field 6: Urutan (Sort By) -->
+                        <div class="space-y-1.5">
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Urutan Tampil</label>
+                            <select 
+                                name="sort_by" 
+                                class="w-full px-3.5 py-2.5 text-xs rounded-2xl border border-slate-200 bg-slate-50/50 text-slate-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-[#5e43f3] transition-all cursor-pointer"
+                            >
+                                <option value="latest" {{ ($filters['sort_by'] ?? '') === 'latest' ? 'selected' : '' }}>Terbaru</option>
+                                <option value="most_suggested" {{ ($filters['sort_by'] ?? '') === 'most_suggested' ? 'selected' : '' }}>Paling Banyak Disarankan Juri</option>
+                                <option value="oldest" {{ ($filters['sort_by'] ?? '') === 'oldest' ? 'selected' : '' }}>Terlama</option>
                             </select>
                         </div>
                     </div>
@@ -554,6 +645,14 @@
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
                                         </svg>
                                         <span>Kategori &amp; Status Nominasi</span>
+                                    </div>
+                                </th>
+                                <th class="py-4 px-4 text-center" scope="col">
+                                    <div class="flex items-center justify-center gap-1.5">
+                                        <svg class="w-4 h-4 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                        </svg>
+                                        <span>Saran Juri</span>
                                     </div>
                                 </th>
                                 <th class="py-4 px-4" scope="col">
@@ -658,6 +757,58 @@
                                                 </span>
                                             </div>
                                         </div>
+                                    </td>
+
+                                    <!-- Saran Dewan Juri -->
+                                    <td class="py-4 px-4 text-center" @click.stop>
+                                        @if ($reg->judgeSuggestions->count() > 0)
+                                            <div class="flex items-center justify-center gap-1" @click.stop>
+                                                @foreach ($reg->judgeSuggestions as $s)
+                                                    @php
+                                                        $jData = [
+                                                            'name' => $s->user->name ?? 'Dewan Juri',
+                                                            'username' => $s->user->username ?? ('juri' . $s->user_id),
+                                                            'email' => $s->user->email ?? '-',
+                                                            'code' => $s->user->judge_code ?? ('J' . $s->user_id),
+                                                            'focus' => match ($s->user->judge_code ?? '') {
+                                                                'J1' => 'Gim Edukasi & Interaktivitas Media Digital',
+                                                                'J2' => 'Pedagogik, Kurikulum & Substansi Materi SMA/SMK',
+                                                                'J3' => 'Desain Visual, Estetika & Kualitas UI/UX',
+                                                                default => 'Evaluasi Inovasi Pembelajaran Digital BTIKP',
+                                                            },
+                                                            'suggested_at' => $s->created_at ? $s->created_at->translatedFormat('d M Y, H:i') . ' WITA' : 'Tercatat di sistem',
+                                                            'color' => match ($s->user->judge_code ?? '') {
+                                                                'J1' => 'from-indigo-600 via-indigo-700 to-indigo-900',
+                                                                'J2' => 'from-emerald-600 via-teal-700 to-emerald-900',
+                                                                'J3' => 'from-amber-500 via-orange-600 to-amber-800',
+                                                                default => 'from-purple-600 via-indigo-700 to-purple-900',
+                                                            },
+                                                            'badgeColor' => match ($s->user->judge_code ?? '') {
+                                                                'J1' => 'bg-indigo-500 text-white',
+                                                                'J2' => 'bg-emerald-500 text-white',
+                                                                'J3' => 'bg-amber-500 text-white',
+                                                                default => 'bg-purple-500 text-white',
+                                                            },
+                                                        ];
+                                                    @endphp
+                                                    <div 
+                                                        class="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-extrabold shadow-2xs ring-1 ring-white cursor-pointer hover:scale-125 transition-transform {{ $s->user->judge_code === 'J1' ? 'bg-indigo-600 text-white' : ($s->user->judge_code === 'J2' ? 'bg-emerald-600 text-white' : ($s->user->judge_code === 'J3' ? 'bg-amber-600 text-white' : 'bg-purple-600 text-white')) }}"
+                                                        @mouseenter="showJudgeOverview(@js($jData), $event)"
+                                                        @mouseleave="hideJudgeOverview()"
+                                                        @click.stop="toggleJudgeOverview(@js($jData), $event)"
+                                                    >
+                                                        {{ $s->user->judge_code ?? ('J' . $s->user_id) }}
+                                                    </div>
+                                                @endforeach
+                                                @if ($reg->judgeSuggestions->count() >= 3)
+                                                    <span class="px-1.5 py-0.5 rounded-md text-[10px] font-extrabold bg-amber-100 text-amber-800 border border-amber-300 ml-0.5" title="Disarankan oleh 3 Dewan Juri sekaligus!">
+                                                        ⭐ 3/3
+                                                    </span>
+                                                @endif
+                                            </div>
+                                        @else
+                                            <span class="text-[11px] text-slate-300 font-normal">-</span>
+                                        @endif
                                     </td>
 
                                     <!-- Kontak -->
@@ -884,6 +1035,61 @@
                                             <span>Buka Karya &rarr;</span>
                                         </a>
                                     </div>
+                                </div>
+
+                                <!-- Rekomendasi Dewan Juri -->
+                                <div class="mb-3.5 p-2.5 rounded-2xl bg-purple-50/50 border border-purple-100 flex items-center justify-between text-xs" @click.stop>
+                                    <span class="text-[11px] text-purple-900 font-semibold flex items-center gap-1">
+                                        <span>Saran Dewan Juri:</span>
+                                    </span>
+                                    @if ($reg->judgeSuggestions->count() > 0)
+                                        <div class="flex items-center gap-1" @click.stop>
+                                            @foreach ($reg->judgeSuggestions as $s)
+                                                @php
+                                                    $jData = [
+                                                        'name' => $s->user->name ?? 'Dewan Juri',
+                                                        'username' => $s->user->username ?? ('juri' . $s->user_id),
+                                                        'email' => $s->user->email ?? '-',
+                                                        'code' => $s->user->judge_code ?? ('J' . $s->user_id),
+                                                        'focus' => match ($s->user->judge_code ?? '') {
+                                                            'J1' => 'Gim Edukasi & Interaktivitas Media Digital',
+                                                            'J2' => 'Pedagogik, Kurikulum & Substansi Materi SMA/SMK',
+                                                            'J3' => 'Desain Visual, Estetika & Kualitas UI/UX',
+                                                            default => 'Evaluasi Inovasi Pembelajaran Digital BTIKP',
+                                                        },
+                                                        'suggested_at' => $s->created_at ? $s->created_at->translatedFormat('d M Y, H:i') . ' WITA' : 'Tercatat di sistem',
+                                                        'color' => match ($s->user->judge_code ?? '') {
+                                                            'J1' => 'from-indigo-600 via-indigo-700 to-indigo-900',
+                                                            'J2' => 'from-emerald-600 via-teal-700 to-emerald-900',
+                                                            'J3' => 'from-amber-500 via-orange-600 to-amber-800',
+                                                            default => 'from-purple-600 via-indigo-700 to-purple-900',
+                                                        },
+                                                        'badgeColor' => match ($s->user->judge_code ?? '') {
+                                                            'J1' => 'bg-indigo-500 text-white',
+                                                            'J2' => 'bg-emerald-500 text-white',
+                                                            'J3' => 'bg-amber-500 text-white',
+                                                            default => 'bg-purple-500 text-white',
+                                                        },
+                                                    ];
+                                                @endphp
+                                                <div 
+                                                    class="w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-extrabold shadow-2xs ring-1 ring-white cursor-pointer hover:scale-125 transition-transform {{ $s->user->judge_code === 'J1' ? 'bg-indigo-600 text-white' : ($s->user->judge_code === 'J2' ? 'bg-emerald-600 text-white' : ($s->user->judge_code === 'J3' ? 'bg-amber-600 text-white' : 'bg-purple-600 text-white')) }}"
+                                                    @mouseenter="showJudgeOverview(@js($jData), $event)"
+                                                    @mouseleave="hideJudgeOverview()"
+                                                    @click.stop="toggleJudgeOverview(@js($jData), $event)"
+                                                >
+                                                    {{ $s->user->judge_code ?? ('J' . $s->user_id) }}
+                                                </div>
+                                            @endforeach
+                                            @if ($reg->judgeSuggestions->count() >= 3)
+                                                <span class="px-1.5 py-0.5 rounded-md text-[9px] font-extrabold bg-amber-100 text-amber-800 border border-amber-300 ml-0.5" title="Disarankan oleh 3 Dewan Juri sekaligus!">
+                                                    ⭐ 3/3
+                                                </span>
+                                            @endif
+                                        </div>
+                                    @else
+                                        <span class="text-[10px] text-slate-400">Belum ada saran</span>
+                                    @endif
                                 </div>
                             </div>
 
@@ -1115,7 +1321,7 @@
         <div 
             x-show="selectedRegistration" 
             x-cloak
-            class="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-5 bg-slate-900/70 backdrop-blur-xs overflow-hidden"
+            class="fixed inset-0 z-[999998] flex items-center justify-center p-3 sm:p-5 bg-slate-900/80 backdrop-blur-sm overflow-hidden"
             @keydown.escape.window="closeDetail()"
         >
             <div 
@@ -1267,7 +1473,7 @@
         <div 
             x-show="showSettingModal" 
             x-cloak
-            class="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-5 bg-slate-900/70 backdrop-blur-xs overflow-y-auto"
+            class="fixed inset-0 z-[999998] flex items-center justify-center p-3 sm:p-5 bg-slate-900/80 backdrop-blur-sm overflow-y-auto"
             @keydown.escape.window="showSettingModal = false"
         >
             <div 
@@ -1382,7 +1588,7 @@
         <div 
             x-show="editingJudge !== null" 
             x-cloak
-            class="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-5 bg-slate-900/70 backdrop-blur-xs overflow-y-auto"
+            class="fixed inset-0 z-[999998] flex items-center justify-center p-3 sm:p-5 bg-slate-900/80 backdrop-blur-sm overflow-y-auto"
             @keydown.escape.window="editingJudge = null"
         >
             <div 
@@ -1443,7 +1649,7 @@
         <div 
             x-show="deleteTarget !== null" 
             x-cloak
-            class="fixed inset-0 z-[9999] overflow-y-auto flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-xs"
+            class="fixed inset-0 z-[999999] overflow-y-auto flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-xs"
             @keydown.escape.window="closeDeleteModal()"
         >
             <div 
@@ -1551,7 +1757,7 @@
         <div 
             x-show="previewImage" 
             x-cloak
-            class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-xs p-4"
+            class="fixed inset-0 z-[9999999] flex items-center justify-center bg-black/80 backdrop-blur-xs p-4"
             @click.self="previewImage = null"
         >
             <div class="relative bg-white rounded-3xl p-4 max-w-sm w-full text-center shadow-2xl">
@@ -1563,6 +1769,110 @@
                 >
                     Tutup Pratinjau
                 </button>
+            </div>
+        </div>
+
+        <!-- ======================================================= -->
+        <!-- FLOATING JUDGE OVERVIEW POPOVER (Exact 487px x 280px)   -->
+        <!-- ======================================================= -->
+        <div 
+            x-show="hoveredJudge !== null" 
+            x-cloak
+            x-transition:enter="transition ease-out duration-150"
+            x-transition:enter-start="opacity-0 translate-y-1 scale-98"
+            x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+            x-transition:leave="transition ease-in duration-100"
+            x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+            x-transition:leave-end="opacity-0 translate-y-1 scale-98"
+            class="fixed z-[999999] pointer-events-auto select-none"
+            :style="`left: ${hoverPos.x}px; top: ${hoverPos.y}px; width: 487px; height: 280px;`"
+            @mouseenter="keepJudgeOverview()"
+            @mouseleave="hideJudgeOverview()"
+        >
+            <div class="w-[487px] h-[280px] bg-white rounded-2xl shadow-2xl border border-slate-200/90 overflow-hidden flex flex-col relative text-slate-800">
+                <!-- Header Banner with Gradient -->
+                <div 
+                    class="h-[84px] px-5 py-4 text-white relative flex items-center justify-between bg-gradient-to-r"
+                    :class="hoveredJudge?.color || 'from-indigo-600 via-indigo-700 to-indigo-900'"
+                >
+                    <!-- Background Pattern Accent -->
+                    <div class="absolute inset-0 opacity-15 pointer-events-none bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:12px_12px]"></div>
+
+                    <div class="flex items-center gap-3.5 relative z-10">
+                        <!-- Big Judge Avatar -->
+                        <div class="w-13 h-13 rounded-2xl bg-white/20 backdrop-blur-md border border-white/40 flex items-center justify-center font-extrabold text-xl shadow-md text-white tracking-wider" x-text="hoveredJudge?.code"></div>
+                        
+                        <div class="min-w-0">
+                            <div class="flex items-center gap-2">
+                                <h4 class="font-bold text-base text-white truncate max-w-[240px]" x-text="hoveredJudge?.name"></h4>
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-white/25 border border-white/30 text-white uppercase tracking-wider backdrop-blur-xs">
+                                    Dewan Juri
+                                </span>
+                            </div>
+                            <div class="text-xs text-white/90 font-medium flex items-center gap-1.5 mt-0.5">
+                                <span class="font-mono text-white/90">@<span x-text="hoveredJudge?.username"></span></span>
+                                <span class="text-white/60">•</span>
+                                <span class="inline-flex items-center gap-1 text-[11px] text-emerald-200 font-medium">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-300 animate-pulse"></span>
+                                    Aktif Menilai
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Badge Kode Juri -->
+                    <div class="text-right relative z-10">
+                        <span class="px-2.5 py-1 rounded-xl font-mono font-black text-xs shadow-sm" :class="hoveredJudge?.badgeColor || 'bg-white text-indigo-700'" x-text="'KODE: ' + (hoveredJudge?.code || '-')"></span>
+                    </div>
+                </div>
+
+                <!-- Body Info Grid (280px total height - 84px header = 196px body) -->
+                <div class="p-4 flex-1 flex flex-col justify-between text-xs bg-slate-50/70">
+                    <!-- Row 1: Email & Rekomendasi Info -->
+                    <div class="grid grid-cols-2 gap-2.5">
+                        <div class="p-2.5 rounded-xl bg-white border border-slate-200/80 shadow-2xs">
+                            <div class="text-[10px] uppercase font-bold text-slate-400 tracking-wider mb-0.5 flex items-center gap-1">
+                                <svg class="w-3 h-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                </svg>
+                                Email Akun Juri
+                            </div>
+                            <div class="font-semibold text-slate-800 text-[11px] truncate" :title="hoveredJudge?.email" x-text="hoveredJudge?.email || '-'"></div>
+                        </div>
+
+                        <div class="p-2.5 rounded-xl bg-white border border-slate-200/80 shadow-2xs">
+                            <div class="text-[10px] uppercase font-bold text-slate-400 tracking-wider mb-0.5 flex items-center gap-1">
+                                <svg class="w-3 h-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                Waktu Rekomendasi
+                            </div>
+                            <div class="font-semibold text-slate-800 text-[11px] truncate" x-text="hoveredJudge?.suggested_at || '-'"></div>
+                        </div>
+                    </div>
+
+                    <!-- Row 2: Fokus Bidang Penilaian -->
+                    <div class="p-2.5 rounded-xl bg-purple-50/70 border border-purple-200/60 text-purple-950">
+                        <div class="text-[10px] uppercase font-bold text-purple-700 tracking-wider mb-0.5 flex items-center gap-1">
+                            <svg class="w-3 h-3 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138z" />
+                            </svg>
+                            Fokus Penilaian &amp; Keahlian
+                        </div>
+                        <div class="font-medium text-[11px] leading-snug line-clamp-1 text-purple-900" x-text="hoveredJudge?.focus || 'Evaluasi Inovasi Pembelajaran Digital BTIKP'"></div>
+                    </div>
+
+                    <!-- Footer Note: Keabsahan Juri -->
+                    <div class="flex items-center justify-between pt-1 border-t border-slate-200/60 text-[10px] text-slate-500">
+                        <span class="flex items-center gap-1.5 font-semibold text-emerald-700">
+                            <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                            </svg>
+                            <span>Dewan Juri Terverifikasi BTIKP Sultra</span>
+                        </span>
+                        <span class="text-slate-400 font-mono text-[10px]">Portal EduTech 2026</span>
+                    </div>
+                </div>
             </div>
         </div>
 

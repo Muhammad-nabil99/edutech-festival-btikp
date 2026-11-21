@@ -66,6 +66,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 */
 Route::middleware(['auth', 'judge'])->prefix('judge')->name('judge.')->group(function () {
     Route::get('/dashboard', [JudgeDashboardController::class, 'index'])->name('dashboard');
+    Route::post('/works/{registration}/toggle-suggest', [JudgeDashboardController::class, 'toggleSuggestion'])->name('works.toggle-suggest');
     Route::post('/works/{registration}/score', [JudgeDashboardController::class, 'saveScore'])->name('works.score');
     Route::put('/profile', [JudgeDashboardController::class, 'updateProfile'])->name('profile.update');
 });

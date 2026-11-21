@@ -39,6 +39,11 @@
             from { width: 100%; }
             to { width: 0%; }
         }
+        html.overflow-hidden, body.overflow-hidden {
+            overflow: hidden !important;
+            touch-action: none !important;
+            height: 100% !important;
+        }
     </style>
 </head>
 <body class="min-h-screen flex flex-col font-sans antialiased text-slate-800 relative selection:bg-[#5e43f3] selection:text-white overflow-x-hidden">
