@@ -1809,21 +1809,21 @@
                     <!-- Background Pattern Accent -->
                     <div class="absolute inset-0 opacity-15 pointer-events-none bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:12px_12px]"></div>
 
-                    <div class="flex items-center gap-3.5 relative z-10">
+                    <div class="flex items-center gap-3 relative z-10 min-w-0 flex-1 pr-2">
                         <!-- Big Judge Avatar -->
-                        <div class="w-13 h-13 rounded-2xl bg-white/20 backdrop-blur-md border border-white/40 flex items-center justify-center font-extrabold text-xl shadow-md text-white tracking-wider" x-text="hoveredJudge?.code"></div>
+                        <div class="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md border border-white/40 flex items-center justify-center font-extrabold text-lg shadow-md text-white tracking-wider shrink-0" x-text="hoveredJudge?.code"></div>
                         
-                        <div class="min-w-0">
-                            <div class="flex items-center gap-2">
-                                <h4 class="font-bold text-base text-white truncate max-w-[240px]" x-text="hoveredJudge?.name"></h4>
-                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-white/25 border border-white/30 text-white uppercase tracking-wider backdrop-blur-xs">
+                        <div class="min-w-0 flex-1">
+                            <div class="flex items-center gap-1.5 flex-wrap">
+                                <h4 class="font-bold text-sm text-white truncate max-w-[200px]" :title="hoveredJudge?.name" x-text="hoveredJudge?.name"></h4>
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-bold bg-white/25 border border-white/30 text-white uppercase tracking-wider backdrop-blur-xs whitespace-nowrap shrink-0">
                                     Dewan Juri
                                 </span>
                             </div>
-                            <div class="text-xs text-white/90 font-medium flex items-center gap-1.5 mt-0.5">
+                            <div class="text-[11px] text-white/90 font-medium flex items-center gap-1 mt-0.5">
                                 <span class="font-mono text-white/90">@<span x-text="hoveredJudge?.username"></span></span>
                                 <span class="text-white/60">•</span>
-                                <span class="inline-flex items-center gap-1 text-[11px] text-emerald-200 font-medium">
+                                <span class="inline-flex items-center gap-1 text-[10px] text-emerald-200 font-medium whitespace-nowrap">
                                     <span class="w-1.5 h-1.5 rounded-full bg-emerald-300 animate-pulse"></span>
                                     Aktif Menilai
                                 </span>
@@ -1832,8 +1832,8 @@
                     </div>
 
                     <!-- Badge Kode Juri -->
-                    <div class="text-right relative z-10">
-                        <span class="px-2.5 py-1 rounded-xl font-mono font-black text-xs shadow-sm" :class="hoveredJudge?.badgeColor || 'bg-white text-indigo-700'" x-text="'KODE: ' + (hoveredJudge?.code || '-')"></span>
+                    <div class="text-right relative z-10 shrink-0">
+                        <span class="inline-flex items-center px-2.5 py-1 rounded-xl font-mono font-black text-xs shadow-sm whitespace-nowrap shrink-0" :class="hoveredJudge?.badgeColor || 'bg-white text-indigo-700'" x-text="'KODE: ' + (hoveredJudge?.code || '-')"></span>
                     </div>
                 </div>
 
@@ -1864,14 +1864,14 @@
 
                     <!-- Row 2: Checklist Alasan Rekomendasi Juri (Ticked Checkboxes) -->
                     <div class="p-2.5 rounded-xl bg-purple-50/70 border border-purple-200/70 text-purple-950 flex-1 flex flex-col min-h-0 my-1.5">
-                        <div class="text-[10px] uppercase font-bold text-purple-700 tracking-wider mb-1 flex items-center justify-between shrink-0">
+                        <div class="text-[10px] uppercase font-bold text-purple-700 tracking-wider mb-1 flex items-center justify-between shrink-0 gap-1.5">
                             <span class="flex items-center gap-1">
-                                <svg class="w-3 h-3 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
+                                <svg class="w-3 h-3 text-purple-600 shrink-0" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
                                 </svg>
                                 <span>Alasan Rekomendasi Top 10</span>
                             </span>
-                            <span class="font-mono text-[9px] px-1.5 py-0.5 rounded-md bg-purple-200/70 text-purple-800 font-extrabold" x-text="(hoveredJudge?.reasons?.length || 0) + ' Kriteria'"></span>
+                            <span class="inline-flex items-center font-mono text-[9px] px-1.5 py-0.5 rounded-md bg-purple-200/70 text-purple-800 font-extrabold whitespace-nowrap shrink-0" x-text="(hoveredJudge?.reasons?.length || 0) + ' Kriteria'"></span>
                         </div>
                         <div class="overflow-y-auto space-y-1 pr-1 flex-1 text-[10.5px]">
                             <template x-if="!hoveredJudge?.reasons || hoveredJudge?.reasons.length === 0">
@@ -1928,25 +1928,25 @@
             >
                 <!-- Header Banner -->
                 <div 
-                    class="px-5 py-4 text-white relative flex items-center justify-between bg-gradient-to-r shrink-0"
+                    class="px-4 sm:px-5 py-3.5 sm:py-4 text-white relative flex items-center justify-between gap-2.5 bg-gradient-to-r shrink-0"
                     :class="hoveredJudge?.color || 'from-indigo-600 via-indigo-700 to-indigo-900'"
                 >
                     <div class="absolute inset-0 opacity-15 pointer-events-none bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:12px_12px]"></div>
 
-                    <div class="flex items-center gap-3.5 relative z-10 min-w-0 pr-2">
-                        <div class="w-12 h-12 sm:w-13 sm:h-13 rounded-2xl bg-white/20 backdrop-blur-md border border-white/40 flex items-center justify-center font-extrabold text-xl shadow-md text-white tracking-wider shrink-0" x-text="hoveredJudge?.code"></div>
+                    <div class="flex items-center gap-2.5 sm:gap-3.5 relative z-10 min-w-0 flex-1 pr-1 sm:pr-2">
+                        <div class="w-11 h-11 sm:w-13 sm:h-13 rounded-2xl bg-white/20 backdrop-blur-md border border-white/40 flex items-center justify-center font-extrabold text-lg sm:text-xl shadow-md text-white tracking-wider shrink-0" x-text="hoveredJudge?.code"></div>
                         
-                        <div class="min-w-0">
-                            <div class="flex items-center gap-2">
-                                <h4 class="font-bold text-sm sm:text-base text-white truncate max-w-[200px] sm:max-w-[240px]" x-text="hoveredJudge?.name"></h4>
-                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-white/25 border border-white/30 text-white uppercase tracking-wider backdrop-blur-xs shrink-0">
+                        <div class="min-w-0 flex-1">
+                            <div class="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                                <h4 class="font-bold text-sm sm:text-base text-white truncate max-w-[150px] xs:max-w-[200px] sm:max-w-[260px]" :title="hoveredJudge?.name" x-text="hoveredJudge?.name"></h4>
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] font-bold bg-white/25 border border-white/30 text-white uppercase tracking-wider backdrop-blur-xs whitespace-nowrap shrink-0">
                                     Dewan Juri
                                 </span>
                             </div>
-                            <div class="text-xs text-white/90 font-medium flex items-center gap-1.5 mt-0.5 flex-wrap">
+                            <div class="text-[11px] sm:text-xs text-white/90 font-medium flex items-center gap-1.5 mt-0.5 flex-wrap">
                                 <span class="font-mono text-white/90">@<span x-text="hoveredJudge?.username"></span></span>
                                 <span class="text-white/60">•</span>
-                                <span class="inline-flex items-center gap-1 text-[11px] text-emerald-200 font-medium">
+                                <span class="inline-flex items-center gap-1 text-[10px] sm:text-[11px] text-emerald-200 font-medium whitespace-nowrap">
                                     <span class="w-1.5 h-1.5 rounded-full bg-emerald-300 animate-pulse"></span>
                                     Aktif Menilai
                                 </span>
@@ -1954,12 +1954,12 @@
                         </div>
                     </div>
 
-                    <div class="flex items-center gap-2 relative z-10 shrink-0">
-                        <span class="px-2.5 py-1 rounded-xl font-mono font-black text-xs shadow-sm" :class="hoveredJudge?.badgeColor || 'bg-white text-indigo-700'" x-text="'KODE: ' + (hoveredJudge?.code || '-')"></span>
+                    <div class="flex items-center gap-1.5 sm:gap-2 relative z-10 shrink-0">
+                        <span class="inline-flex items-center px-2 sm:px-2.5 py-1 rounded-xl font-mono font-black text-[11px] sm:text-xs shadow-sm whitespace-nowrap shrink-0" :class="hoveredJudge?.badgeColor || 'bg-white text-indigo-700'" x-text="'KODE: ' + (hoveredJudge?.code || '-')"></span>
                         <button 
                             type="button" 
                             @click="closeJudgeModal()"
-                            class="w-7 h-7 rounded-xl bg-white/20 hover:bg-white/30 text-white flex items-center justify-center transition cursor-pointer"
+                            class="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-white/20 hover:bg-white/30 text-white flex items-center justify-center transition cursor-pointer shrink-0"
                             title="Tutup"
                         >
                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1995,15 +1995,15 @@
                     </div>
 
                     <!-- Checklist Alasan Rekomendasi Top 10 (Semua Checklist yang dicentang Juri) -->
-                    <div class="p-4 rounded-2xl bg-emerald-50/70 border border-emerald-200/70 text-emerald-950 shrink-0">
-                        <div class="text-[10px] uppercase font-bold text-emerald-700 tracking-wider mb-2.5 flex items-center justify-between">
-                            <span class="flex items-center gap-1.5">
+                    <div class="p-3.5 sm:p-4 rounded-2xl bg-emerald-50/70 border border-emerald-200/70 text-emerald-950 shrink-0">
+                        <div class="text-[10px] sm:text-[11px] uppercase font-bold text-emerald-800 tracking-wider mb-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 sm:gap-2">
+                            <span class="flex items-center gap-1.5 leading-snug">
                                 <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
                                 </svg>
-                                <span>Kriteria &amp; Alasan Rekomendasi yang Dicentang Juri</span>
+                                <span class="font-extrabold">Kriteria &amp; Alasan Rekomendasi yang Dicentang Juri</span>
                             </span>
-                            <span class="font-mono text-xs px-2.5 py-0.5 rounded-full bg-emerald-200 text-emerald-900 font-extrabold" x-text="(hoveredJudge?.reasons?.length || 0) + ' Kriteria Terpenuhi'"></span>
+                            <span class="inline-flex items-center self-start sm:self-auto font-mono text-[10px] sm:text-xs px-2.5 py-1 rounded-full bg-emerald-200 text-emerald-900 font-extrabold whitespace-nowrap shrink-0 shadow-2xs" x-text="(hoveredJudge?.reasons?.length || 0) + ' Kriteria Terpenuhi'"></span>
                         </div>
                         
                         <div class="space-y-2 max-h-56 overflow-y-auto pr-1">
