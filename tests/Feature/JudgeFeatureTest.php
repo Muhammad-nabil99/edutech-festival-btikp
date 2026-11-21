@@ -153,7 +153,40 @@ class JudgeFeatureTest extends TestCase
     }
 
     /**
-     * Test dewan juri dapat menyarankan dan membatalkan saran (toggle suggest) karya untuk Top 10.
+     * Test dewan juri wajib memilih minimal 1 alasan rekomendasi saat menyarankan Top 10.
+     */
+    public function test_judge_must_select_at_least_one_reason_to_suggest(): void
+    {
+        $work = Registration::create([
+            'registration_number' => 'EDUTECH-2026-0009',
+            'full_name' => 'Karya Uji Alasan',
+            'school_name' => 'SMAN 1 KENDARI',
+            'regency_city' => 'Kota Kendari',
+            'email' => 'ujialasan@example.com',
+            'whatsapp_number' => '628123456780',
+            'learning_category' => 'gim_edukasi',
+            'profile_photo_path' => 'profile-photos/sample.jpg',
+            'media_link' => 'https://itch.io/test-game',
+            'is_curated_top10' => false,
+        ]);
+
+        // Coba sarankan tanpa checklist alasan
+        $res = $this->actingAs($this->judge)
+            ->postJson(route('judge.works.toggle-suggest', $work), [
+                'reasons' => [],
+            ]);
+
+        $res->assertStatus(422)
+            ->assertJsonValidationErrors(['reasons']);
+
+        $this->assertDatabaseMissing('judge_suggestions', [
+            'user_id' => $this->judge->id,
+            'registration_id' => $work->id,
+        ]);
+    }
+
+    /**
+     * Test dewan juri dapat menyarankan dengan checklist alasan, memperbarui alasan, dan menarik saran.
      */
     public function test_judge_can_toggle_suggestion_for_top10(): void
     {
@@ -170,9 +203,16 @@ class JudgeFeatureTest extends TestCase
             'is_curated_top10' => false,
         ]);
 
-        // 1. Juri 1 memberi saran
+        $initialReasons = [
+            'Karya layak secara teknis dan berfungsi dengan baik (tanpa bug/crash)',
+            'Ide karya orisinal',
+        ];
+
+        // 1. Juri 1 memberi saran dengan checklist alasan
         $res1 = $this->actingAs($this->judge)
-            ->postJson(route('judge.works.toggle-suggest', $work));
+            ->postJson(route('judge.works.toggle-suggest', $work), [
+                'reasons' => $initialReasons,
+            ]);
 
         $res1->assertStatus(200)
             ->assertJson([
@@ -186,11 +226,39 @@ class JudgeFeatureTest extends TestCase
             'registration_id' => $work->id,
         ]);
 
-        // 2. Juri 1 membatalkan saran
-        $res2 = $this->actingAs($this->judge)
-            ->postJson(route('judge.works.toggle-suggest', $work));
+        $suggestion = JudgeSuggestion::where('user_id', $this->judge->id)
+            ->where('registration_id', $work->id)
+            ->first();
+        $this->assertEquals($initialReasons, $suggestion->reasons);
 
-        $res2->assertStatus(200)
+        // 2. Juri 1 memperbarui alasan checklist
+        $updatedReasons = [
+            'Karya layak secara teknis dan berfungsi dengan baik (tanpa bug/crash)',
+            'Ide karya orisinal',
+            'Materi pembelajaran benar dan akurat',
+        ];
+
+        $resUpdate = $this->actingAs($this->judge)
+            ->postJson(route('judge.works.toggle-suggest', $work), [
+                'reasons' => $updatedReasons,
+            ]);
+
+        $resUpdate->assertStatus(200)
+            ->assertJson([
+                'success' => true,
+                'is_suggested' => true,
+            ]);
+
+        $suggestion->refresh();
+        $this->assertEquals($updatedReasons, $suggestion->reasons);
+
+        // 3. Juri 1 membatalkan / menarik saran
+        $resWithdraw = $this->actingAs($this->judge)
+            ->postJson(route('judge.works.toggle-suggest', $work), [
+                'action' => 'withdraw',
+            ]);
+
+        $resWithdraw->assertStatus(200)
             ->assertJson([
                 'success' => true,
                 'is_suggested' => false,
@@ -225,6 +293,7 @@ class JudgeFeatureTest extends TestCase
             JudgeSuggestion::create([
                 'user_id' => $this->judge->id,
                 'registration_id' => $w->id,
+                'reasons' => ['Ide karya orisinal'],
             ]);
         }
 
@@ -242,7 +311,9 @@ class JudgeFeatureTest extends TestCase
         ]);
 
         $response = $this->actingAs($this->judge)
-            ->postJson(route('judge.works.toggle-suggest', $work11));
+            ->postJson(route('judge.works.toggle-suggest', $work11), [
+                'reasons' => ['Ide karya orisinal'],
+            ]);
 
         $response->assertStatus(422)
             ->assertJson([
@@ -400,5 +471,47 @@ class JudgeFeatureTest extends TestCase
         $this->assertEquals('juri1_updated', $this->judge->username);
         $this->assertEquals('juri1.updated@edutech.btikp.id', $this->judge->email);
         $this->assertTrue(Hash::check('NewSecretPassword123!', $this->judge->password));
+    }
+
+    /**
+     * Test tampilan dashboard admin dan juri memuat fitur view switcher dan modal saran dengan checklist.
+     */
+    public function test_dashboards_render_checklist_reasons_and_view_switcher(): void
+    {
+        $work = Registration::create([
+            'registration_number' => 'EDUTECH-2026-0099',
+            'full_name' => 'Karya Media Interaktif Sultra',
+            'school_name' => 'SMAN 3 KENDARI',
+            'regency_city' => 'Kota Kendari',
+            'email' => 'peserta99@example.com',
+            'whatsapp_number' => '6281234567899',
+            'learning_category' => 'media_pembelajaran_interaktif',
+            'profile_photo_path' => 'profile-photos/sample.jpg',
+            'media_link' => 'https://canva.com/view99',
+            'is_curated_top10' => false,
+        ]);
+
+        JudgeSuggestion::create([
+            'user_id' => $this->judge->id,
+            'registration_id' => $work->id,
+            'reasons' => [
+                'Karya layak secara teknis dan berfungsi dengan baik (tanpa bug/crash)',
+                'Ide karya orisinal',
+            ],
+        ]);
+
+        // 1. Dashboard Juri: Memuat view switcher dan checklist alasan
+        $judgeDash = $this->actingAs($this->judge)->get(route('judge.dashboard', ['tab' => 'all']));
+        $judgeDash->assertStatus(200);
+        $judgeDash->assertSee('viewMode');
+        $judgeDash->assertSee('reasonsList');
+        $judgeDash->assertSee('openSuggestionModal');
+        $judgeDash->assertSee('Karya layak secara teknis dan berfungsi dengan baik');
+
+        // 2. Dashboard Admin: Memuat data saran juri dan tampilan checklist alasan
+        $adminDash = $this->actingAs($this->admin)->get(route('admin.dashboard'));
+        $adminDash->assertStatus(200);
+        $adminDash->assertSee('Alasan Rekomendasi Top 10');
+        $adminDash->assertSee('Karya layak secara teknis dan berfungsi dengan baik');
     }
 }

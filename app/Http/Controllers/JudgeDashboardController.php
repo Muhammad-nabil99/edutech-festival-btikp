@@ -123,8 +123,9 @@ class JudgeDashboardController extends Controller
     }
 
     /**
-     * Toggle rekomendasi / usulan karya untuk Top 10 oleh juri.
+     * Simpan saran, perbarui alasan, atau tarik usulan karya untuk Top 10 oleh juri.
      * Maksimal 10 karya per kategori per juri.
+     * Dilengkapi checklist alasan kurasi (minimal 1 kriteria dipilih).
      */
     public function toggleSuggestion(Request $request, Registration $registration): JsonResponse
     {
@@ -135,30 +136,56 @@ class JudgeDashboardController extends Controller
             ->where('registration_id', $registration->id)
             ->first();
 
-        if ($existing) {
-            $existing->delete();
+        $isWithdraw = $request->input('action') === 'withdraw' 
+            || $request->boolean('withdraw') 
+            || ($existing && !$request->has('reasons') && !$request->has('action'));
+
+        if ($isWithdraw) {
+            if ($existing) {
+                $existing->delete();
+            }
             $isSuggested = false;
             $message = "Saran Top 10 untuk karya '{$registration->full_name}' berhasil ditarik.";
         } else {
-            // Cek kuota: masing-masing juri hanya bisa menyarankan maksimal 10 karya per kategori
-            $currentCategoryCount = JudgeSuggestion::where('user_id', $judge->id)
-                ->whereHas('registration', function ($q) use ($registration) {
-                    $q->where('learning_category', $registration->learning_category);
-                })->count();
-
-            if ($currentCategoryCount >= JudgeSuggestion::MAX_SUGGESTIONS_PER_CATEGORY) {
-                return response()->json([
-                    'success' => false,
-                    'message' => "Kuota saran Top 10 Anda untuk kategori '{$registration->category_label}' sudah penuh (maksimal 10 karya). Batalkan salah satu saran Anda terlebih dahulu.",
-                ], 422);
-            }
-
-            JudgeSuggestion::create([
-                'user_id' => $judge->id,
-                'registration_id' => $registration->id,
+            // Validasi checklist alasan kurasi
+            $validated = $request->validate([
+                'reasons' => ['required', 'array', 'min:1'],
+                'reasons.*' => ['string', 'max:255'],
+            ], [
+                'reasons.required' => 'Pilih minimal 1 alasan rekomendasi sebelum menyimpan saran Top 10.',
+                'reasons.array' => 'Format alasan tidak valid.',
+                'reasons.min' => 'Pilih minimal 1 alasan rekomendasi sebelum menyimpan saran Top 10.',
             ]);
-            $isSuggested = true;
-            $message = "Karya '{$registration->full_name}' berhasil Anda sarankan untuk nominasi Top 10!";
+
+            if ($existing) {
+                // Perbarui alasan checklist
+                $existing->update([
+                    'reasons' => array_values(array_unique($validated['reasons'])),
+                ]);
+                $isSuggested = true;
+                $message = "Alasan saran Top 10 untuk karya '{$registration->full_name}' berhasil diperbarui!";
+            } else {
+                // Cek kuota: masing-masing juri hanya bisa menyarankan maksimal 10 karya per kategori
+                $currentCategoryCount = JudgeSuggestion::where('user_id', $judge->id)
+                    ->whereHas('registration', function ($q) use ($registration) {
+                        $q->where('learning_category', $registration->learning_category);
+                    })->count();
+
+                if ($currentCategoryCount >= JudgeSuggestion::MAX_SUGGESTIONS_PER_CATEGORY) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => "Kuota saran Top 10 Anda untuk kategori '{$registration->category_label}' sudah penuh (maksimal 10 karya). Batalkan salah satu saran Anda terlebih dahulu.",
+                    ], 422);
+                }
+
+                JudgeSuggestion::create([
+                    'user_id' => $judge->id,
+                    'registration_id' => $registration->id,
+                    'reasons' => array_values(array_unique($validated['reasons'])),
+                ]);
+                $isSuggested = true;
+                $message = "Karya '{$registration->full_name}' berhasil Anda sarankan untuk nominasi Top 10!";
+            }
         }
 
         // Hitung ulang kuota saran juri ini
@@ -170,16 +197,24 @@ class JudgeDashboardController extends Controller
             ->whereHas('registration', fn($q) => $q->where('learning_category', 'media_pembelajaran_interaktif'))
             ->count();
 
-        // Ambil daftar seluruh juri yang menyarankan karya ini sekarang
+        // Ambil daftar seluruh juri yang menyarankan karya ini sekarang beserta alasannya
         $registration->load('judgeSuggestions.user');
-        $suggestions = $registration->judgeSuggestions->map(function ($s) use ($registration) {
+        $myReasons = [];
+
+        $suggestions = $registration->judgeSuggestions->map(function ($s) use ($registration, $judge, &$myReasons) {
             $code = $s->user->judge_code ?? ('J' . $s->user_id);
+            $reasons = $s->reasons ?? [];
+            if ($s->user_id === $judge->id) {
+                $myReasons = $reasons;
+            }
+
             return [
                 'user_id' => $s->user_id,
                 'judge_name' => $s->user->name ?? 'Dewan Juri',
                 'judge_username' => $s->user->username ?? ('juri' . $s->user_id),
                 'judge_email' => $s->user->email ?? '-',
                 'judge_code' => $code,
+                'reasons' => $reasons,
                 'focus' => match ($code) {
                     'J1' => 'Gim Edukasi & Interaktivitas Media Digital',
                     'J2' => 'Pedagogik, Kurikulum & Substansi Materi SMA/SMK',
@@ -214,6 +249,7 @@ class JudgeDashboardController extends Controller
             'is_suggested' => $isSuggested,
             'message' => $message,
             'registration_id' => $registration->id,
+            'my_reasons' => $myReasons,
             'suggestions' => $suggestions,
             'suggestions_count' => $suggestions->count(),
             'stats' => [

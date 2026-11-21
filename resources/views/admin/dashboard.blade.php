@@ -779,6 +779,7 @@
                                                             'username' => $s->user->username ?? ('juri' . $s->user_id),
                                                             'email' => $s->user->email ?? '-',
                                                             'code' => $s->user->judge_code ?? ('J' . $s->user_id),
+                                                            'reasons' => $s->reasons ?? [],
                                                             'focus' => match ($s->user->judge_code ?? '') {
                                                                 'J1' => 'Gim Edukasi & Interaktivitas Media Digital',
                                                                 'J2' => 'Pedagogik, Kurikulum & Substansi Materi SMA/SMK',
@@ -1060,6 +1061,7 @@
                                                         'username' => $s->user->username ?? ('juri' . $s->user_id),
                                                         'email' => $s->user->email ?? '-',
                                                         'code' => $s->user->judge_code ?? ('J' . $s->user_id),
+                                                        'reasons' => $s->reasons ?? [],
                                                         'focus' => match ($s->user->judge_code ?? '') {
                                                             'J1' => 'Gim Edukasi & Interaktivitas Media Digital',
                                                             'J2' => 'Pedagogik, Kurikulum & Substansi Materi SMA/SMK',
@@ -1836,50 +1838,63 @@
                 </div>
 
                 <!-- Body Info Grid (280px total height - 84px header = 196px body) -->
-                <div class="p-4 flex-1 flex flex-col justify-between text-xs bg-slate-50/70">
-                    <!-- Row 1: Email & Rekomendasi Info -->
-                    <div class="grid grid-cols-2 gap-2.5">
-                        <div class="p-2.5 rounded-xl bg-white border border-slate-200/80 shadow-2xs">
-                            <div class="text-[10px] uppercase font-bold text-slate-400 tracking-wider mb-0.5 flex items-center gap-1">
+                <div class="p-3.5 flex-1 flex flex-col justify-between text-xs bg-slate-50/70 overflow-hidden">
+                    <!-- Row 1: Email & Waktu Rekomendasi Info -->
+                    <div class="grid grid-cols-2 gap-2 shrink-0">
+                        <div class="p-2 rounded-xl bg-white border border-slate-200/80 shadow-2xs">
+                            <div class="text-[9px] uppercase font-bold text-slate-400 tracking-wider mb-0.5 flex items-center gap-1">
                                 <svg class="w-3 h-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                                 </svg>
-                                Email Akun Juri
+                                Email Juri
                             </div>
-                            <div class="font-semibold text-slate-800 text-[11px] truncate" :title="hoveredJudge?.email" x-text="hoveredJudge?.email || '-'"></div>
+                            <div class="font-bold text-slate-800 text-[10px] truncate" :title="hoveredJudge?.email" x-text="hoveredJudge?.email || '-'"></div>
                         </div>
 
-                        <div class="p-2.5 rounded-xl bg-white border border-slate-200/80 shadow-2xs">
-                            <div class="text-[10px] uppercase font-bold text-slate-400 tracking-wider mb-0.5 flex items-center gap-1">
+                        <div class="p-2 rounded-xl bg-white border border-slate-200/80 shadow-2xs">
+                            <div class="text-[9px] uppercase font-bold text-slate-400 tracking-wider mb-0.5 flex items-center gap-1">
                                 <svg class="w-3 h-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
-                                Waktu Rekomendasi
+                                Waktu
                             </div>
-                            <div class="font-semibold text-slate-800 text-[11px] truncate" x-text="hoveredJudge?.suggested_at || '-'"></div>
+                            <div class="font-bold text-slate-800 text-[10px] truncate" x-text="hoveredJudge?.suggested_at || '-'"></div>
                         </div>
                     </div>
 
-                    <!-- Row 2: Fokus Bidang Penilaian -->
-                    <div class="p-2.5 rounded-xl bg-purple-50/70 border border-purple-200/60 text-purple-950">
-                        <div class="text-[10px] uppercase font-bold text-purple-700 tracking-wider mb-0.5 flex items-center gap-1">
-                            <svg class="w-3 h-3 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138z" />
-                            </svg>
-                            Fokus Penilaian &amp; Keahlian
+                    <!-- Row 2: Checklist Alasan Rekomendasi Juri (Ticked Checkboxes) -->
+                    <div class="p-2.5 rounded-xl bg-purple-50/70 border border-purple-200/70 text-purple-950 flex-1 flex flex-col min-h-0 my-1.5">
+                        <div class="text-[10px] uppercase font-bold text-purple-700 tracking-wider mb-1 flex items-center justify-between shrink-0">
+                            <span class="flex items-center gap-1">
+                                <svg class="w-3 h-3 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                </svg>
+                                <span>Alasan Rekomendasi Top 10</span>
+                            </span>
+                            <span class="font-mono text-[9px] px-1.5 py-0.5 rounded-md bg-purple-200/70 text-purple-800 font-extrabold" x-text="(hoveredJudge?.reasons?.length || 0) + ' Kriteria'"></span>
                         </div>
-                        <div class="font-medium text-[11px] leading-snug line-clamp-1 text-purple-900" x-text="hoveredJudge?.focus || 'Evaluasi Inovasi Pembelajaran Digital BTIKP'"></div>
+                        <div class="overflow-y-auto space-y-1 pr-1 flex-1 text-[10.5px]">
+                            <template x-if="!hoveredJudge?.reasons || hoveredJudge?.reasons.length === 0">
+                                <p class="text-slate-400 italic text-[10px] py-1 text-center">Belum ada rincian checklist alasan.</p>
+                            </template>
+                            <template x-for="(reason, rIdx) in (hoveredJudge?.reasons || [])" :key="rIdx">
+                                <div class="flex items-start gap-1.5 text-purple-950 leading-snug">
+                                    <span class="w-3.5 h-3.5 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[8px] font-black shrink-0 mt-0.5">✓</span>
+                                    <span class="font-medium" x-text="reason"></span>
+                                </div>
+                            </template>
+                        </div>
                     </div>
 
                     <!-- Footer Note: Keabsahan Juri -->
-                    <div class="flex items-center justify-between pt-1 border-t border-slate-200/60 text-[10px] text-slate-500">
-                        <span class="flex items-center gap-1.5 font-semibold text-emerald-700">
-                            <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <div class="flex items-center justify-between pt-1 border-t border-slate-200/60 text-[10px] text-slate-500 shrink-0">
+                        <span class="flex items-center gap-1 font-semibold text-emerald-700">
+                            <svg class="w-3 h-3 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                             </svg>
-                            <span>Dewan Juri Terverifikasi BTIKP Sultra</span>
+                            <span>Dewan Juri BTIKP Sultra</span>
                         </span>
-                        <span class="text-slate-400 font-mono text-[10px]">Portal EduTech 2026</span>
+                        <span class="text-slate-400 font-mono text-[9px]">Portal EduTech 2026</span>
                     </div>
                 </div>
             </div>
@@ -1909,11 +1924,11 @@
                 x-transition:leave="transition ease-in duration-150"
                 x-transition:leave-start="opacity-100 scale-100 translate-y-0"
                 x-transition:leave-end="opacity-0 scale-95 translate-y-2"
-                class="w-full max-w-[487px] bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden flex flex-col my-auto relative text-slate-800 transform"
+                class="w-full max-w-[520px] bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden flex flex-col my-auto relative text-slate-800 transform max-h-[90vh]"
             >
                 <!-- Header Banner -->
                 <div 
-                    class="px-5 py-4 text-white relative flex items-center justify-between bg-gradient-to-r"
+                    class="px-5 py-4 text-white relative flex items-center justify-between bg-gradient-to-r shrink-0"
                     :class="hoveredJudge?.color || 'from-indigo-600 via-indigo-700 to-indigo-900'"
                 >
                     <div class="absolute inset-0 opacity-15 pointer-events-none bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:12px_12px]"></div>
@@ -1954,9 +1969,10 @@
                     </div>
                 </div>
 
-                <!-- Body Info Grid (Full Responsive) -->
-                <div class="p-4 sm:p-5 flex-1 flex flex-col justify-between text-xs bg-slate-50/70 gap-3">
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <!-- Body Info Grid (Full Responsive & Scrollable) -->
+                <div class="p-4 sm:p-5 flex-1 flex flex-col justify-between text-xs bg-slate-50/70 gap-3 overflow-y-auto">
+                    <!-- Tile Info Email & Waktu -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 shrink-0">
                         <div class="p-3 rounded-2xl bg-white border border-slate-200/80 shadow-2xs">
                             <div class="text-[10px] uppercase font-bold text-slate-400 tracking-wider mb-1 flex items-center gap-1.5">
                                 <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1978,17 +1994,44 @@
                         </div>
                     </div>
 
-                    <div class="p-3.5 rounded-2xl bg-purple-50/80 border border-purple-200/70 text-purple-950">
+                    <!-- Checklist Alasan Rekomendasi Top 10 (Semua Checklist yang dicentang Juri) -->
+                    <div class="p-4 rounded-2xl bg-emerald-50/70 border border-emerald-200/70 text-emerald-950 shrink-0">
+                        <div class="text-[10px] uppercase font-bold text-emerald-700 tracking-wider mb-2.5 flex items-center justify-between">
+                            <span class="flex items-center gap-1.5">
+                                <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                </svg>
+                                <span>Kriteria &amp; Alasan Rekomendasi yang Dicentang Juri</span>
+                            </span>
+                            <span class="font-mono text-xs px-2.5 py-0.5 rounded-full bg-emerald-200 text-emerald-900 font-extrabold" x-text="(hoveredJudge?.reasons?.length || 0) + ' Kriteria Terpenuhi'"></span>
+                        </div>
+                        
+                        <div class="space-y-2 max-h-56 overflow-y-auto pr-1">
+                            <template x-if="!hoveredJudge?.reasons || hoveredJudge?.reasons.length === 0">
+                                <p class="text-slate-400 italic text-xs py-3 text-center bg-white/60 rounded-xl">Juri belum mencantumkan rincian checklist alasan rekomendasi.</p>
+                            </template>
+                            <template x-for="(reason, rIdx) in (hoveredJudge?.reasons || [])" :key="rIdx">
+                                <div class="flex items-start gap-2.5 text-xs leading-relaxed text-emerald-950 font-medium bg-white/90 p-2.5 rounded-xl border border-emerald-100 shadow-2xs">
+                                    <span class="w-4 h-4 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[10px] font-black shrink-0 mt-0.5 shadow-2xs">✓</span>
+                                    <span class="flex-1" x-text="reason"></span>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+
+                    <!-- Bidang Keahlian Juri -->
+                    <div class="p-3 rounded-2xl bg-purple-50/80 border border-purple-200/70 text-purple-950 shrink-0">
                         <div class="text-[10px] uppercase font-bold text-purple-700 tracking-wider mb-1 flex items-center gap-1.5">
                             <svg class="w-3.5 h-3.5 text-purple-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138z" />
                             </svg>
-                            <span>Fokus Penilaian &amp; Keahlian</span>
+                            <span>Fokus Bidang Penilaian</span>
                         </div>
                         <div class="font-semibold text-xs leading-relaxed text-purple-900" x-text="hoveredJudge?.focus || 'Evaluasi Inovasi Pembelajaran Digital BTIKP'"></div>
                     </div>
 
-                    <div class="flex items-center justify-between pt-2 border-t border-slate-200/70 text-xs text-slate-500">
+                    <!-- Footer Action -->
+                    <div class="flex items-center justify-between pt-2 border-t border-slate-200/70 text-xs text-slate-500 shrink-0">
                         <span class="flex items-center gap-1.5 font-bold text-emerald-700">
                             <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
@@ -1998,7 +2041,7 @@
                         <button 
                             type="button" 
                             @click="closeJudgeModal()"
-                            class="px-3 py-1 rounded-lg bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold text-xs transition cursor-pointer"
+                            class="px-4 py-1.5 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold text-xs transition cursor-pointer"
                         >
                             Tutup
                         </button>

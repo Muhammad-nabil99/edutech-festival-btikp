@@ -13,9 +13,25 @@ class JudgeSuggestion extends Model
     // Batas maksimal saran juri per kategori
     public const MAX_SUGGESTIONS_PER_CATEGORY = 10;
 
+    /**
+     * Daftar 5 kriteria checklist alasan saran Top 10 tahap kurasi dewan juri.
+     */
+    public const REASONS_LIST = [
+        'Karya layak secara teknis dan berfungsi dengan baik (tanpa bug/crash)',
+        'Ide karya orisinal',
+        'Materi pembelajaran benar dan akurat',
+        'Video demonstrasi (maks. 1 menit) sudah disimak dan sesuai dengan karya',
+        'File/tautan karya dapat diakses dan dibuka dengan baik',
+    ];
+
     protected $fillable = [
         'user_id',
         'registration_id',
+        'reasons',
+    ];
+
+    protected $casts = [
+        'reasons' => 'array',
     ];
 
     /**
