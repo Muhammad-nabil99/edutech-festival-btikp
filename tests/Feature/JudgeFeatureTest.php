@@ -514,4 +514,48 @@ class JudgeFeatureTest extends TestCase
         $adminDash->assertSee('Alasan Rekomendasi Top 10');
         $adminDash->assertSee('Karya layak secara teknis dan berfungsi dengan baik');
     }
+
+    /**
+     * Test Juri 2 dan Juri 3 dapat membuka dashboard dengan benar tanpa kode JS bocor ke HTML
+     * saat Juri 1 telah memberikan saran dengan checklist alasan.
+     */
+    public function test_judge2_and_judge3_render_dashboard_cleanly_when_other_judges_suggested_with_reasons(): void
+    {
+        $work = Registration::create([
+            'registration_number' => 'EDUTECH-2026-0100',
+            'full_name' => 'Karya Gim Edukasi Keren',
+            'school_name' => 'SMKN 1 KENDARI',
+            'regency_city' => 'Kota Kendari',
+            'email' => 'peserta100@example.com',
+            'whatsapp_number' => '6281234567100',
+            'learning_category' => 'gim_edukasi',
+            'profile_photo_path' => 'profile-photos/sample.jpg',
+            'media_link' => 'https://drive.google.com/sample',
+            'is_curated_top10' => false,
+        ]);
+
+        JudgeSuggestion::create([
+            'user_id' => $this->judge->id,
+            'registration_id' => $work->id,
+            'reasons' => [
+                'Karya layak secara teknis dan berfungsi dengan baik (tanpa bug/crash)',
+                'Ide karya orisinal',
+                'Materi pembelajaran benar dan akurat',
+            ],
+        ]);
+
+        // Juri 2 mengakses dashboard
+        $resJuri2 = $this->actingAs($this->judge2)->get(route('judge.dashboard', ['tab' => 'all']));
+        $resJuri2->assertStatus(200);
+        $resJuri2->assertDontSee('x-data="{');
+        $resJuri2->assertSee('x-data="judgeDashboard()"', false);
+        $resJuri2->assertSee('Dewan Juri 2');
+
+        // Juri 3 mengakses dashboard
+        $resJuri3 = $this->actingAs($this->judge3)->get(route('judge.dashboard', ['tab' => 'all']));
+        $resJuri3->assertStatus(200);
+        $resJuri3->assertDontSee('x-data="{');
+        $resJuri3->assertSee('x-data="judgeDashboard()"', false);
+        $resJuri3->assertSee('Dewan Juri 3');
+    }
 }

@@ -1,414 +1,5 @@
 <x-layouts.app title="Portal Dewan Juri — EduTech Festival BTIKP" maxWidth="max-w-7xl">
-    <div 
-        class="space-y-6"
-        x-data="{
-            activeTab: '{{ $activeTab ?? 'finalists' }}',
-            selectedCategory: '{{ $category ?? 'all' }}',
-            searchQuery: '{{ $search ?? '' }}',
-            viewMode: localStorage.getItem('judge_view_mode') || 'grid',
-            
-            setViewMode(mode) {
-                this.viewMode = mode;
-                localStorage.setItem('judge_view_mode', mode);
-            },
-
-            // Suggestion Quota State & Map
-            myGimSuggestions: {{ $stats['my_gim_suggestions'] }},
-            myMediaSuggestions: {{ $stats['my_media_suggestions'] }},
-            togglingSuggestId: null,
-
-            // Reactive Suggestions Map: { [regId]: { isSuggestedByMe: bool, count: int, myReasons: [], suggestions: [...] } }
-            suggestionsMap: {
-                @foreach ($allWorks as $w)
-                    {{ $w->id }}: {
-                        isSuggestedByMe: {{ $w->isSuggestedBy($judge) ? 'true' : 'false' }},
-                        count: {{ $w->judgeSuggestions->count() }},
-                        myReasons: @json($w->judgeSuggestions->firstWhere('user_id', $judge->id)?->reasons ?? []),
-                        suggestions: [
-                            @foreach ($w->judgeSuggestions as $s)
-                                {
-                                    userId: {{ $s->user_id }},
-                                    name: '{{ addslashes($s->user->name ?? 'Dewan Juri') }}',
-                                    username: '{{ addslashes($s->user->username ?? ('juri' . $s->user_id)) }}',
-                                    email: '{{ addslashes($s->user->email ?? '-') }}',
-                                    code: '{{ $s->user->judge_code ?? ('J' . $s->user_id) }}',
-                                    reasons: @json($s->reasons ?? []),
-                                    focus: '{{ addslashes(match ($s->user->judge_code ?? '') {
-                                        'J1' => 'Gim Edukasi & Interaktivitas Media Digital',
-                                        'J2' => 'Pedagogik, Kurikulum & Substansi Materi SMA/SMK',
-                                        'J3' => 'Desain Visual, Estetika & Kualitas UI/UX',
-                                        default => 'Evaluasi Inovasi Pembelajaran Digital BTIKP',
-                                    }) }}',
-                                    suggested_at: '{{ $s->created_at ? $s->created_at->translatedFormat('d M Y, H:i') . ' WITA' : 'Tercatat di sistem' }}',
-                                    participant_name: '{{ addslashes($w->full_name) }}',
-                                    colorClass: '{{ $s->user->judge_code === 'J1' ? 'bg-indigo-600 text-white' : ($s->user->judge_code === 'J2' ? 'bg-emerald-600 text-white' : ($s->user->judge_code === 'J3' ? 'bg-amber-600 text-white' : 'bg-purple-600 text-white')) }}',
-                                    color: '{{ match ($s->user->judge_code ?? '') {
-                                        'J1' => 'from-indigo-600 via-indigo-700 to-indigo-900',
-                                        'J2' => 'from-emerald-600 via-teal-700 to-emerald-900',
-                                        'J3' => 'from-amber-500 via-orange-600 to-amber-800',
-                                        default => 'from-purple-600 via-indigo-700 to-purple-900',
-                                    } }}',
-                                    badgeColor: '{{ match ($s->user->judge_code ?? '') {
-                                        'J1' => 'bg-indigo-500 text-white',
-                                        'J2' => 'bg-emerald-500 text-white',
-                                        'J3' => 'bg-amber-500 text-white',
-                                        default => 'bg-purple-500 text-white',
-                                    } }}'
-                                },
-                            @endforeach
-                        ]
-                    },
-                @endforeach
-            },
-
-            isSuggested(id) {
-                return this.suggestionsMap[id] ? this.suggestionsMap[id].isSuggestedByMe : false;
-            },
-
-            getSuggestions(id) {
-                return this.suggestionsMap[id] ? this.suggestionsMap[id].suggestions : [];
-            },
-
-            // 5 Kriteria Checklist Alasan Saran Top 10
-            reasonsList: [
-                'Karya layak secara teknis dan berfungsi dengan baik (tanpa bug/crash)',
-                'Ide karya orisinal',
-                'Materi pembelajaran benar dan akurat',
-                'Video demonstrasi (maks. 1 menit) sudah disimak dan sesuai dengan karya',
-                'File/tautan karya dapat diakses dan dibuka dengan baik'
-            ],
-
-            // State Modal Saran Top 10
-            suggestionWork: null,
-            selectedReasons: [],
-            isSubmittingSuggestion: false,
-            suggestionError: null,
-            suggestionSuccessMsg: null,
-
-            openSuggestionModal(work) {
-                if (!work.profile_photo_url) {
-                    work.profile_photo_url = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(work.full_name || 'Peserta') + '&background=5E43F3&color=FFFFFF&size=200';
-                }
-                this.suggestionWork = work;
-                this.suggestionError = null;
-                this.suggestionSuccessMsg = null;
-                const existingReasons = this.suggestionsMap[work.id]?.myReasons;
-                if (existingReasons && Array.isArray(existingReasons) && existingReasons.length > 0) {
-                    this.selectedReasons = [...existingReasons];
-                } else {
-                    this.selectedReasons = [];
-                }
-            },
-
-            closeSuggestionModal() {
-                if (this.isSubmittingSuggestion) return;
-                this.suggestionWork = null;
-                this.selectedReasons = [];
-                this.suggestionError = null;
-                this.suggestionSuccessMsg = null;
-            },
-
-            toggleReason(reason) {
-                if (this.selectedReasons.includes(reason)) {
-                    this.selectedReasons = this.selectedReasons.filter(r => r !== reason);
-                } else {
-                    this.selectedReasons.push(reason);
-                }
-            },
-
-            async submitSuggestion() {
-                if (!this.suggestionWork || this.isSubmittingSuggestion) return;
-                if (this.selectedReasons.length === 0) {
-                    this.suggestionError = 'Pilih minimal 1 alasan rekomendasi sebelum menyimpan saran Top 10.';
-                    return;
-                }
-                this.isSubmittingSuggestion = true;
-                this.suggestionError = null;
-
-                const work = this.suggestionWork;
-                const isAdding = !this.isSuggested(work.id);
-                const isGim = work.learning_category === 'gim_edukasi';
-                const currentCount = isGim ? this.myGimSuggestions : this.myMediaSuggestions;
-
-                if (isAdding && currentCount >= 10) {
-                    this.suggestionError = 'Kuota saran Top 10 Anda untuk kategori ' + (work.category_label || (isGim ? 'Gim Edukasi' : 'Media Interaktif')) + ' sudah penuh (maksimal 10 karya). Batalkan salah satu saran Anda terlebih dahulu.';
-                    this.isSubmittingSuggestion = false;
-                    return;
-                }
-
-                try {
-                    const token = document.querySelector('meta[name=csrf-token]')?.getAttribute('content') || '{{ csrf_token() }}';
-                    const res = await fetch('/judge/works/' + work.id + '/toggle-suggest', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Accept': 'application/json',
-                            'X-CSRF-TOKEN': token,
-                            'X-Requested-With': 'XMLHttpRequest'
-                        },
-                        body: JSON.stringify({
-                            reasons: this.selectedReasons
-                        })
-                    });
-
-                    const data = await res.json();
-                    if (res.ok && data.success) {
-                        if (!this.suggestionsMap[work.id]) {
-                            this.suggestionsMap[work.id] = { isSuggestedByMe: false, count: 0, myReasons: [], suggestions: [] };
-                        }
-                        this.suggestionsMap[work.id].isSuggestedByMe = data.is_suggested;
-                        this.suggestionsMap[work.id].count = data.suggestions_count;
-                        this.suggestionsMap[work.id].myReasons = data.my_reasons || this.selectedReasons;
-                        this.suggestionsMap[work.id].suggestions = (data.suggestions || []).map(s => ({
-                            userId: s.user_id,
-                            name: s.judge_name,
-                            username: s.judge_username || ('juri' + s.user_id),
-                            email: s.judge_email || '-',
-                            code: s.judge_code,
-                            reasons: s.reasons || [],
-                            focus: s.focus || 'Evaluasi Inovasi Pembelajaran Digital BTIKP',
-                            suggested_at: s.suggested_at || 'Tercatat di sistem',
-                            participant_name: s.participant_name || work.full_name,
-                            colorClass: s.colorClass || (s.judge_code === 'J1' ? 'bg-indigo-600 text-white' : (s.judge_code === 'J2' ? 'bg-emerald-600 text-white' : (s.judge_code === 'J3' ? 'bg-amber-600 text-white' : 'bg-purple-600 text-white'))),
-                            color: s.color || 'from-indigo-600 via-indigo-700 to-indigo-900',
-                            badgeColor: s.badgeColor || 'bg-white text-indigo-700'
-                        }));
-
-                        if (data.stats) {
-                            this.myGimSuggestions = data.stats.gim_suggestions;
-                            this.myMediaSuggestions = data.stats.media_suggestions;
-                        }
-                        this.suggestionSuccessMsg = data.message;
-                        setTimeout(() => {
-                            this.closeSuggestionModal();
-                        }, 700);
-                    } else {
-                        this.suggestionError = data.message || 'Gagal menyimpan saran.';
-                    }
-                } catch (e) {
-                    this.suggestionError = 'Gagal menghubungi server.';
-                } finally {
-                    this.isSubmittingSuggestion = false;
-                }
-            },
-
-            async withdrawSuggestion() {
-                if (!this.suggestionWork || this.isSubmittingSuggestion) return;
-                if (!confirm('Apakah Anda yakin ingin membatalkan saran Top 10 untuk karya ini?')) return;
-                this.isSubmittingSuggestion = true;
-                this.suggestionError = null;
-
-                const work = this.suggestionWork;
-                try {
-                    const token = document.querySelector('meta[name=csrf-token]')?.getAttribute('content') || '{{ csrf_token() }}';
-                    const res = await fetch('/judge/works/' + work.id + '/toggle-suggest', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Accept': 'application/json',
-                            'X-CSRF-TOKEN': token,
-                            'X-Requested-With': 'XMLHttpRequest'
-                        },
-                        body: JSON.stringify({
-                            action: 'withdraw'
-                        })
-                    });
-
-                    const data = await res.json();
-                    if (res.ok && data.success) {
-                        if (!this.suggestionsMap[work.id]) {
-                            this.suggestionsMap[work.id] = { isSuggestedByMe: false, count: 0, myReasons: [], suggestions: [] };
-                        }
-                        this.suggestionsMap[work.id].isSuggestedByMe = false;
-                        this.suggestionsMap[work.id].count = data.suggestions_count;
-                        this.suggestionsMap[work.id].myReasons = [];
-                        this.suggestionsMap[work.id].suggestions = (data.suggestions || []).map(s => ({
-                            userId: s.user_id,
-                            name: s.judge_name,
-                            username: s.judge_username || ('juri' + s.user_id),
-                            email: s.judge_email || '-',
-                            code: s.judge_code,
-                            reasons: s.reasons || [],
-                            focus: s.focus || 'Evaluasi Inovasi Pembelajaran Digital BTIKP',
-                            suggested_at: s.suggested_at || 'Tercatat di sistem',
-                            participant_name: s.participant_name || work.full_name,
-                            colorClass: s.colorClass || (s.judge_code === 'J1' ? 'bg-indigo-600 text-white' : (s.judge_code === 'J2' ? 'bg-emerald-600 text-white' : (s.judge_code === 'J3' ? 'bg-amber-600 text-white' : 'bg-purple-600 text-white'))),
-                            color: s.color || 'from-indigo-600 via-indigo-700 to-indigo-900',
-                            badgeColor: s.badgeColor || 'bg-white text-indigo-700'
-                        }));
-
-                        if (data.stats) {
-                            this.myGimSuggestions = data.stats.gim_suggestions;
-                            this.myMediaSuggestions = data.stats.media_suggestions;
-                        }
-                        this.closeSuggestionModal();
-                    } else {
-                        this.suggestionError = data.message || 'Gagal membatalkan saran.';
-                    }
-                } catch (e) {
-                    this.suggestionError = 'Gagal menghubungi server.';
-                } finally {
-                    this.isSubmittingSuggestion = false;
-                }
-            },
-
-            // Scoring State
-            scoringWork: null,
-            pedagogical: 0,
-            creativity: 0,
-            technical: 0,
-            presentation: 0,
-            notes: '',
-            isSubmittingScore: false,
-            scoreSuccessMsg: null,
-
-            // Profile State
-            showProfileModal: false,
-            profileForm: {
-                name: '{{ $judge->name }}',
-                username: '{{ $judge->username }}',
-                email: '{{ $judge->email }}',
-                password: '',
-                password_confirmation: ''
-            },
-
-            openScoring(work) {
-                if (!work.profile_photo_url) {
-                    work.profile_photo_url = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(work.full_name || 'Peserta') + '&background=5E43F3&color=FFFFFF&size=200';
-                }
-                this.scoringWork = work;
-                const existingScore = work.judge_scores && work.judge_scores.length > 0 ? work.judge_scores[0] : null;
-                this.pedagogical = existingScore ? existingScore.pedagogical_score : 80;
-                this.creativity = existingScore ? existingScore.creativity_score : 80;
-                this.technical = existingScore ? existingScore.technical_score : 80;
-                this.presentation = existingScore ? existingScore.presentation_score : 80;
-                this.notes = existingScore ? (existingScore.notes || '') : '';
-                this.scoreSuccessMsg = null;
-            },
-
-            closeScoring() {
-                this.scoringWork = null;
-            },
-
-            get calculatedTotal() {
-                const p = parseFloat(this.pedagogical) || 0;
-                const c = parseFloat(this.creativity) || 0;
-                const t = parseFloat(this.technical) || 0;
-                const pr = parseFloat(this.presentation) || 0;
-                const total = (p * 0.30) + (c * 0.30) + (t * 0.25) + (pr * 0.15);
-                return total.toFixed(2);
-            },
-
-            async submitScore() {
-                if (!this.scoringWork || this.isSubmittingScore) return;
-                this.isSubmittingScore = true;
-                this.scoreSuccessMsg = null;
-
-                try {
-                    const token = document.querySelector('meta[name=csrf-token]')?.getAttribute('content') || '{{ csrf_token() }}';
-                    const res = await fetch('/judge/works/' + this.scoringWork.id + '/score', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Accept': 'application/json',
-                            'X-CSRF-TOKEN': token,
-                            'X-Requested-With': 'XMLHttpRequest'
-                        },
-                        body: JSON.stringify({
-                            pedagogical_score: this.pedagogical,
-                            creativity_score: this.creativity,
-                            technical_score: this.technical,
-                            presentation_score: this.presentation,
-                            notes: this.notes
-                        })
-                    });
-
-                    const data = await res.json();
-                    if (res.ok && data.success) {
-                        this.scoreSuccessMsg = data.message;
-                        setTimeout(() => {
-                            window.location.reload();
-                        }, 1200);
-                    } else {
-                        alert(data.message || 'Gagal menyimpan nilai.');
-                    }
-                } catch (e) {
-                    alert('Gagal menghubungi server.');
-                } finally {
-                    this.isSubmittingScore = false;
-                }
-            },
-
-            // Judge Popover & Modal State
-            hoveredJudge: null,
-            hoverPos: { x: 0, y: 0 },
-            hoverTimeout: null,
-            isJudgeModalOpen: false,
-
-            showJudgeOverview(judgeData, event) {
-                if (window.innerWidth < 768) return;
-                clearTimeout(this.hoverTimeout);
-                if (this.isJudgeModalOpen) return;
-
-                const rect = event ? event.currentTarget.getBoundingClientRect() : null;
-                const cardW = 487;
-                const cardH = 280;
-
-                let x = rect ? rect.left + (rect.width / 2) - (cardW / 2) : 20;
-                if (x < 15) x = 15;
-                if (x + cardW > window.innerWidth - 15) {
-                    x = window.innerWidth - cardW - 15;
-                }
-
-                let y = rect ? rect.bottom + 8 : 20;
-                if (y + cardH > window.innerHeight - 15) {
-                    y = rect.top - cardH - 8;
-                }
-                if (y < 10) y = 10;
-
-                this.hoverPos = { x, y };
-                this.hoveredJudge = judgeData;
-            },
-
-            hideJudgeOverview() {
-                if (this.isJudgeModalOpen) return;
-                this.hoverTimeout = setTimeout(() => {
-                    this.hoveredJudge = null;
-                }, 180);
-            },
-
-            keepJudgeOverview() {
-                clearTimeout(this.hoverTimeout);
-            },
-
-            openJudgeModal(judgeData) {
-                clearTimeout(this.hoverTimeout);
-                this.hoveredJudge = judgeData;
-                this.isJudgeModalOpen = true;
-            },
-
-            closeJudgeModal() {
-                this.isJudgeModalOpen = false;
-                this.hoveredJudge = null;
-            },
-
-            get isAnyModalOpen() {
-                return !!(this.scoringWork !== null || this.showProfileModal || this.isJudgeModalOpen || this.suggestionWork !== null);
-            },
-
-            init() {
-                this.$watch('isAnyModalOpen', (isOpen) => {
-                    if (isOpen) {
-                        document.body.classList.add('overflow-hidden');
-                        document.documentElement.classList.add('overflow-hidden');
-                    } else {
-                        document.body.classList.remove('overflow-hidden');
-                        document.documentElement.classList.remove('overflow-hidden');
-                    }
-                });
-            }
-        }"
-    >
+    <div x-data="judgeDashboard()" class="space-y-6">
         <!-- Welcome Juri Header Banner -->
         <div class="rounded-3xl bg-gradient-to-r from-purple-900 via-indigo-900 to-[#5e43f3] text-white p-6 sm:p-8 shadow-soft relative overflow-hidden">
             <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
@@ -1825,4 +1416,378 @@
         </div>
 
     </div>
+
+    <script>
+        function judgeDashboard() {
+            return {
+                activeTab: @json($activeTab ?? 'finalists'),
+                selectedCategory: @json($category ?? 'all'),
+                searchQuery: @json($search ?? ''),
+                viewMode: localStorage.getItem('judge_view_mode') || 'grid',
+                
+                setViewMode(mode) {
+                    this.viewMode = mode;
+                    localStorage.setItem('judge_view_mode', mode);
+                },
+
+                // Suggestion Quota State & Map
+                myGimSuggestions: {{ (int) ($stats['my_gim_suggestions'] ?? 0) }},
+                myMediaSuggestions: {{ (int) ($stats['my_media_suggestions'] ?? 0) }},
+                togglingSuggestId: null,
+
+                // Reactive Suggestions Map (Loaded directly from backend)
+                suggestionsMap: @json($suggestionsMap ?? []),
+
+                isSuggested(id) {
+                    return this.suggestionsMap[id] ? this.suggestionsMap[id].isSuggestedByMe : false;
+                },
+
+                getSuggestions(id) {
+                    return this.suggestionsMap[id] ? this.suggestionsMap[id].suggestions : [];
+                },
+
+                // 5 Kriteria Checklist Alasan Saran Top 10
+                reasonsList: [
+                    'Karya layak secara teknis dan berfungsi dengan baik (tanpa bug/crash)',
+                    'Ide karya orisinal',
+                    'Materi pembelajaran benar dan akurat',
+                    'Video demonstrasi (maks. 1 menit) sudah disimak dan sesuai dengan karya',
+                    'File/tautan karya dapat diakses dan dibuka dengan baik'
+                ],
+
+                // State Modal Saran Top 10
+                suggestionWork: null,
+                selectedReasons: [],
+                isSubmittingSuggestion: false,
+                suggestionError: null,
+                suggestionSuccessMsg: null,
+
+                openSuggestionModal(work) {
+                    if (!work.profile_photo_url) {
+                        work.profile_photo_url = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(work.full_name || 'Peserta') + '&background=5E43F3&color=FFFFFF&size=200';
+                    }
+                    this.suggestionWork = work;
+                    this.suggestionError = null;
+                    this.suggestionSuccessMsg = null;
+                    const existingReasons = this.suggestionsMap[work.id]?.myReasons;
+                    if (existingReasons && Array.isArray(existingReasons) && existingReasons.length > 0) {
+                        this.selectedReasons = [...existingReasons];
+                    } else {
+                        this.selectedReasons = [];
+                    }
+                },
+
+                closeSuggestionModal() {
+                    if (this.isSubmittingSuggestion) return;
+                    this.suggestionWork = null;
+                    this.selectedReasons = [];
+                    this.suggestionError = null;
+                    this.suggestionSuccessMsg = null;
+                },
+
+                toggleReason(reason) {
+                    if (this.selectedReasons.includes(reason)) {
+                        this.selectedReasons = this.selectedReasons.filter(r => r !== reason);
+                    } else {
+                        this.selectedReasons.push(reason);
+                    }
+                },
+
+                async submitSuggestion() {
+                    if (!this.suggestionWork || this.isSubmittingSuggestion) return;
+                    if (this.selectedReasons.length === 0) {
+                        this.suggestionError = 'Pilih minimal 1 alasan rekomendasi sebelum menyimpan saran Top 10.';
+                        return;
+                    }
+                    this.isSubmittingSuggestion = true;
+                    this.suggestionError = null;
+
+                    const work = this.suggestionWork;
+                    const isAdding = !this.isSuggested(work.id);
+                    const isGim = work.learning_category === 'gim_edukasi';
+                    const currentCount = isGim ? this.myGimSuggestions : this.myMediaSuggestions;
+
+                    if (isAdding && currentCount >= 10) {
+                        this.suggestionError = 'Kuota saran Top 10 Anda untuk kategori ' + (work.category_label || (isGim ? 'Gim Edukasi' : 'Media Interaktif')) + ' sudah penuh (maksimal 10 karya). Batalkan salah satu saran Anda terlebih dahulu.';
+                        this.isSubmittingSuggestion = false;
+                        return;
+                    }
+
+                    try {
+                        const token = document.querySelector('meta[name=csrf-token]')?.getAttribute('content') || '{{ csrf_token() }}';
+                        const res = await fetch('/judge/works/' + work.id + '/toggle-suggest', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': token,
+                                'X-Requested-With': 'XMLHttpRequest'
+                            },
+                            body: JSON.stringify({
+                                reasons: this.selectedReasons
+                            })
+                        });
+
+                        const data = await res.json();
+                        if (res.ok && data.success) {
+                            if (!this.suggestionsMap[work.id]) {
+                                this.suggestionsMap[work.id] = { isSuggestedByMe: false, count: 0, myReasons: [], suggestions: [] };
+                            }
+                            this.suggestionsMap[work.id].isSuggestedByMe = data.is_suggested;
+                            this.suggestionsMap[work.id].count = data.suggestions_count;
+                            this.suggestionsMap[work.id].myReasons = data.my_reasons || this.selectedReasons;
+                            this.suggestionsMap[work.id].suggestions = (data.suggestions || []).map(s => ({
+                                userId: s.user_id,
+                                name: s.judge_name,
+                                username: s.judge_username || ('juri' + s.user_id),
+                                email: s.judge_email || '-',
+                                code: s.judge_code,
+                                reasons: s.reasons || [],
+                                focus: s.focus || 'Evaluasi Inovasi Pembelajaran Digital BTIKP',
+                                suggested_at: s.suggested_at || 'Tercatat di sistem',
+                                participant_name: s.participant_name || work.full_name,
+                                colorClass: s.colorClass || (s.judge_code === 'J1' ? 'bg-indigo-600 text-white' : (s.judge_code === 'J2' ? 'bg-emerald-600 text-white' : (s.judge_code === 'J3' ? 'bg-amber-600 text-white' : 'bg-purple-600 text-white'))),
+                                color: s.color || 'from-indigo-600 via-indigo-700 to-indigo-900',
+                                badgeColor: s.badgeColor || 'bg-white text-indigo-700'
+                            }));
+
+                            if (data.stats) {
+                                this.myGimSuggestions = data.stats.gim_suggestions;
+                                this.myMediaSuggestions = data.stats.media_suggestions;
+                            }
+                            this.suggestionSuccessMsg = data.message;
+                            setTimeout(() => {
+                                this.closeSuggestionModal();
+                            }, 700);
+                        } else {
+                            this.suggestionError = data.message || 'Gagal menyimpan saran.';
+                        }
+                    } catch (e) {
+                        this.suggestionError = 'Gagal menghubungi server.';
+                    } finally {
+                        this.isSubmittingSuggestion = false;
+                    }
+                },
+
+                async withdrawSuggestion() {
+                    if (!this.suggestionWork || this.isSubmittingSuggestion) return;
+                    if (!confirm('Apakah Anda yakin ingin membatalkan saran Top 10 untuk karya ini?')) return;
+                    this.isSubmittingSuggestion = true;
+                    this.suggestionError = null;
+
+                    const work = this.suggestionWork;
+                    try {
+                        const token = document.querySelector('meta[name=csrf-token]')?.getAttribute('content') || '{{ csrf_token() }}';
+                        const res = await fetch('/judge/works/' + work.id + '/toggle-suggest', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': token,
+                                'X-Requested-With': 'XMLHttpRequest'
+                            },
+                            body: JSON.stringify({
+                                action: 'withdraw'
+                            })
+                        });
+
+                        const data = await res.json();
+                        if (res.ok && data.success) {
+                            if (!this.suggestionsMap[work.id]) {
+                                this.suggestionsMap[work.id] = { isSuggestedByMe: false, count: 0, myReasons: [], suggestions: [] };
+                            }
+                            this.suggestionsMap[work.id].isSuggestedByMe = false;
+                            this.suggestionsMap[work.id].count = data.suggestions_count;
+                            this.suggestionsMap[work.id].myReasons = [];
+                            this.suggestionsMap[work.id].suggestions = (data.suggestions || []).map(s => ({
+                                userId: s.user_id,
+                                name: s.judge_name,
+                                username: s.judge_username || ('juri' + s.user_id),
+                                email: s.judge_email || '-',
+                                code: s.judge_code,
+                                reasons: s.reasons || [],
+                                focus: s.focus || 'Evaluasi Inovasi Pembelajaran Digital BTIKP',
+                                suggested_at: s.suggested_at || 'Tercatat di sistem',
+                                participant_name: s.participant_name || work.full_name,
+                                colorClass: s.colorClass || (s.judge_code === 'J1' ? 'bg-indigo-600 text-white' : (s.judge_code === 'J2' ? 'bg-emerald-600 text-white' : (s.judge_code === 'J3' ? 'bg-amber-600 text-white' : 'bg-purple-600 text-white'))),
+                                color: s.color || 'from-indigo-600 via-indigo-700 to-indigo-900',
+                                badgeColor: s.badgeColor || 'bg-white text-indigo-700'
+                            }));
+
+                            if (data.stats) {
+                                this.myGimSuggestions = data.stats.gim_suggestions;
+                                this.myMediaSuggestions = data.stats.media_suggestions;
+                            }
+                            this.closeSuggestionModal();
+                        } else {
+                            this.suggestionError = data.message || 'Gagal membatalkan saran.';
+                        }
+                    } catch (e) {
+                        this.suggestionError = 'Gagal menghubungi server.';
+                    } finally {
+                        this.isSubmittingSuggestion = false;
+                    }
+                },
+
+                // Scoring State
+                scoringWork: null,
+                pedagogical: 0,
+                creativity: 0,
+                technical: 0,
+                presentation: 0,
+                notes: '',
+                isSubmittingScore: false,
+                scoreSuccessMsg: null,
+
+                // Profile State
+                showProfileModal: false,
+                profileForm: {
+                    name: @json($judge->name),
+                    username: @json($judge->username),
+                    email: @json($judge->email),
+                    password: '',
+                    password_confirmation: ''
+                },
+
+                openScoring(work) {
+                    if (!work.profile_photo_url) {
+                        work.profile_photo_url = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(work.full_name || 'Peserta') + '&background=5E43F3&color=FFFFFF&size=200';
+                    }
+                    this.scoringWork = work;
+                    const existingScore = work.judge_scores && work.judge_scores.length > 0 ? work.judge_scores[0] : null;
+                    this.pedagogical = existingScore ? existingScore.pedagogical_score : 80;
+                    this.creativity = existingScore ? existingScore.creativity_score : 80;
+                    this.technical = existingScore ? existingScore.technical_score : 80;
+                    this.presentation = existingScore ? existingScore.presentation_score : 80;
+                    this.notes = existingScore ? (existingScore.notes || '') : '';
+                    this.scoreSuccessMsg = null;
+                },
+
+                closeScoring() {
+                    this.scoringWork = null;
+                },
+
+                get calculatedTotal() {
+                    const p = parseFloat(this.pedagogical) || 0;
+                    const c = parseFloat(this.creativity) || 0;
+                    const t = parseFloat(this.technical) || 0;
+                    const pr = parseFloat(this.presentation) || 0;
+                    const total = (p * 0.30) + (c * 0.30) + (t * 0.25) + (pr * 0.15);
+                    return total.toFixed(2);
+                },
+
+                async submitScore() {
+                    if (!this.scoringWork || this.isSubmittingScore) return;
+                    this.isSubmittingScore = true;
+                    this.scoreSuccessMsg = null;
+
+                    try {
+                        const token = document.querySelector('meta[name=csrf-token]')?.getAttribute('content') || '{{ csrf_token() }}';
+                        const res = await fetch('/judge/works/' + this.scoringWork.id + '/score', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': token,
+                                'X-Requested-With': 'XMLHttpRequest'
+                            },
+                            body: JSON.stringify({
+                                pedagogical_score: this.pedagogical,
+                                creativity_score: this.creativity,
+                                technical_score: this.technical,
+                                presentation_score: this.presentation,
+                                notes: this.notes
+                            })
+                        });
+
+                        const data = await res.json();
+                        if (res.ok && data.success) {
+                            this.scoreSuccessMsg = data.message;
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, 1200);
+                        } else {
+                            alert(data.message || 'Gagal menyimpan nilai.');
+                        }
+                    } catch (e) {
+                        alert('Gagal menghubungi server.');
+                    } finally {
+                        this.isSubmittingScore = false;
+                    }
+                },
+
+                // Judge Popover & Modal State
+                hoveredJudge: null,
+                hoverPos: { x: 0, y: 0 },
+                hoverTimeout: null,
+                isJudgeModalOpen: false,
+
+                showJudgeOverview(judgeData, event) {
+                    if (window.innerWidth < 768) return;
+                    clearTimeout(this.hoverTimeout);
+                    if (this.isJudgeModalOpen) return;
+
+                    const rect = event ? event.currentTarget.getBoundingClientRect() : null;
+                    const cardW = 487;
+                    const cardH = 280;
+
+                    let x = rect ? rect.left + (rect.width / 2) - (cardW / 2) : 20;
+                    if (x < 15) x = 15;
+                    if (x + cardW > window.innerWidth - 15) {
+                        x = window.innerWidth - cardW - 15;
+                    }
+
+                    let y = rect ? rect.bottom + 8 : 20;
+                    if (y + cardH > window.innerHeight - 15) {
+                        y = rect.top - cardH - 8;
+                    }
+                    if (y < 10) y = 10;
+
+                    this.hoverPos = { x, y };
+                    this.hoveredJudge = judgeData;
+                },
+
+                hideJudgeOverview() {
+                    if (this.isJudgeModalOpen) return;
+                    this.hoverTimeout = setTimeout(() => {
+                        this.hoveredJudge = null;
+                    }, 180);
+                },
+
+                keepJudgeOverview() {
+                    clearTimeout(this.hoverTimeout);
+                },
+
+                openJudgeModal(judgeData) {
+                    clearTimeout(this.hoverTimeout);
+                    this.hoveredJudge = judgeData;
+                    this.isJudgeModalOpen = true;
+                },
+
+                closeJudgeModal() {
+                    this.isJudgeModalOpen = false;
+                    this.hoveredJudge = null;
+                },
+
+                get isAnyModalOpen() {
+                    return !!(this.scoringWork !== null || this.showProfileModal || this.isJudgeModalOpen || this.suggestionWork !== null);
+                },
+
+                init() {
+                    this.$watch('isAnyModalOpen', (isOpen) => {
+                        if (isOpen) {
+                            document.body.classList.add('overflow-hidden');
+                            document.documentElement.classList.add('overflow-hidden');
+                        } else {
+                            document.body.classList.remove('overflow-hidden');
+                            document.documentElement.classList.remove('overflow-hidden');
+                        }
+                    });
+                }
+            };
+        }
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('judgeDashboard', judgeDashboard);
+        });
+    </script>
 </x-layouts.app>
