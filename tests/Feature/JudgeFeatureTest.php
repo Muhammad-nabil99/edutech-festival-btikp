@@ -272,9 +272,9 @@ class JudgeFeatureTest extends TestCase
     }
 
     /**
-     * Test kuota saran juri dibatasi maksimal 10 karya per kategori.
+     * Test dewan juri tidak dibatasi kuota saat memberikan saran (dapat menyarankan lebih dari 10 karya).
      */
-    public function test_judge_suggestion_quota_enforced_at_10_per_category(): void
+    public function test_judge_can_suggest_unlimited_works_without_category_quota_restriction(): void
     {
         // Buat 10 karya gim edukasi dan sarankan semuanya
         for ($i = 1; $i <= 10; $i++) {
@@ -297,7 +297,7 @@ class JudgeFeatureTest extends TestCase
             ]);
         }
 
-        // Coba sarankan karya gim ke-11
+        // Juri menyarankan karya gim ke-11 (tidak dibatasi kuota 10)
         $work11 = Registration::create([
             'registration_number' => 'EDUTECH-2026-0011',
             'full_name' => 'Peserta Gim 11',
@@ -315,12 +315,13 @@ class JudgeFeatureTest extends TestCase
                 'reasons' => ['Ide karya orisinal'],
             ]);
 
-        $response->assertStatus(422)
+        $response->assertStatus(200)
             ->assertJson([
-                'success' => false,
+                'success' => true,
+                'is_suggested' => true,
             ]);
 
-        $this->assertDatabaseMissing('judge_suggestions', [
+        $this->assertDatabaseHas('judge_suggestions', [
             'user_id' => $this->judge->id,
             'registration_id' => $work11->id,
         ]);

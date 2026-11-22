@@ -12,7 +12,7 @@
                         Evaluasi &amp; Rekomendasi Karya Digital
                     </h1>
                     <p class="text-xs sm:text-sm text-purple-100/90 leading-relaxed">
-                        Selamat datang, <strong>{{ $judge->name }}</strong> ({{ $judge->username }}). Anda dapat merekomendasikan hingga 10 karya per kategori ke Panitia dengan mengisi checklist kelayakan, serta menilai karya Finalis Top 10 yang telah disetujui Admin.
+                        Selamat datang, <strong>{{ $judge->name }}</strong> ({{ $judge->username }}). Anda dapat merekomendasikan karya terbaik ke Panitia dengan mengisi checklist kelayakan, serta menilai karya Finalis Top 10 yang telah disetujui Admin.
                     </p>
                 </div>
 
@@ -31,31 +31,31 @@
             </div>
         </div>
 
-        <!-- Metric Cards: Kuota Rekomendasi & Penilaian -->
+        <!-- Metric Cards: Saran Rekomendasi & Penilaian -->
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            <!-- Kuota Saran Gim -->
+            <!-- Saran Gim -->
             <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-xs flex flex-col justify-between">
                 <div>
                     <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">Saran Top 10: Gim</span>
                     <div class="text-2xl sm:text-3xl font-extrabold text-amber-600 mt-1 font-mono">
-                        <span x-text="myGimSuggestions"></span><span class="text-slate-300 text-lg font-normal"> / 10</span>
+                        <span x-text="myGimSuggestions"></span><span class="text-slate-400 text-xs font-semibold ml-1">Karya</span>
                     </div>
                 </div>
                 <p class="text-[11px] text-slate-500 mt-2 font-medium">
-                    Tersisa: <strong class="text-slate-700" x-text="Math.max(0, 10 - myGimSuggestions)"></strong> slot saran
+                    Rekomendasi Anda untuk Gim Edukasi
                 </p>
             </div>
 
-            <!-- Kuota Saran Media -->
+            <!-- Saran Media -->
             <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-xs flex flex-col justify-between">
                 <div>
                     <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">Saran Top 10: Media</span>
                     <div class="text-2xl sm:text-3xl font-extrabold text-sky-600 mt-1 font-mono">
-                        <span x-text="myMediaSuggestions"></span><span class="text-slate-300 text-lg font-normal"> / 10</span>
+                        <span x-text="myMediaSuggestions"></span><span class="text-slate-400 text-xs font-semibold ml-1">Karya</span>
                     </div>
                 </div>
                 <p class="text-[11px] text-slate-500 mt-2 font-medium">
-                    Tersisa: <strong class="text-slate-700" x-text="Math.max(0, 10 - myMediaSuggestions)"></strong> slot saran
+                    Rekomendasi Anda untuk Media Interaktif
                 </p>
             </div>
 
@@ -1503,15 +1503,6 @@
                     this.suggestionError = null;
 
                     const work = this.suggestionWork;
-                    const isAdding = !this.isSuggested(work.id);
-                    const isGim = work.learning_category === 'gim_edukasi';
-                    const currentCount = isGim ? this.myGimSuggestions : this.myMediaSuggestions;
-
-                    if (isAdding && currentCount >= 10) {
-                        this.suggestionError = 'Kuota saran Top 10 Anda untuk kategori ' + (work.category_label || (isGim ? 'Gim Edukasi' : 'Media Interaktif')) + ' sudah penuh (maksimal 10 karya). Batalkan salah satu saran Anda terlebih dahulu.';
-                        this.isSubmittingSuggestion = false;
-                        return;
-                    }
 
                     try {
                         const token = document.querySelector('meta[name=csrf-token]')?.getAttribute('content') || '{{ csrf_token() }}';

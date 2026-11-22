@@ -81,7 +81,7 @@ class JudgeDashboardController extends Controller
             ->orderBy('id', 'asc')
             ->get();
 
-        // Hitung kuota saran juri saat ini (Maksimal 10 karya per kategori)
+        // Hitung jumlah saran juri saat ini per kategori
         $myGimSuggestionsCount = JudgeSuggestion::where('user_id', $judge->id)
             ->whereHas('registration', fn($q) => $q->where('learning_category', 'gim_edukasi'))
             ->count();
@@ -142,8 +142,6 @@ class JudgeDashboardController extends Controller
                 'my_suggestions_count' => $myGimSuggestionsCount + $myMediaSuggestionsCount,
                 'my_gim_suggestions' => $myGimSuggestionsCount,
                 'my_media_suggestions' => $myMediaSuggestionsCount,
-                'remaining_gim_suggestions' => max(0, JudgeSuggestion::MAX_SUGGESTIONS_PER_CATEGORY - $myGimSuggestionsCount),
-                'remaining_media_suggestions' => max(0, JudgeSuggestion::MAX_SUGGESTIONS_PER_CATEGORY - $myMediaSuggestionsCount),
                 'finalists_count' => $totalFinalists,
                 'scored_finalists_count' => $scoredFinalistsCount,
                 'remaining_finalists_to_score' => max(0, $totalFinalists - $scoredFinalistsCount),
@@ -153,7 +151,7 @@ class JudgeDashboardController extends Controller
 
     /**
      * Simpan saran, perbarui alasan, atau tarik usulan karya untuk Top 10 oleh juri.
-     * Maksimal 10 karya per kategori per juri.
+     * Tidak ada batasan jumlah saran bagi juri.
      * Dilengkapi checklist alasan kurasi (minimal 1 kriteria dipilih).
      */
     public function toggleSuggestion(Request $request, Registration $registration): JsonResponse
@@ -194,19 +192,6 @@ class JudgeDashboardController extends Controller
                 $isSuggested = true;
                 $message = "Alasan saran Top 10 untuk karya '{$registration->full_name}' berhasil diperbarui!";
             } else {
-                // Cek kuota: masing-masing juri hanya bisa menyarankan maksimal 10 karya per kategori
-                $currentCategoryCount = JudgeSuggestion::where('user_id', $judge->id)
-                    ->whereHas('registration', function ($q) use ($registration) {
-                        $q->where('learning_category', $registration->learning_category);
-                    })->count();
-
-                if ($currentCategoryCount >= JudgeSuggestion::MAX_SUGGESTIONS_PER_CATEGORY) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => "Kuota saran Top 10 Anda untuk kategori '{$registration->category_label}' sudah penuh (maksimal 10 karya). Batalkan salah satu saran Anda terlebih dahulu.",
-                    ], 422);
-                }
-
                 JudgeSuggestion::create([
                     'user_id' => $judge->id,
                     'registration_id' => $registration->id,
@@ -265,8 +250,6 @@ class JudgeDashboardController extends Controller
                 'gim_suggestions' => $gimCount,
                 'media_suggestions' => $mediaCount,
                 'total_suggestions' => $gimCount + $mediaCount,
-                'remaining_gim' => max(0, JudgeSuggestion::MAX_SUGGESTIONS_PER_CATEGORY - $gimCount),
-                'remaining_media' => max(0, JudgeSuggestion::MAX_SUGGESTIONS_PER_CATEGORY - $mediaCount),
             ],
         ]);
     }
