@@ -558,4 +558,52 @@ class JudgeFeatureTest extends TestCase
         $resJuri3->assertSee('x-data="judgeDashboard()"', false);
         $resJuri3->assertSee('Dewan Juri 3');
     }
+
+    /**
+     * Test kode juri J1, J2, J3 selalu konsisten dan tidak tertukar,
+     * serta kedua ikon juri muncul dengan benar pada card peserta saat disarankan.
+     */
+    public function test_judge_codes_are_correct_and_not_confused_between_judge1_and_judge2(): void
+    {
+        $this->assertEquals('J1', $this->judge->judge_code);
+        $this->assertEquals('J2', $this->judge2->judge_code);
+        $this->assertEquals('J3', $this->judge3->judge_code);
+
+        $work = Registration::create([
+            'registration_number' => 'EDUTECH-2026-0200',
+            'full_name' => 'Karya Bersama Dua Juri',
+            'school_name' => 'SMAN 1 KENDARI',
+            'regency_city' => 'Kota Kendari',
+            'email' => 'peserta200@example.com',
+            'whatsapp_number' => '6281234567200',
+            'learning_category' => 'gim_edukasi',
+            'profile_photo_path' => 'profile-photos/sample.jpg',
+            'media_link' => 'https://drive.google.com/sample',
+            'is_curated_top10' => false,
+        ]);
+
+        // Juri 1 menyarankan
+        $this->actingAs($this->judge)->postJson(route('judge.works.toggle-suggest', $work->id), [
+            'reasons' => ['Ide karya orisinal'],
+        ])->assertJson([
+            'success' => true,
+            'is_suggested' => true,
+        ]);
+
+        // Juri 2 menyarankan
+        $resJuri2 = $this->actingAs($this->judge2)->postJson(route('judge.works.toggle-suggest', $work->id), [
+            'reasons' => ['Materi pembelajaran benar dan akurat'],
+        ]);
+        $resJuri2->assertJson([
+            'success' => true,
+            'is_suggested' => true,
+        ]);
+
+        // Verifikasi response suggestions memuat kedua juri: J1 dan J2
+        $suggestions = $resJuri2->json('suggestions');
+        $this->assertCount(2, $suggestions);
+        $codes = array_column($suggestions, 'judge_code');
+        $this->assertContains('J1', $codes);
+        $this->assertContains('J2', $codes);
+    }
 }

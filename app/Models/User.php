@@ -76,12 +76,39 @@ class User extends Authenticatable
      */
     public function getJudgeCodeAttribute(): string
     {
+        // 1. Cek dari username (misal: juri1, juri_1, judge1)
         if (preg_match('/(\d+)/', (string) $this->username, $m)) {
             return 'J' . $m[1];
         }
 
-        if (preg_match('/Juri\s*(\d+)/i', (string) $this->name, $m)) {
+        // 2. Cek dari email (misal: juri1@edutech.btikp.id)
+        if (preg_match('/(?:juri|judge)?(\d+)/i', (string) $this->email, $m)) {
             return 'J' . $m[1];
+        }
+
+        // 3. Cek dari nama (misal: Dewan Juri 1 (Gim & Multimedia), Juri 1)
+        if (preg_match('/(?:Juri|Judge|J)\s*(\d+)/i', (string) $this->name, $m)) {
+            return 'J' . $m[1];
+        }
+
+        // 4. Fallback urutan berdasarkan ID di antara akun role judge
+        // Juri pertama = J1, Juri kedua = J2, Juri ketiga = J3
+        // Ini mencegah juri pertama keliru menjadi 'J2' karena ID=1 digunakan Admin BTIKP
+        try {
+            static $judgeIndexCache = null;
+            if ($judgeIndexCache === null) {
+                $judgeIndexCache = static::where('role', 'judge')
+                    ->orderBy('id', 'asc')
+                    ->pluck('id')
+                    ->flip()
+                    ->all();
+            }
+
+            if (isset($judgeIndexCache[$this->id])) {
+                return 'J' . ($judgeIndexCache[$this->id] + 1);
+            }
+        } catch (\Throwable $e) {
+            // Abaikan jika database query belum siap
         }
 
         return 'J' . $this->id;

@@ -94,11 +94,11 @@
                             <div class="text-right">
                                 <div class="text-xs font-bold text-slate-800">{{ auth()->user()->name }}</div>
                                 <div class="text-[10px] font-semibold text-slate-400 font-mono">
-                                    {{ auth()->user()->isJudge() ? 'Dewan Juri' : 'Panitia BTIKP' }}
+                                    {{ auth()->user()->isJudge() ? (auth()->user()->judge_code . ' • Dewan Juri') : 'Panitia BTIKP' }}
                                 </div>
                             </div>
                             <div class="w-9 h-9 rounded-full bg-purple-100 border border-purple-200 flex items-center justify-center text-[#5e43f3] font-bold text-xs shadow-xs">
-                                {{ strtoupper(substr(auth()->user()->name, 0, 2)) }}
+                                {{ auth()->user()->isJudge() ? auth()->user()->judge_code : strtoupper(substr(auth()->user()->name, 0, 2)) }}
                             </div>
                         </div>
 

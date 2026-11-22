@@ -774,40 +774,27 @@
                                             <div class="flex items-center justify-center gap-1" @click.stop>
                                                 @foreach ($reg->judgeSuggestions as $s)
                                                     @php
+                                                        $colors = $s->judge_color_classes;
                                                         $jData = [
                                                             'name' => $s->user->name ?? 'Dewan Juri',
                                                             'username' => $s->user->username ?? ('juri' . $s->user_id),
                                                             'email' => $s->user->email ?? '-',
-                                                            'code' => $s->user->judge_code ?? ('J' . $s->user_id),
+                                                            'code' => $s->judge_code,
                                                             'reasons' => $s->reasons ?? [],
-                                                            'focus' => match ($s->user->judge_code ?? '') {
-                                                                'J1' => 'Gim Edukasi & Interaktivitas Media Digital',
-                                                                'J2' => 'Pedagogik, Kurikulum & Substansi Materi SMA/SMK',
-                                                                'J3' => 'Desain Visual, Estetika & Kualitas UI/UX',
-                                                                default => 'Evaluasi Inovasi Pembelajaran Digital BTIKP',
-                                                            },
+                                                            'focus' => $colors['focus'],
                                                             'suggested_at' => $s->created_at ? $s->created_at->translatedFormat('d M Y, H:i') . ' WITA' : 'Tercatat di sistem',
-                                                            'color' => match ($s->user->judge_code ?? '') {
-                                                                'J1' => 'from-indigo-600 via-indigo-700 to-indigo-900',
-                                                                'J2' => 'from-emerald-600 via-teal-700 to-emerald-900',
-                                                                'J3' => 'from-amber-500 via-orange-600 to-amber-800',
-                                                                default => 'from-purple-600 via-indigo-700 to-purple-900',
-                                                            },
-                                                            'badgeColor' => match ($s->user->judge_code ?? '') {
-                                                                'J1' => 'bg-indigo-500 text-white',
-                                                                'J2' => 'bg-emerald-500 text-white',
-                                                                'J3' => 'bg-amber-500 text-white',
-                                                                default => 'bg-purple-500 text-white',
-                                                            },
+                                                            'color' => $colors['color'],
+                                                            'badgeColor' => $colors['badgeColor'],
+                                                            'colorClass' => $colors['colorClass'],
                                                         ];
                                                     @endphp
                                                     <div 
-                                                        class="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-extrabold shadow-2xs ring-1 ring-white cursor-pointer hover:scale-125 transition-transform {{ $s->user->judge_code === 'J1' ? 'bg-indigo-600 text-white' : ($s->user->judge_code === 'J2' ? 'bg-emerald-600 text-white' : ($s->user->judge_code === 'J3' ? 'bg-amber-600 text-white' : 'bg-purple-600 text-white')) }}"
+                                                        class="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-extrabold shadow-2xs ring-1 ring-white cursor-pointer hover:scale-125 transition-transform {{ $colors['colorClass'] }}"
                                                         @mouseenter="showJudgeOverview(@js($jData), $event)"
                                                         @mouseleave="hideJudgeOverview()"
                                                         @click.stop="openJudgeModal(@js($jData))"
                                                     >
-                                                        {{ $s->user->judge_code ?? ('J' . $s->user_id) }}
+                                                        {{ $s->judge_code }}
                                                     </div>
                                                 @endforeach
                                                 @if ($reg->judgeSuggestions->count() >= 3)
@@ -1056,40 +1043,27 @@
                                         <div class="flex items-center gap-1" @click.stop>
                                             @foreach ($reg->judgeSuggestions as $s)
                                                 @php
+                                                    $colors = $s->judge_color_classes;
                                                     $jData = [
                                                         'name' => $s->user->name ?? 'Dewan Juri',
                                                         'username' => $s->user->username ?? ('juri' . $s->user_id),
                                                         'email' => $s->user->email ?? '-',
-                                                        'code' => $s->user->judge_code ?? ('J' . $s->user_id),
+                                                        'code' => $s->judge_code,
                                                         'reasons' => $s->reasons ?? [],
-                                                        'focus' => match ($s->user->judge_code ?? '') {
-                                                            'J1' => 'Gim Edukasi & Interaktivitas Media Digital',
-                                                            'J2' => 'Pedagogik, Kurikulum & Substansi Materi SMA/SMK',
-                                                            'J3' => 'Desain Visual, Estetika & Kualitas UI/UX',
-                                                            default => 'Evaluasi Inovasi Pembelajaran Digital BTIKP',
-                                                        },
+                                                        'focus' => $colors['focus'],
                                                         'suggested_at' => $s->created_at ? $s->created_at->translatedFormat('d M Y, H:i') . ' WITA' : 'Tercatat di sistem',
-                                                        'color' => match ($s->user->judge_code ?? '') {
-                                                            'J1' => 'from-indigo-600 via-indigo-700 to-indigo-900',
-                                                            'J2' => 'from-emerald-600 via-teal-700 to-emerald-900',
-                                                            'J3' => 'from-amber-500 via-orange-600 to-amber-800',
-                                                            default => 'from-purple-600 via-indigo-700 to-purple-900',
-                                                        },
-                                                        'badgeColor' => match ($s->user->judge_code ?? '') {
-                                                            'J1' => 'bg-indigo-500 text-white',
-                                                            'J2' => 'bg-emerald-500 text-white',
-                                                            'J3' => 'bg-amber-500 text-white',
-                                                            default => 'bg-purple-500 text-white',
-                                                        },
+                                                        'color' => $colors['color'],
+                                                        'badgeColor' => $colors['badgeColor'],
+                                                        'colorClass' => $colors['colorClass'],
                                                     ];
                                                 @endphp
                                                 <div 
-                                                    class="w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-extrabold shadow-2xs ring-1 ring-white cursor-pointer hover:scale-125 transition-transform {{ $s->user->judge_code === 'J1' ? 'bg-indigo-600 text-white' : ($s->user->judge_code === 'J2' ? 'bg-emerald-600 text-white' : ($s->user->judge_code === 'J3' ? 'bg-amber-600 text-white' : 'bg-purple-600 text-white')) }}"
+                                                    class="w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-extrabold shadow-2xs ring-1 ring-white cursor-pointer hover:scale-125 transition-transform {{ $colors['colorClass'] }}"
                                                     @mouseenter="showJudgeOverview(@js($jData), $event)"
                                                     @mouseleave="hideJudgeOverview()"
                                                     @click.stop="openJudgeModal(@js($jData))"
                                                 >
-                                                    {{ $s->user->judge_code ?? ('J' . $s->user_id) }}
+                                                    {{ $s->judge_code }}
                                                 </div>
                                             @endforeach
                                             @if ($reg->judgeSuggestions->count() >= 3)

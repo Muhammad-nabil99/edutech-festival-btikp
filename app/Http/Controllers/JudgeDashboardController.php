@@ -108,40 +108,20 @@ class JudgeDashboardController extends Controller
                 'count' => $w->judgeSuggestions->count(),
                 'myReasons' => $mySug?->reasons ?? [],
                 'suggestions' => $w->judgeSuggestions->map(function ($s) use ($w) {
-                    $code = $s->user->judge_code ?? ('J' . $s->user_id);
+                    $colors = $s->judge_color_classes;
                     return [
                         'userId' => $s->user_id,
                         'name' => $s->user->name ?? 'Dewan Juri',
                         'username' => $s->user->username ?? ('juri' . $s->user_id),
                         'email' => $s->user->email ?? '-',
-                        'code' => $code,
+                        'code' => $s->judge_code,
                         'reasons' => $s->reasons ?? [],
-                        'focus' => match ($code) {
-                            'J1' => 'Gim Edukasi & Interaktivitas Media Digital',
-                            'J2' => 'Pedagogik, Kurikulum & Substansi Materi SMA/SMK',
-                            'J3' => 'Desain Visual, Estetika & Kualitas UI/UX',
-                            default => 'Evaluasi Inovasi Pembelajaran Digital BTIKP',
-                        },
+                        'focus' => $colors['focus'],
                         'suggested_at' => $s->created_at ? $s->created_at->translatedFormat('d M Y, H:i') . ' WITA' : 'Tercatat di sistem',
                         'participant_name' => $w->full_name,
-                        'colorClass' => match ($code) {
-                            'J1' => 'bg-indigo-600 text-white',
-                            'J2' => 'bg-emerald-600 text-white',
-                            'J3' => 'bg-amber-600 text-white',
-                            default => 'bg-purple-600 text-white',
-                        },
-                        'color' => match ($code) {
-                            'J1' => 'from-indigo-600 via-indigo-700 to-indigo-900',
-                            'J2' => 'from-emerald-600 via-teal-700 to-emerald-900',
-                            'J3' => 'from-amber-500 via-orange-600 to-amber-800',
-                            default => 'from-purple-600 via-indigo-700 to-purple-900',
-                        },
-                        'badgeColor' => match ($code) {
-                            'J1' => 'bg-indigo-500 text-white',
-                            'J2' => 'bg-emerald-500 text-white',
-                            'J3' => 'bg-amber-500 text-white',
-                            default => 'bg-purple-500 text-white',
-                        },
+                        'colorClass' => $colors['colorClass'],
+                        'color' => $colors['color'],
+                        'badgeColor' => $colors['badgeColor'],
                     ];
                 })->values()->all(),
             ];
@@ -251,7 +231,7 @@ class JudgeDashboardController extends Controller
         $myReasons = [];
 
         $suggestions = $registration->judgeSuggestions->map(function ($s) use ($registration, $judge, &$myReasons) {
-            $code = $s->user->judge_code ?? ('J' . $s->user_id);
+            $colors = $s->judge_color_classes;
             $reasons = $s->reasons ?? [];
             if ($s->user_id === $judge->id) {
                 $myReasons = $reasons;
@@ -262,36 +242,16 @@ class JudgeDashboardController extends Controller
                 'judge_name' => $s->user->name ?? 'Dewan Juri',
                 'judge_username' => $s->user->username ?? ('juri' . $s->user_id),
                 'judge_email' => $s->user->email ?? '-',
-                'judge_code' => $code,
+                'judge_code' => $s->judge_code,
                 'reasons' => $reasons,
-                'focus' => match ($code) {
-                    'J1' => 'Gim Edukasi & Interaktivitas Media Digital',
-                    'J2' => 'Pedagogik, Kurikulum & Substansi Materi SMA/SMK',
-                    'J3' => 'Desain Visual, Estetika & Kualitas UI/UX',
-                    default => 'Evaluasi Inovasi Pembelajaran Digital BTIKP',
-                },
+                'focus' => $colors['focus'],
                 'suggested_at' => $s->created_at ? $s->created_at->translatedFormat('d M Y, H:i') . ' WITA' : 'Tercatat di sistem',
                 'participant_name' => $registration->full_name,
-                'color' => match ($code) {
-                    'J1' => 'from-indigo-600 via-indigo-700 to-indigo-900',
-                    'J2' => 'from-emerald-600 via-teal-700 to-emerald-900',
-                    'J3' => 'from-amber-500 via-orange-600 to-amber-800',
-                    default => 'from-purple-600 via-indigo-700 to-purple-900',
-                },
-                'badgeColor' => match ($code) {
-                    'J1' => 'bg-indigo-500 text-white',
-                    'J2' => 'bg-emerald-500 text-white',
-                    'J3' => 'bg-amber-500 text-white',
-                    default => 'bg-purple-500 text-white',
-                },
-                'colorClass' => match ($code) {
-                    'J1' => 'bg-indigo-600 text-white',
-                    'J2' => 'bg-emerald-600 text-white',
-                    'J3' => 'bg-amber-600 text-white',
-                    default => 'bg-purple-600 text-white',
-                },
+                'color' => $colors['color'],
+                'badgeColor' => $colors['badgeColor'],
+                'colorClass' => $colors['colorClass'],
             ];
-        });
+        })->values()->all();
 
         return response()->json([
             'success' => true,
@@ -300,7 +260,7 @@ class JudgeDashboardController extends Controller
             'registration_id' => $registration->id,
             'my_reasons' => $myReasons,
             'suggestions' => $suggestions,
-            'suggestions_count' => $suggestions->count(),
+            'suggestions_count' => count($suggestions),
             'stats' => [
                 'gim_suggestions' => $gimCount,
                 'media_suggestions' => $mediaCount,
