@@ -33,3 +33,5 @@ Sistem mendukung login menggunakan **Email** maupun **Username**.
    - Login ke Dashboard Panitia (`/admin/dashboard`).
    - Buka tab **Akun Dewan Juri**.
    - Klik **Edit Akun / Reset Password** pada juri yang bersangkutan.
+  
+

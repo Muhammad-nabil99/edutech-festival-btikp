@@ -21,12 +21,14 @@ class RegistrationTest extends TestCase
         $response = $this->get('/');
 
         $response->assertStatus(200);
-        $response->assertSee('Formulir Pendaftaran Karya Digital EduTech Festival');
-        $response->assertSee('Nama Lengkap');
-        $response->assertSee('Asal Sekolah');
-        $response->assertSee('Kota Kendari');
+        $response->assertSee('EDUTECH');
+        $response->assertSee('FESTIVAL');
+        $response->assertSee('INOVASI');
+        $response->assertSee('DIGITAL');
         $response->assertSee('Gim Edukasi');
-        $response->assertSee('Media Pembelajaran Interaktif');
+        $response->assertSee('Media Interaktif');
+        $response->assertSee('Portal Masuk');
+        $response->assertSee('Terbuka 17 Kab/Kota');
     }
 
     /**

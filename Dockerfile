@@ -1,6 +1,7 @@
 # ==============================================================================
 # STAGE 1: Build Aset Frontend (Tailwind CSS & JavaScript via Vite)
 # ==============================================================================
+
 FROM node:22-alpine AS frontend
 WORKDIR /app
 
