@@ -128,10 +128,6 @@ h1 { position: absolute; margin: 0; font-size: 165px; font-weight: 800; line-hei
         <ellipse class="rb-eye" cx="116" cy="145" rx="14" ry="18" fill="#6be3ff"></ellipse>
         <ellipse class="rb-eye" cx="184" cy="145" rx="14" ry="18" fill="#6be3ff"></ellipse>
       </g>
-      <g class="rb-badge">
-        <rect x="196" y="204" width="46" height="26" rx="8" fill="#fff"></rect>
-        <text x="219" y="223" text-anchor="middle" font-family="Inter,sans-serif" font-weight="800" font-size="16" fill="#3b5bdb">AI</text>
-      </g>
     </g>
   </svg>
 

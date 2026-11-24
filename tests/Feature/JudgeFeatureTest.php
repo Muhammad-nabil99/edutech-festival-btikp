@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\JudgeScore;
 use App\Models\JudgeSuggestion;
 use App\Models\Registration;
+use App\Models\RegistrationSetting;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
@@ -606,5 +607,154 @@ class JudgeFeatureTest extends TestCase
         $codes = array_column($suggestions, 'judge_code');
         $this->assertContains('J1', $codes);
         $this->assertContains('J2', $codes);
+    }
+
+    /**
+     * Test pembatasan kategori juri di sisi backend dan query:
+     * Juri GIM hanya melihat dan menilai GIM, Juri MPI hanya melihat dan menilai MPI.
+     */
+    public function test_judge_category_enforcement_in_backend_query_and_actions(): void
+    {
+        // Pastikan juri 1 berkategori gim_edukasi dan juri 3 berkategori media_pembelajaran_interaktif
+        $this->judge->update(['category' => 'gim_edukasi']);
+        $this->judge3->update(['category' => 'media_pembelajaran_interaktif']);
+
+        $gimWork = Registration::create([
+            'registration_number' => 'EDUTECH-2026-0301',
+            'full_name' => 'Peserta Karya Gim Edukasi',
+            'school_name' => 'SMKN 1 KENDARI',
+            'regency_city' => 'Kota Kendari',
+            'email' => 'gim301@example.com',
+            'whatsapp_number' => '6281234567301',
+            'learning_category' => 'gim_edukasi',
+            'profile_photo_path' => 'profile-photos/sample.jpg',
+            'media_link' => 'https://drive.google.com/sample',
+            'is_curated_top10' => true,
+        ]);
+
+        $mpiWork = Registration::create([
+            'registration_number' => 'EDUTECH-2026-0302',
+            'full_name' => 'Peserta Karya MPI Interaktif',
+            'school_name' => 'SMAN 2 KENDARI',
+            'regency_city' => 'Kota Kendari',
+            'email' => 'mpi302@example.com',
+            'whatsapp_number' => '6281234567302',
+            'learning_category' => 'media_pembelajaran_interaktif',
+            'profile_photo_path' => 'profile-photos/sample.jpg',
+            'media_link' => 'https://drive.google.com/sample',
+            'is_curated_top10' => true,
+        ]);
+
+        // Juri 1 (GIM) di dashboard hanya melihat karya GIM
+        $resJ1 = $this->actingAs($this->judge)->get(route('judge.dashboard', ['tab' => 'all']));
+        $resJ1->assertStatus(200);
+        $resJ1->assertSee('Peserta Karya Gim Edukasi');
+        $resJ1->assertDontSee('Peserta Karya MPI Interaktif');
+
+        // Juri 1 tidak dapat menyarankan karya MPI (403)
+        $this->actingAs($this->judge)->postJson(route('judge.works.toggle-suggest', $mpiWork->id), [
+            'reasons' => ['Ide karya orisinal'],
+        ])->assertStatus(403);
+
+        // Juri 1 tidak dapat menilai karya MPI (403)
+        $this->actingAs($this->judge)->postJson(route('judge.works.score', $mpiWork->id), [
+            'pedagogical_score' => 90,
+            'creativity_score' => 85,
+            'technical_score' => 88,
+            'presentation_score' => 92,
+        ])->assertStatus(403);
+
+        // Juri 3 (MPI) di dashboard hanya melihat karya MPI
+        $resJ3 = $this->actingAs($this->judge3)->get(route('judge.dashboard', ['tab' => 'all']));
+        $resJ3->assertStatus(200);
+        $resJ3->assertSee('Peserta Karya MPI Interaktif');
+        $resJ3->assertDontSee('Peserta Karya Gim Edukasi');
+
+        // Juri 3 tidak dapat menyarankan karya GIM (403)
+        $this->actingAs($this->judge3)->postJson(route('judge.works.toggle-suggest', $gimWork->id), [
+            'reasons' => ['Ide karya orisinal'],
+        ])->assertStatus(403);
+    }
+
+    /**
+     * Test validasi formulir tertutup:
+     * Tombol disabled dan request saran Top 10 ditolak dengan error 422.
+     */
+    public function test_judge_cannot_suggest_or_withdraw_when_registration_form_is_closed(): void
+    {
+        $setting = RegistrationSetting::current();
+        $setting->update([
+            'mode' => 'manual',
+            'is_open' => false,
+        ]);
+
+        $this->judge->update(['category' => 'gim_edukasi']);
+
+        $work = Registration::create([
+            'registration_number' => 'EDUTECH-2026-0401',
+            'full_name' => 'Peserta Uji Form Tutup',
+            'school_name' => 'SMKN 1 KENDARI',
+            'regency_city' => 'Kota Kendari',
+            'email' => 'tutup401@example.com',
+            'whatsapp_number' => '6281234567401',
+            'learning_category' => 'gim_edukasi',
+            'profile_photo_path' => 'profile-photos/sample.jpg',
+            'media_link' => 'https://drive.google.com/sample',
+        ]);
+
+        // Request menyarankan saat form ditutup ditolak dengan status 422
+        $res = $this->actingAs($this->judge)->postJson(route('judge.works.toggle-suggest', $work->id), [
+            'reasons' => ['Ide karya orisinal'],
+        ]);
+        $res->assertStatus(422);
+        $res->assertJsonFragment(['success' => false]);
+        $this->assertStringContainsString('Formulir telah ditutup', $res->json('message'));
+
+        // Di UI dashboard juri, menampilkan penanda formulir ditutup
+        $dash = $this->actingAs($this->judge)->get(route('judge.dashboard', ['tab' => 'all']));
+        $dash->assertStatus(200);
+        $dash->assertSee('isFormOpen: false', false);
+    }
+
+    /**
+     * Test admin dapat membuat akun juri baru dan menghapusnya,
+     * serta akun juri inti (Juri 1, 2, 3) dilindungi dari penghapusan.
+     */
+    public function test_admin_judge_management_and_core_judge_protection(): void
+    {
+        // 1. Admin membuat akun juri baru
+        $storeRes = $this->actingAs($this->admin)->post(route('admin.judges.store'), [
+            'name' => 'Dewan Juri Tambahan MPI',
+            'username' => 'juri_tambahan_mpi',
+            'email' => 'juritambahan@edutech.btikp.id',
+            'password' => 'Password123!',
+            'category' => 'media_pembelajaran_interaktif',
+        ]);
+        $storeRes->assertSessionHas('status');
+
+        $newJudge = User::where('username', 'juri_tambahan_mpi')->first();
+        $this->assertNotNull($newJudge);
+        $this->assertEquals('media_pembelajaran_interaktif', $newJudge->category);
+        $this->assertFalse($newJudge->isCoreJudge());
+
+        // 2. Validasi email & username unik
+        $duplicateRes = $this->actingAs($this->admin)->post(route('admin.judges.store'), [
+            'name' => 'Dewan Juri Kembar',
+            'username' => 'juri_tambahan_mpi',
+            'email' => 'juritambahan@edutech.btikp.id',
+            'password' => 'Password123!',
+            'category' => 'gim_edukasi',
+        ]);
+        $duplicateRes->assertSessionHasErrors(['username', 'email']);
+
+        // 3. Admin TIDAK BISA menghapus juri inti (Juri 1, Juri 2, Juri 3)
+        $deleteCoreRes = $this->actingAs($this->admin)->delete(route('admin.judges.destroy', $this->judge->id));
+        $deleteCoreRes->assertStatus(403);
+        $this->assertNotNull(User::find($this->judge->id));
+
+        // 4. Admin DAPAT menghapus akun juri baru
+        $deleteNewRes = $this->actingAs($this->admin)->delete(route('admin.judges.destroy', $newJudge->id));
+        $deleteNewRes->assertSessionHas('status');
+        $this->assertNull(User::find($newJudge->id));
     }
 }

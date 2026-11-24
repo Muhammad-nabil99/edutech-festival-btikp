@@ -18,6 +18,7 @@ class User extends Authenticatable
         'username',
         'email',
         'role',
+        'category',
         'password',
     ];
 
@@ -53,6 +54,30 @@ class User extends Authenticatable
     public function isJudge(): bool
     {
         return ($this->role ?? '') === 'judge';
+    }
+
+    /**
+     * Label kategori penilaian juri (GIM / MPI).
+     */
+    public function getCategoryLabelAttribute(): ?string
+    {
+        return match ($this->category) {
+            'gim_edukasi' => 'GIM (Gim Edukasi)',
+            'media_pembelajaran_interaktif' => 'MPI (Media Pembelajaran Interaktif)',
+            default => $this->category,
+        };
+    }
+
+    /**
+     * Cek apakah juri merupakan akun inti (Juri 1, 2, 3) yang dilindungi dari penghapusan.
+     */
+    public function isCoreJudge(): bool
+    {
+        $coreUsernames = ['juri1', 'juri2', 'juri3', 'juri1_sultra', 'juri2_sultra', 'juri3_sultra'];
+        $coreEmails = ['juri1@edutech.btikp.id', 'juri2@edutech.btikp.id', 'juri3@edutech.btikp.id'];
+
+        return in_array(strtolower((string) $this->username), $coreUsernames, true)
+            || in_array(strtolower((string) $this->email), $coreEmails, true);
     }
 
     /**

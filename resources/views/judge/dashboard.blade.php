@@ -309,13 +309,17 @@
                             <span class="font-mono text-[11px] text-slate-400 font-bold">{{ $work->registration_number }}</span>
                             <button 
                                 type="button" 
-                                @click="openSuggestionModal(@js($work))"
-                                class="px-3.5 py-2 rounded-xl text-xs font-bold transition shadow-2xs cursor-pointer flex items-center gap-1.5"
-                                :class="isSuggested({{ $work->id }}) 
-                                    ? 'bg-purple-600 hover:bg-purple-700 text-white' 
-                                    : 'bg-white hover:bg-purple-50 text-purple-700 border border-purple-200'"
+                                @click="isFormOpen ? openSuggestionModal(@js($work)) : null"
+                                :disabled="!isFormOpen"
+                                class="px-3.5 py-2 rounded-xl text-xs font-bold transition shadow-2xs flex items-center gap-1.5"
+                                :class="!isFormOpen 
+                                    ? 'opacity-60 cursor-not-allowed bg-slate-100 text-slate-400 border border-slate-200' 
+                                    : (isSuggested({{ $work->id }}) 
+                                        ? 'bg-purple-600 hover:bg-purple-700 text-white cursor-pointer' 
+                                        : 'bg-white hover:bg-purple-50 text-purple-700 border border-purple-200 cursor-pointer')"
+                                :title="!isFormOpen ? 'Formulir telah ditutup' : ''"
                             >
-                                <span x-text="isSuggested({{ $work->id }}) ? '✓ Disarankan' : '+ Sarankan Top 10'"></span>
+                                <span x-text="!isFormOpen ? '🔒 Formulir Ditutup' : (isSuggested({{ $work->id }}) ? '✓ Disarankan' : '+ Sarankan Top 10')"></span>
                             </button>
                         </div>
                     </div>
@@ -412,13 +416,17 @@
                                     <td class="py-3.5 pr-6 pl-4 text-right">
                                         <button 
                                             type="button" 
-                                            @click="openSuggestionModal(@js($work))"
-                                            class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition shadow-2xs cursor-pointer inline-flex items-center gap-1.5"
-                                            :class="isSuggested({{ $work->id }}) 
-                                                ? 'bg-purple-600 hover:bg-purple-700 text-white' 
-                                                : 'bg-white hover:bg-purple-50 text-purple-700 border border-purple-200'"
+                                            @click="isFormOpen ? openSuggestionModal(@js($work)) : null"
+                                            :disabled="!isFormOpen"
+                                            class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition shadow-2xs inline-flex items-center gap-1.5"
+                                            :class="!isFormOpen 
+                                                ? 'opacity-60 cursor-not-allowed bg-slate-100 text-slate-400 border border-slate-200' 
+                                                : (isSuggested({{ $work->id }}) 
+                                                    ? 'bg-purple-600 hover:bg-purple-700 text-white cursor-pointer' 
+                                                    : 'bg-white hover:bg-purple-50 text-purple-700 border border-purple-200 cursor-pointer')"
+                                            :title="!isFormOpen ? 'Formulir telah ditutup' : ''"
                                         >
-                                            <span x-text="isSuggested({{ $work->id }}) ? '✓ Disarankan' : '+ Sarankan Top 10'"></span>
+                                            <span x-text="!isFormOpen ? '🔒 Formulir Ditutup' : (isSuggested({{ $work->id }}) ? '✓ Disarankan' : '+ Sarankan Top 10')"></span>
                                         </button>
                                     </td>
                                 </tr>
@@ -523,10 +531,15 @@
                             <span class="font-mono text-[11px] text-slate-400 font-bold">{{ $work->registration_number }}</span>
                             <button 
                                 type="button" 
-                                @click="openSuggestionModal(@js($work))"
-                                class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition shadow-2xs cursor-pointer bg-purple-100 hover:bg-purple-200 text-purple-800 border border-purple-300 flex items-center gap-1"
+                                @click="isFormOpen ? openSuggestionModal(@js($work)) : null"
+                                :disabled="!isFormOpen"
+                                :class="!isFormOpen 
+                                    ? 'opacity-60 cursor-not-allowed bg-slate-100 text-slate-400 border border-slate-200' 
+                                    : 'bg-purple-100 hover:bg-purple-200 text-purple-800 border border-purple-300 cursor-pointer'"
+                                class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition shadow-2xs flex items-center gap-1"
+                                :title="!isFormOpen ? 'Formulir telah ditutup' : 'Ubah atau tarik saran'"
                             >
-                                <span>✏️ Ubah / Tarik Saran</span>
+                                <span x-text="!isFormOpen ? '🔒 Formulir telah ditutup' : '✏️ Ubah / Tarik Saran'"></span>
                             </button>
                         </div>
                     </div>
@@ -616,10 +629,15 @@
                                     <td class="py-3.5 pr-6 pl-4 text-right">
                                         <button 
                                             type="button" 
-                                            @click="openSuggestionModal(@js($work))"
-                                            class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition shadow-2xs cursor-pointer bg-purple-100 hover:bg-purple-200 text-purple-800 border border-purple-300 inline-flex items-center gap-1"
+                                            @click="isFormOpen ? openSuggestionModal(@js($work)) : null"
+                                            :disabled="!isFormOpen"
+                                            :class="!isFormOpen 
+                                                ? 'opacity-60 cursor-not-allowed bg-slate-100 text-slate-400 border border-slate-200' 
+                                                : 'bg-purple-100 hover:bg-purple-200 text-purple-800 border border-purple-300 cursor-pointer'"
+                                            class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition shadow-2xs inline-flex items-center gap-1"
+                                            :title="!isFormOpen ? 'Formulir telah ditutup' : 'Ubah atau tarik saran'"
                                         >
-                                            <span>✏️ Ubah / Tarik</span>
+                                            <span x-text="!isFormOpen ? '🔒 Formulir telah ditutup' : '✏️ Ubah / Tarik'"></span>
                                         </button>
                                     </td>
                                 </tr>
@@ -1285,6 +1303,15 @@
                         </div>
                     </template>
 
+                    <!-- Status Formulir Tertutup Alert (Poin 4) -->
+                    <div x-show="!isFormOpen" class="p-3.5 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-xs flex items-center gap-2.5">
+                        <span class="text-base">🔒</span>
+                        <div>
+                            <p class="font-bold">Formulir telah ditutup</p>
+                            <p class="text-[11px] text-amber-700">Periode pengusulan atau penarikan saran Top 10 telah berakhir. Data saran telah terkunci.</p>
+                        </div>
+                    </div>
+
                     <!-- A. Detail Karya & Peserta (Read-only) -->
                     <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-3">
                         <div class="flex items-center justify-between gap-2">
@@ -1379,10 +1406,11 @@
                             <button 
                                 type="button" 
                                 @click="withdrawSuggestion()"
-                                :disabled="isSubmittingSuggestion"
-                                class="px-4 py-2.5 rounded-xl border border-rose-300 hover:bg-rose-50 text-rose-700 font-bold text-xs transition cursor-pointer"
+                                :disabled="!isFormOpen || isSubmittingSuggestion"
+                                :class="!isFormOpen ? 'opacity-50 cursor-not-allowed bg-slate-100 text-slate-400 border-slate-200' : 'border-rose-300 hover:bg-rose-50 text-rose-700 cursor-pointer'"
+                                class="px-4 py-2.5 rounded-xl border font-bold text-xs transition"
                             >
-                                <span x-text="isSubmittingSuggestion ? 'Memproses...' : '✕ Tarik Saran'"></span>
+                                <span x-text="!isFormOpen ? '🔒 Formulir Ditutup' : (isSubmittingSuggestion ? 'Memproses...' : '✕ Tarik Saran')"></span>
                             </button>
                         </template>
                         <template x-if="!isSuggested(suggestionWork?.id)">
@@ -1401,14 +1429,14 @@
                         <button 
                             type="button" 
                             @click="submitSuggestion()"
-                            :disabled="isSubmittingSuggestion || selectedReasons.length === 0"
+                            :disabled="!isFormOpen || isSubmittingSuggestion || selectedReasons.length === 0"
                             class="px-5 py-2.5 rounded-xl bg-[#5e43f3] hover:bg-indigo-700 disabled:opacity-50 text-white font-bold text-xs shadow-md shadow-indigo-500/20 transition cursor-pointer flex items-center gap-2"
                         >
                             <svg x-show="isSubmittingSuggestion" class="animate-spin w-4 h-4 text-white" fill="none" viewBox="0 0 24 24">
                                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                             </svg>
-                            <span x-text="isSubmittingSuggestion ? 'Menyimpan...' : (isSuggested(suggestionWork?.id) ? 'Perbarui Saran Top 10' : 'Simpan & Sarankan Top 10')"></span>
+                            <span x-text="!isFormOpen ? '🔒 Formulir Ditutup' : (isSubmittingSuggestion ? 'Menyimpan...' : (isSuggested(suggestionWork?.id) ? 'Perbarui Saran Top 10' : 'Simpan & Sarankan Top 10'))"></span>
                         </button>
                     </div>
                 </div>
@@ -1424,6 +1452,7 @@
                 selectedCategory: @json($category ?? 'all'),
                 searchQuery: @json($search ?? ''),
                 viewMode: localStorage.getItem('judge_view_mode') || 'grid',
+                isFormOpen: {{ $isFormOpen ? 'true' : 'false' }},
                 
                 setViewMode(mode) {
                     this.viewMode = mode;
@@ -1495,6 +1524,10 @@
 
                 async submitSuggestion() {
                     if (!this.suggestionWork || this.isSubmittingSuggestion) return;
+                    if (!this.isFormOpen) {
+                        this.suggestionError = 'Formulir telah ditutup. Anda tidak dapat lagi memberikan, mengubah, atau menarik saran Top 10.';
+                        return;
+                    }
                     if (this.selectedReasons.length === 0) {
                         this.suggestionError = 'Pilih minimal 1 alasan rekomendasi sebelum menyimpan saran Top 10.';
                         return;
@@ -1562,6 +1595,10 @@
 
                 async withdrawSuggestion() {
                     if (!this.suggestionWork || this.isSubmittingSuggestion) return;
+                    if (!this.isFormOpen) {
+                        this.suggestionError = 'Formulir telah ditutup. Anda tidak dapat lagi memberikan, mengubah, atau menarik saran Top 10.';
+                        return;
+                    }
                     if (!confirm('Apakah Anda yakin ingin membatalkan saran Top 10 untuk karya ini?')) return;
                     this.isSubmittingSuggestion = true;
                     this.suggestionError = null;

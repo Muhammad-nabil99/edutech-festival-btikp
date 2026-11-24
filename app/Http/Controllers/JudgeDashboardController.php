@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\JudgeScore;
 use App\Models\JudgeSuggestion;
 use App\Models\Registration;
+use App\Models\RegistrationSetting;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -44,7 +45,11 @@ class JudgeDashboardController extends Controller
                 },
             ]);
 
-            if ($category === 'gim_edukasi' || $category === 'media_pembelajaran_interaktif') {
+            // Pembatasan kategori juri di sisi backend/query (Poin 3):
+            // Juri kategori MPI hanya melihat MPI, dan juri kategori GIM hanya melihat GIM.
+            if (!empty($judge->category)) {
+                $q->where('learning_category', $judge->category);
+            } elseif ($category === 'gim_edukasi' || $category === 'media_pembelajaran_interaktif') {
                 $q->where('learning_category', $category);
             }
 
@@ -137,6 +142,7 @@ class JudgeDashboardController extends Controller
             'mySuggestions' => $mySuggestions,
             'finalists' => $finalists,
             'suggestionsMap' => $suggestionsMap,
+            'isFormOpen' => RegistrationSetting::current()->isOpen(),
             'stats' => [
                 'total_all' => Registration::count(),
                 'my_suggestions_count' => $myGimSuggestionsCount + $myMediaSuggestionsCount,
@@ -158,6 +164,24 @@ class JudgeDashboardController extends Controller
     {
         /** @var User $judge */
         $judge = Auth::user();
+
+        // 1. Validasi Status Formulir Tertutup (Poin 4)
+        $setting = RegistrationSetting::current();
+        if (!$setting->isOpen()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Formulir telah ditutup. Anda tidak dapat lagi memberikan, mengubah, atau menarik saran Top 10.',
+            ], 422);
+        }
+
+        // 2. Pembatasan Kategori Juri (Poin 3)
+        if (!empty($judge->category) && $registration->learning_category !== $judge->category) {
+            $catLabel = $judge->category_label ?? $judge->category;
+            return response()->json([
+                'success' => false,
+                'message' => "Anda hanya berwenang merekomendasikan karya dalam kategori {$catLabel}.",
+            ], 403);
+        }
 
         $existing = JudgeSuggestion::where('user_id', $judge->id)
             ->where('registration_id', $registration->id)
@@ -273,6 +297,18 @@ class JudgeDashboardController extends Controller
 
         /** @var User $judge */
         $judge = Auth::user();
+
+        // Pembatasan Kategori Juri (Poin 3)
+        if (!empty($judge->category) && $registration->learning_category !== $judge->category) {
+            $catLabel = $judge->category_label ?? $judge->category;
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Anda hanya berwenang menilai karya dalam kategori {$catLabel}.",
+                ], 403);
+            }
+            abort(403, "Anda hanya berwenang menilai karya dalam kategori {$catLabel}.");
+        }
 
         $validated = $request->validate([
             'pedagogical_score' => ['required', 'numeric', 'min:0', 'max:100'],

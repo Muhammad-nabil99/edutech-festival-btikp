@@ -55,7 +55,9 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/registrations/export', [AdminDashboardController::class, 'export'])->name('registrations.export');
     Route::post('/registrations/{registration}/toggle-top10', [AdminDashboardController::class, 'toggleTop10'])->name('registrations.toggle-top10');
     Route::post('/settings/registration', [AdminDashboardController::class, 'updateRegistrationSetting'])->name('settings.registration');
+    Route::post('/judges', [AdminDashboardController::class, 'storeJudge'])->name('judges.store');
     Route::put('/judges/{judge}', [AdminDashboardController::class, 'updateJudge'])->name('judges.update');
+    Route::delete('/judges/{judge}', [AdminDashboardController::class, 'destroyJudge'])->name('judges.destroy');
     Route::delete('/registrations/{registration}', [AdminDashboardController::class, 'destroy'])->name('registrations.destroy');
 });
 

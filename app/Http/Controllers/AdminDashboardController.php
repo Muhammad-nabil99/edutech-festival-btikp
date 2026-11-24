@@ -239,7 +239,52 @@ class AdminDashboardController extends Controller
     }
 
     /**
-     * Administrator memperbarui akun juri (Username, Email, Password).
+     * Administrator menambahkan akun dewan juri baru.
+     */
+    public function storeJudge(Request $request): RedirectResponse|JsonResponse
+    {
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:150'],
+            'username' => ['required', 'string', 'max:50', 'alpha_dash', Rule::unique('users', 'username')],
+            'email' => ['required', 'email', 'max:150', Rule::unique('users', 'email')],
+            'password' => ['required', 'string', 'min:8'],
+            'category' => ['required', 'string', 'in:gim_edukasi,media_pembelajaran_interaktif'],
+        ], [
+            'name.required' => 'Nama dewan juri wajib diisi.',
+            'username.required' => 'Username wajib diisi.',
+            'username.unique' => 'Username tersebut sudah digunakan oleh akun lain.',
+            'email.required' => 'Alamat email wajib diisi.',
+            'email.unique' => 'Alamat email tersebut sudah terdaftar.',
+            'password.required' => 'Kata sandi wajib diisi.',
+            'password.min' => 'Kata sandi minimal 8 karakter.',
+            'category.required' => 'Pilih kategori penilaian juri (GIM atau MPI).',
+            'category.in' => 'Kategori penilaian yang dipilih tidak valid.',
+        ]);
+
+        $judge = User::create([
+            'name' => trim($validated['name']),
+            'username' => trim($validated['username']),
+            'email' => strtolower(trim($validated['email'])),
+            'role' => 'judge',
+            'category' => $validated['category'],
+            'password' => Hash::make($validated['password']),
+        ]);
+
+        $message = "Akun Dewan Juri '{$judge->name}' berhasil ditambahkan!";
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => $message,
+                'judge' => $judge,
+            ]);
+        }
+
+        return back()->with('status', $message);
+    }
+
+    /**
+     * Administrator memperbarui akun juri (Username, Email, Kategori, Password).
      */
     public function updateJudge(Request $request, User $judge): RedirectResponse|JsonResponse
     {
@@ -247,16 +292,22 @@ class AdminDashboardController extends Controller
             'name' => ['required', 'string', 'max:150'],
             'username' => ['required', 'string', 'max:50', Rule::unique('users', 'username')->ignore($judge->id)],
             'email' => ['required', 'email', 'max:150', Rule::unique('users', 'email')->ignore($judge->id)],
+            'category' => ['nullable', 'string', 'in:gim_edukasi,media_pembelajaran_interaktif'],
             'password' => ['nullable', 'string', 'min:8'],
         ], [
             'username.unique' => 'Username tersebut sudah digunakan oleh akun lain.',
             'email.unique' => 'Email tersebut sudah terdaftar untuk akun lain.',
             'password.min' => 'Kata sandi minimal 8 karakter.',
+            'category.in' => 'Kategori penilaian yang dipilih tidak valid.',
         ]);
 
         $judge->name = trim($validated['name']);
         $judge->username = trim($validated['username']);
         $judge->email = strtolower(trim($validated['email']));
+
+        if (!empty($validated['category'])) {
+            $judge->category = $validated['category'];
+        }
 
         if (!empty($validated['password'])) {
             $judge->password = Hash::make($validated['password']);
@@ -275,7 +326,37 @@ class AdminDashboardController extends Controller
                     'name' => $judge->name,
                     'username' => $judge->username,
                     'email' => $judge->email,
+                    'category' => $judge->category,
+                    'category_label' => $judge->category_label,
                 ],
+            ]);
+        }
+
+        return back()->with('status', $message);
+    }
+
+    /**
+     * Administrator menghapus akun dewan juri (Akun inti Juri 1, 2, 3 dilindungi).
+     */
+    public function destroyJudge(Request $request, User $judge): RedirectResponse|JsonResponse
+    {
+        if ($judge->isCoreJudge()) {
+            abort(403, 'Akun Dewan Juri inti (Juri 1, 2, 3) dilindungi dan tidak dapat dihapus.');
+        }
+
+        $judgeName = $judge->name;
+
+        // Hapus relasi penilaian dan saran yang pernah diberikan juri ini
+        $judge->scores()->delete();
+        $judge->suggestions()->delete();
+        $judge->delete();
+
+        $message = "Akun Dewan Juri '{$judgeName}' berhasil dihapus.";
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => $message,
             ]);
         }
 
