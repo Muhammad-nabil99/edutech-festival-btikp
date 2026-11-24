@@ -202,9 +202,9 @@
     </main>
 
     <!-- Footer -->
-    <footer class="mt-12 bg-white border-t border-slate-100 py-8 relative z-10">
+    <footer class="mt-12 bg-white border-t border-slate-100 py-6 sm:py-8 relative z-10">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div class="flex items-center space-x-3">
                     <div class="w-8 h-8 rounded-xl bg-purple-50 text-[#5e43f3] flex items-center justify-center font-bold text-xs border border-purple-200/50">
                         BP
@@ -213,16 +213,6 @@
                         <div class="text-xs font-bold text-slate-800">Balai Teknologi Informasi dan Komunikasi Pendidikan (BTIKP)</div>
                         <div class="text-[11px] text-slate-500">Dinas Pendidikan dan Kebudayaan Provinsi Sulawesi Tenggara &copy; {{ date('Y') }}. Seluruh hak cipta dilindungi.</div>
                     </div>
-                </div>
-                <div class="flex items-center space-x-4 text-xs font-medium text-slate-500">
-                    <span class="flex items-center gap-1.5">
-                        <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                        Server Sultra Cloud Aktif
-                    </span>
-                    <span>•</span>
-                    <span>Versi 2.0</span>
-                    <span>•</span>
-                    <span class="text-[#5e43f3] font-semibold">Edutech Sultra</span>
                 </div>
             </div>
         </div>
