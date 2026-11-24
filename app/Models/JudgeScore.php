@@ -53,9 +53,43 @@ class JudgeScore extends Model
     }
 
     /**
+     * Hitung total skor berbobot sesuai peran dewan juri (Juri 1, 2, atau 3).
+     */
+    public static function computeWeightedTotalForJudge(
+        User $judge,
+        float $pedagogical,
+        float $creativity,
+        float $technical,
+        float $presentation
+    ): float {
+        $role = $judge->judge_role ?? ($judge->judge_code === 'J1' ? 1 : ($judge->judge_code === 'J2' ? 2 : ($judge->judge_code === 'J3' ? 3 : 0)));
+
+        if ($role === 1) {
+            // Juri 1: Pedagogis (30%) + Teknis (25%)
+            return round(($pedagogical * self::WEIGHT_PEDAGOGICAL) + ($technical * self::WEIGHT_TECHNICAL), 2);
+        } elseif ($role === 2) {
+            // Juri 2: Kreativitas (30%)
+            return round($creativity * self::WEIGHT_CREATIVITY, 2);
+        } elseif ($role === 3) {
+            // Juri 3: Presentasi (15%)
+            return round($presentation * self::WEIGHT_PRESENTATION, 2);
+        }
+
+        return self::computeWeightedTotal($pedagogical, $creativity, $technical, $presentation);
+    }
+
+    /**
      * Relasi ke Juri (User).
      */
     public function judge(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
+
+    /**
+     * Alias relasi ke Juri (User).
+     */
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id');
     }

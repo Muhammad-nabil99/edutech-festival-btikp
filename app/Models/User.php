@@ -19,6 +19,7 @@ class User extends Authenticatable
         'email',
         'role',
         'category',
+        'judge_role',
         'password',
     ];
 
@@ -37,6 +38,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'judge_role' => 'integer',
         ];
     }
 
@@ -101,6 +103,11 @@ class User extends Authenticatable
      */
     public function getJudgeCodeAttribute(): string
     {
+        // 0. Cek dari peran juri (judge_role: 1, 2, 3) jika ada
+        if (!empty($this->judge_role)) {
+            return 'J' . $this->judge_role;
+        }
+
         // 1. Cek dari username (misal: juri1, juri_1, judge1)
         if (preg_match('/(\d+)/', (string) $this->username, $m)) {
             return 'J' . $m[1];
@@ -117,8 +124,6 @@ class User extends Authenticatable
         }
 
         // 4. Fallback urutan berdasarkan ID di antara akun role judge
-        // Juri pertama = J1, Juri kedua = J2, Juri ketiga = J3
-        // Ini mencegah juri pertama keliru menjadi 'J2' karena ID=1 digunakan Admin BTIKP
         try {
             static $judgeIndexCache = null;
             if ($judgeIndexCache === null) {
@@ -137,6 +142,30 @@ class User extends Authenticatable
         }
 
         return 'J' . $this->id;
+    }
+
+    /**
+     * Label resmi Peran Juri Rubrik Bab IV.
+     */
+    public function getJudgeRoleLabelAttribute(): string
+    {
+        $role = $this->judge_role;
+        if (!$role) {
+            $code = $this->judge_code;
+            $role = match ($code) {
+                'J1' => 1,
+                'J2' => 2,
+                'J3' => 3,
+                default => null,
+            };
+        }
+
+        return match ($role) {
+            1 => 'Juri 1 (Poin 1 & 3: Pedagogis & Teknis)',
+            2 => 'Juri 2 (Poin 2: Kreativitas & Visual)',
+            3 => 'Juri 3 (Poin 4: Presentasi & Dampak)',
+            default => 'Juri ' . substr($this->judge_code, 1),
+        };
     }
 
     /**
@@ -174,6 +203,33 @@ class User extends Authenticatable
                 'text' => 'text-purple-700',
                 'ring' => 'ring-purple-400',
             ],
+        };
+    }
+
+    /**
+     * Mengecek apakah juri berwenang menilai aspek rubrik tertentu (Bab IV):
+     * - Juri 1: Poin 1 (Pedagogis 30%) dan Poin 3 (Teknis 25%)
+     * - Juri 2: Poin 2 (Kreativitas & Desain Visual 30%)
+     * - Juri 3: Poin 4 (Presentasi & Dampak 15%)
+     */
+    public function canScoreAspect(int $aspectNumber): bool
+    {
+        $role = $this->judge_role;
+        if ($role === null) {
+            $code = $this->judge_code;
+            $role = match ($code) {
+                'J1' => 1,
+                'J2' => 2,
+                'J3' => 3,
+                default => null,
+            };
+        }
+
+        return match ($role) {
+            1 => in_array($aspectNumber, [1, 3], true),
+            2 => $aspectNumber === 2,
+            3 => $aspectNumber === 4,
+            default => true,
         };
     }
 }

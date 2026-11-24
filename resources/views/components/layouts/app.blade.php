@@ -132,7 +132,7 @@
     <!-- Main Content -->
     <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 relative">
         <!-- Floating Toast Notification System (Auto-slides away after 5s) -->
-        @if (session('status') || session('error'))
+        @if (session('status') || session('error') || $errors->any())
             <div 
                 class="fixed top-5 right-5 z-[99999] max-w-sm sm:max-w-md w-[calc(100vw-2.5rem)] pointer-events-none"
                 x-data="{ show: true }"
@@ -173,7 +173,7 @@
                         </div>
                         <div class="flex-1 min-w-0 pr-4">
                             <h4 class="text-xs font-extrabold uppercase tracking-wider text-rose-800">Perhatian</h4>
-                            <p class="text-xs font-semibold text-slate-700 mt-0.5 leading-relaxed break-words">{{ session('error') }}</p>
+                            <p class="text-xs font-semibold text-slate-700 mt-0.5 leading-relaxed break-words">{{ session('error') ?? $errors->first() }}</p>
                         </div>
                         <!-- 5-Second Animated Progress Bar -->
                         <div class="absolute bottom-0 left-0 h-1 bg-gradient-to-r from-rose-500 to-red-400 rounded-b-2xl transition-all"

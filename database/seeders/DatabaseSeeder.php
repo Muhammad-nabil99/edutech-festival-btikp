@@ -33,6 +33,8 @@ class DatabaseSeeder extends Seeder
                 'username' => 'juri1',
                 'email' => 'juri1@edutech.btikp.id',
                 'role' => 'judge',
+                'category' => 'gim_edukasi',
+                'judge_role' => 1,
                 'password' => 'Juri1#Edutech92kQ',
             ],
             [
@@ -40,6 +42,8 @@ class DatabaseSeeder extends Seeder
                 'username' => 'juri2',
                 'email' => 'juri2@edutech.btikp.id',
                 'role' => 'judge',
+                'category' => 'gim_edukasi',
+                'judge_role' => 2,
                 'password' => 'Juri2#Btikp74vLm',
             ],
             [
@@ -47,6 +51,8 @@ class DatabaseSeeder extends Seeder
                 'username' => 'juri3',
                 'email' => 'juri3@edutech.btikp.id',
                 'role' => 'judge',
+                'category' => 'media_pembelajaran_interaktif',
+                'judge_role' => 3,
                 'password' => 'Juri3#Sultra85xPz',
             ],
         ];
@@ -58,6 +64,8 @@ class DatabaseSeeder extends Seeder
                     'name' => $judge['name'],
                     'email' => $judge['email'],
                     'role' => $judge['role'],
+                    'category' => $judge['category'],
+                    'judge_role' => $judge['judge_role'],
                     'password' => Hash::make($judge['password']),
                 ]
             );

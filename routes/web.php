@@ -58,6 +58,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::post('/judges', [AdminDashboardController::class, 'storeJudge'])->name('judges.store');
     Route::put('/judges/{judge}', [AdminDashboardController::class, 'updateJudge'])->name('judges.update');
     Route::delete('/judges/{judge}', [AdminDashboardController::class, 'destroyJudge'])->name('judges.destroy');
+    Route::delete('/works/{registration}/judges/{judge}/score', [AdminDashboardController::class, 'resetJudgeScore'])->name('works.judge-score.reset');
     Route::delete('/registrations/{registration}', [AdminDashboardController::class, 'destroy'])->name('registrations.destroy');
 });
 
@@ -70,5 +71,16 @@ Route::middleware(['auth', 'judge'])->prefix('judge')->name('judge.')->group(fun
     Route::get('/dashboard', [JudgeDashboardController::class, 'index'])->name('dashboard');
     Route::post('/works/{registration}/toggle-suggest', [JudgeDashboardController::class, 'toggleSuggestion'])->name('works.toggle-suggest');
     Route::post('/works/{registration}/score', [JudgeDashboardController::class, 'saveScore'])->name('works.score');
+    Route::delete('/works/{registration}/score', [JudgeDashboardController::class, 'resetScore'])->name('works.score.reset');
     Route::put('/profile', [JudgeDashboardController::class, 'updateProfile'])->name('profile.update');
+});
+
+/*
+|--------------------------------------------------------------------------
+| Rute Realtime Sinkronisasi Penilaian & Rekap Nilai
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth'])->prefix('realtime')->name('realtime.')->group(function () {
+    Route::get('/works/{registration}/score-recap', [JudgeDashboardController::class, 'getScoreRecap'])->name('work.score-recap');
+    Route::get('/category-recap/{category?}', [JudgeDashboardController::class, 'getCategoryRecap'])->name('category-recap');
 });

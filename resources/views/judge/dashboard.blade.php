@@ -12,7 +12,12 @@
                         Evaluasi &amp; Rekomendasi Karya Digital
                     </h1>
                     <p class="text-xs sm:text-sm text-purple-100/90 leading-relaxed">
-                        Selamat datang, <strong>{{ $judge->name }}</strong> ({{ $judge->username }}). Anda dapat merekomendasikan karya terbaik ke Panitia dengan mengisi checklist kelayakan, serta menilai karya Finalis Top 10 yang telah disetujui Admin.
+                        Selamat datang, <strong>{{ $judge->name }}</strong> ({{ $judge->username }}).
+                        @if (!empty($judge->category))
+                            Penugasan Anda: <strong class="text-white underline decoration-amber-300 decoration-2 underline-offset-2">{{ $judge->category === 'gim_edukasi' ? 'Kategori Gim Edukasi' : 'Kategori Media Pembelajaran Interaktif (MPI)' }}</strong>
+                            sebagai <strong class="text-white">{{ $judge->judge_role_label }}</strong>.
+                        @endif
+                        Anda dapat merekomendasikan karya terbaik ke Panitia dengan mengisi checklist kelayakan, serta menilai karya Finalis Top 10 yang telah disetujui Admin.
                     </p>
                 </div>
 
@@ -33,42 +38,96 @@
 
         <!-- Metric Cards: Saran Rekomendasi & Penilaian -->
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            <!-- Saran Gim -->
-            <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-xs flex flex-col justify-between">
-                <div>
-                    <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">Saran Top 10: Gim</span>
-                    <div class="text-2xl sm:text-3xl font-extrabold text-amber-600 mt-1 font-mono">
-                        <span x-text="myGimSuggestions"></span><span class="text-slate-400 text-xs font-semibold ml-1">Karya</span>
+            @if (empty($judge->category))
+                <!-- Saran Gim -->
+                <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-xs flex flex-col justify-between">
+                    <div>
+                        <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">Saran Top 10: Gim</span>
+                        <div class="text-2xl sm:text-3xl font-extrabold text-amber-600 mt-1 font-mono">
+                            <span x-text="myGimSuggestions"></span><span class="text-slate-400 text-xs font-semibold ml-1">Karya</span>
+                        </div>
                     </div>
+                    <p class="text-[11px] text-slate-500 mt-2 font-medium">
+                        Rekomendasi Anda untuk Gim Edukasi
+                    </p>
                 </div>
-                <p class="text-[11px] text-slate-500 mt-2 font-medium">
-                    Rekomendasi Anda untuk Gim Edukasi
-                </p>
-            </div>
 
-            <!-- Saran Media -->
-            <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-xs flex flex-col justify-between">
-                <div>
-                    <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">Saran Top 10: Media</span>
-                    <div class="text-2xl sm:text-3xl font-extrabold text-sky-600 mt-1 font-mono">
-                        <span x-text="myMediaSuggestions"></span><span class="text-slate-400 text-xs font-semibold ml-1">Karya</span>
+                <!-- Saran Media -->
+                <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-xs flex flex-col justify-between">
+                    <div>
+                        <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">Saran Top 10: Media</span>
+                        <div class="text-2xl sm:text-3xl font-extrabold text-sky-600 mt-1 font-mono">
+                            <span x-text="myMediaSuggestions"></span><span class="text-slate-400 text-xs font-semibold ml-1">Karya</span>
+                        </div>
                     </div>
+                    <p class="text-[11px] text-slate-500 mt-2 font-medium">
+                        Rekomendasi Anda untuk Media Interaktif
+                    </p>
                 </div>
-                <p class="text-[11px] text-slate-500 mt-2 font-medium">
-                    Rekomendasi Anda untuk Media Interaktif
-                </p>
-            </div>
+            @elseif ($judge->category === 'gim_edukasi')
+                <!-- Saran Gim -->
+                <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-xs flex flex-col justify-between">
+                    <div>
+                        <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">Saran Top 10: Gim</span>
+                        <div class="text-2xl sm:text-3xl font-extrabold text-amber-600 mt-1 font-mono">
+                            <span x-text="myGimSuggestions"></span><span class="text-slate-400 text-xs font-semibold ml-1">Karya</span>
+                        </div>
+                    </div>
+                    <p class="text-[11px] text-slate-500 mt-2 font-medium">
+                        Rekomendasi Anda untuk Gim Edukasi
+                    </p>
+                </div>
+
+                <!-- Total Peserta Gim -->
+                <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-xs flex flex-col justify-between">
+                    <div>
+                        <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">Total Peserta Gim</span>
+                        <div class="text-2xl sm:text-3xl font-extrabold text-amber-600 mt-1 font-mono">
+                            {{ $allWorks->count() }}<span class="text-slate-400 text-xs font-semibold ml-1">Karya</span>
+                        </div>
+                    </div>
+                    <p class="text-[11px] text-slate-500 mt-2 font-medium">
+                        Karya yang Anda evaluasi
+                    </p>
+                </div>
+            @else
+                <!-- Saran Media -->
+                <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-xs flex flex-col justify-between">
+                    <div>
+                        <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">Saran Top 10: MPI</span>
+                        <div class="text-2xl sm:text-3xl font-extrabold text-sky-600 mt-1 font-mono">
+                            <span x-text="myMediaSuggestions"></span><span class="text-slate-400 text-xs font-semibold ml-1">Karya</span>
+                        </div>
+                    </div>
+                    <p class="text-[11px] text-slate-500 mt-2 font-medium">
+                        Rekomendasi Media Interaktif
+                    </p>
+                </div>
+
+                <!-- Total Peserta Media -->
+                <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-xs flex flex-col justify-between">
+                    <div>
+                        <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">Total Peserta MPI</span>
+                        <div class="text-2xl sm:text-3xl font-extrabold text-sky-600 mt-1 font-mono">
+                            {{ $allWorks->count() }}<span class="text-slate-400 text-xs font-semibold ml-1">Karya</span>
+                        </div>
+                    </div>
+                    <p class="text-[11px] text-slate-500 mt-2 font-medium">
+                        Karya yang Anda evaluasi
+                    </p>
+                </div>
+            @endif
 
             <!-- Total Finalis yang Disetujui Admin -->
             <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-xs flex flex-col justify-between">
                 <div>
                     <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">Finalis Resmi Top 10</span>
                     <div class="text-2xl sm:text-3xl font-extrabold text-[#5e43f3] mt-1 font-mono">
-                        {{ $stats['finalists_count'] }}<span class="text-slate-300 text-lg font-normal"> / 20</span>
+                        {{ $stats['finalists_count'] }}<span class="text-slate-300 text-lg font-normal"> / {{ !empty($judge->category) ? '10' : '20' }}</span>
                     </div>
                 </div>
                 <p class="text-[11px] text-[#5e43f3] mt-2 font-semibold">
-                    Keputusan resmi Admin
+                    {{ !empty($judge->category) ? ($judge->category === 'gim_edukasi' ? 'Top 10 Gim Edukasi' : 'Top 10 Media Interaktif') : 'Keputusan resmi Admin' }}
                 </p>
             </div>
 
@@ -156,27 +215,39 @@
         <div class="space-y-3">
             <form method="GET" action="{{ route('judge.dashboard') }}" class="flex flex-col sm:flex-row items-center justify-between gap-3">
                 <input type="hidden" name="tab" :value="activeTab">
+                @if (!empty($judge->category))
+                    <input type="hidden" name="category" value="{{ $judge->category }}">
+                @endif
 
-                <!-- Filter Kategori Button Group -->
+                <!-- Filter Kategori Button Group / Locked Category Badge -->
                 <div class="flex items-center gap-2 w-full sm:w-auto">
-                    <a 
-                        :href="'{{ route('judge.dashboard') }}?tab=' + activeTab + '&category=all'" 
-                        class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer {{ $category === 'all' ? 'bg-slate-800 text-white shadow-xs' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200' }}"
-                    >
-                        Semua Kategori
-                    </a>
-                    <a 
-                        :href="'{{ route('judge.dashboard') }}?tab=' + activeTab + '&category=gim_edukasi'" 
-                        class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer {{ $category === 'gim_edukasi' ? 'bg-amber-600 text-white shadow-xs' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200' }}"
-                    >
-                        Gim Edukasi
-                    </a>
-                    <a 
-                        :href="'{{ route('judge.dashboard') }}?tab=' + activeTab + '&category=media_pembelajaran_interaktif'" 
-                        class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer {{ $category === 'media_pembelajaran_interaktif' ? 'bg-sky-600 text-white shadow-xs' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200' }}"
-                    >
-                        Media Interaktif (MPI)
-                    </a>
+                    @if (empty($judge->category))
+                        <a 
+                            :href="'{{ route('judge.dashboard') }}?tab=' + activeTab + '&category=all'" 
+                            class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer {{ $category === 'all' ? 'bg-slate-800 text-white shadow-xs' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200' }}"
+                        >
+                            Semua Kategori
+                        </a>
+                        <a 
+                            :href="'{{ route('judge.dashboard') }}?tab=' + activeTab + '&category=gim_edukasi'" 
+                            class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer {{ $category === 'gim_edukasi' ? 'bg-amber-600 text-white shadow-xs' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200' }}"
+                        >
+                            Gim Edukasi
+                        </a>
+                        <a 
+                            :href="'{{ route('judge.dashboard') }}?tab=' + activeTab + '&category=media_pembelajaran_interaktif'" 
+                            class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer {{ $category === 'media_pembelajaran_interaktif' ? 'bg-sky-600 text-white shadow-xs' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200' }}"
+                        >
+                            Media Interaktif (MPI)
+                        </a>
+                    @else
+                        <!-- Badge Terkunci: Juri hanya melihat & menilai kategori penugasannya -->
+                        <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-bold shadow-2xs {{ $judge->category === 'gim_edukasi' ? 'bg-amber-50 text-amber-800 border border-amber-200' : 'bg-sky-50 text-sky-800 border border-sky-200' }}">
+                            <span class="w-2 h-2 rounded-full {{ $judge->category === 'gim_edukasi' ? 'bg-amber-500 animate-pulse' : 'bg-sky-500 animate-pulse' }}"></span>
+                            <span>Kategori Tugas: {{ $judge->category === 'gim_edukasi' ? 'Gim Edukasi' : 'Media Pembelajaran Interaktif (MPI)' }}</span>
+                            <span class="text-[10px] text-slate-500 font-medium">({{ $allWorks->count() }} Peserta / {{ $finalists->count() }} Finalis)</span>
+                        </div>
+                    @endif
                 </div>
 
                 <!-- Pencarian Input & View Switcher Container -->
@@ -668,27 +739,57 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-2 px-1">
+                <div class="flex items-center gap-2">
+                    <h2 class="text-sm font-extrabold text-slate-800">Lembar Penilaian Finalis Top 10</h2>
+                    <span class="text-xs text-slate-400 hidden sm:inline">• Rekap Multi-Juri Standar Bab IV</span>
+                </div>
+                <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-white border border-slate-200 shadow-2xs">
+                    <span class="w-2 h-2 rounded-full" :class="rekapPollStatus === 'connected' ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'"></span>
+                    <span class="text-slate-600" x-text="rekapPollStatus === 'connected' ? 'Realtime Terhubung (Otomatis Diperbarui)' : 'Memperbarui data...'"></span>
+                </div>
+            </div>
+
+            <!-- 1. Grid View (Kartu Finalis Top 10) -->
+            <div x-show="viewMode === 'grid'" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                 @forelse ($finalists as $work)
                     @php
-                        $myScore = $work->judgeScores->first();
+                        $recap = $work->recap ?? $work->multi_judge_recap;
+                        $myStatus = $work->my_status ?? 'Belum dinilai';
+                        $hasMyScore = ($myStatus !== 'Belum dinilai');
+                        $myJudgeRecap = $recap['judges'][$myRole] ?? null;
                     @endphp
-                    <div class="bg-white rounded-3xl p-5 border {{ $myScore ? 'border-emerald-200 shadow-xs' : 'border-slate-200 shadow-xs' }} hover:shadow-soft transition-all flex flex-col justify-between group">
+                    <div class="bg-white rounded-3xl p-5 border {{ $myStatus === 'Sudah dinilai' ? 'border-emerald-300 shadow-xs' : ($myStatus === 'Sebagian' ? 'border-amber-300 shadow-xs' : 'border-slate-200 shadow-xs') }} hover:shadow-soft transition-all flex flex-col justify-between group">
                         <div>
-                            <!-- Header: Kategori & Status Penilaian -->
+                            <!-- Header: Kategori, Peringkat & Status Penilaian Mandiri Juri Ini -->
                             <div class="flex items-center justify-between gap-2 mb-3">
-                                <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold {{ $work->learning_category === 'gim_edukasi' ? 'bg-amber-50 text-amber-800 border border-amber-200/60' : 'bg-sky-50 text-sky-800 border border-sky-200/60' }}">
-                                    {{ $work->category_label }}
-                                </span>
+                                <div class="flex items-center gap-1.5">
+                                    <div 
+                                        class="w-6 h-6 rounded-lg flex items-center justify-center font-extrabold text-[11px]"
+                                        :class="ranksMap[{{ $work->id }}] === 1 ? 'bg-amber-400 text-white shadow-xs' : (ranksMap[{{ $work->id }}] === 2 ? 'bg-slate-300 text-slate-800' : (ranksMap[{{ $work->id }}] === 3 ? 'bg-amber-600 text-white' : (ranksMap[{{ $work->id }}] ? 'bg-slate-100 text-slate-700' : 'bg-slate-100 text-slate-400')))"
+                                        x-text="ranksMap[{{ $work->id }}] ? ('#' + ranksMap[{{ $work->id }}]) : '-'"
+                                        title="Peringkat Kategori"
+                                    >
+                                        {{ $work->category_rank ? '#' . $work->category_rank : '-' }}
+                                    </div>
+                                    <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold {{ $work->learning_category === 'gim_edukasi' ? 'bg-amber-50 text-amber-800 border border-amber-200/60' : 'bg-sky-50 text-sky-800 border border-sky-200/60' }}">
+                                        {{ $work->category_label }}
+                                    </span>
+                                </div>
 
-                                @if ($myScore)
-                                    <span class="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center gap-1">
-                                        <span>✓ Nilai:</span>
-                                        <span class="font-mono">{{ number_format($myScore->total_score, 1) }}</span>
+                                @if ($myStatus === 'Sudah dinilai')
+                                    <span class="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center gap-1 shadow-2xs">
+                                        <span>✓ Anda:</span>
+                                        <span class="font-mono">{{ number_format($myJudgeRecap['weighted_score'] ?? 0, 2) }}</span>
+                                    </span>
+                                @elseif ($myStatus === 'Sebagian')
+                                    <span class="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-amber-100 text-amber-800 border border-amber-300 flex items-center gap-1 shadow-2xs">
+                                        <span>⏳ Anda:</span>
+                                        <span class="font-mono">{{ $myJudgeRecap['progress_text'] ?? '' }}</span>
                                     </span>
                                 @else
-                                    <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
-                                        Belum Dinilai
+                                    <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-slate-100 text-slate-600 border border-slate-200">
+                                        Belum Anda Nilai
                                     </span>
                                 @endif
                             </div>
@@ -710,52 +811,108 @@
                                 </div>
                             </div>
 
+                            <!-- Panel Realtime Ringkasan Nilai Akhir / Sementara (Tema Putih Bersih) -->
+                            <div class="p-3.5 rounded-2xl bg-white border border-slate-200/90 text-slate-900 mb-3 shadow-2xs">
+                                <div class="flex items-center justify-between text-[11px] mb-1">
+                                    <span class="font-extrabold tracking-wider uppercase text-[10px]"
+                                        :class="scoresMap[{{ $work->id }}]?.is_complete ? 'text-emerald-600' : 'text-amber-600'"
+                                        x-text="scoresMap[{{ $work->id }}]?.status_label || '{{ $recap['status_label'] }}'">
+                                        {{ $recap['status_label'] }}
+                                    </span>
+                                    <span class="text-slate-400 text-[10px] font-mono font-medium" x-text="(scoresMap[{{ $work->id }}]?.progress_all || '{{ $recap['progress_all'] ?? '0/12' }}') + ' Terisi'">{{ $recap['progress_all'] ?? '0/12' }} Terisi</span>
+                                </div>
+                                <div class="flex items-baseline justify-between">
+                                    <div class="text-2xl font-extrabold font-mono text-slate-900">
+                                        <span x-text="scoresMap[{{ $work->id }}]?.display_score || '{{ $recap['display_score'] }}'">{{ $recap['display_score'] }}</span>
+                                        <span class="text-[11px] font-sans font-normal text-slate-400">/ 100</span>
+                                    </div>
+                                    <template x-if="scoresMap[{{ $work->id }}]?.is_complete">
+                                        <span class="px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-extrabold border border-emerald-200 flex items-center gap-1">
+                                            <span>✓</span>
+                                            <span>Lengkap (3 Juri)</span>
+                                        </span>
+                                    </template>
+                                    <template x-if="!scoresMap[{{ $work->id }}]?.is_complete">
+                                        <span class="px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-700 text-[10px] font-extrabold border border-amber-200 truncate max-w-[150px]" :title="scoresMap[{{ $work->id }}]?.waiting_text" x-text="scoresMap[{{ $work->id }}]?.waiting_text || '{{ $recap['waiting_text'] }}'">
+                                            {{ $recap['waiting_text'] }}
+                                        </span>
+                                    </template>
+                                </div>
+
+                                <!-- 3 Chips Status Juri (Tema Putih Bersih) -->
+                                <div class="grid grid-cols-3 gap-1.5 pt-2 mt-2 border-t border-slate-100 text-[10px]">
+                                    <!-- J1 -->
+                                    <div class="p-1.5 rounded-xl bg-slate-50 border border-slate-100 text-center {{ $myRole === 1 ? 'ring-2 ring-indigo-500 bg-indigo-50/40 border-indigo-200' : '' }}">
+                                        <div class="text-slate-500 font-semibold text-[10px]">J1 (55%)</div>
+                                        <div class="font-mono font-extrabold" :class="scoresMap[{{ $work->id }}]?.judges?.[1]?.is_complete ? 'text-emerald-600' : 'text-amber-600'" x-text="scoresMap[{{ $work->id }}]?.judges?.[1]?.is_complete ? Number(scoresMap[{{ $work->id }}]?.judges?.[1]?.weighted_score).toFixed(1) : (scoresMap[{{ $work->id }}]?.judges?.[1]?.progress_text || '0/5')">
+                                            {{ ($recap['judges'][1]['is_complete'] ?? false) ? number_format($recap['judges'][1]['weighted_score'], 1) : ($recap['judges'][1]['progress_text'] ?? '0/5') }}
+                                        </div>
+                                        <div class="text-[9px] text-slate-400 font-medium truncate mt-0.5 max-w-[85px] mx-auto" x-text="scoresMap[{{ $work->id }}]?.judges?.[1]?.judge_name || 'Juri 1'">
+                                            {{ $recap['judges'][1]['judge_name'] ?? 'Juri 1' }}
+                                        </div>
+                                    </div>
+                                    <!-- J2 -->
+                                    <div class="p-1.5 rounded-xl bg-slate-50 border border-slate-100 text-center {{ $myRole === 2 ? 'ring-2 ring-indigo-500 bg-indigo-50/40 border-indigo-200' : '' }}">
+                                        <div class="text-slate-500 font-semibold text-[10px]">J2 (30%)</div>
+                                        <div class="font-mono font-extrabold" :class="scoresMap[{{ $work->id }}]?.judges?.[2]?.is_complete ? 'text-emerald-600' : 'text-amber-600'" x-text="scoresMap[{{ $work->id }}]?.judges?.[2]?.is_complete ? Number(scoresMap[{{ $work->id }}]?.judges?.[2]?.weighted_score).toFixed(1) : (scoresMap[{{ $work->id }}]?.judges?.[2]?.progress_text || '0/4')">
+                                            {{ ($recap['judges'][2]['is_complete'] ?? false) ? number_format($recap['judges'][2]['weighted_score'], 1) : ($recap['judges'][2]['progress_text'] ?? '0/4') }}
+                                        </div>
+                                        <div class="text-[9px] text-slate-400 font-medium truncate mt-0.5 max-w-[85px] mx-auto" x-text="scoresMap[{{ $work->id }}]?.judges?.[2]?.judge_name || 'Juri 2'">
+                                            {{ $recap['judges'][2]['judge_name'] ?? 'Juri 2' }}
+                                        </div>
+                                    </div>
+                                    <!-- J3 -->
+                                    <div class="p-1.5 rounded-xl bg-slate-50 border border-slate-100 text-center {{ $myRole === 3 ? 'ring-2 ring-indigo-500 bg-indigo-50/40 border-indigo-200' : '' }}">
+                                        <div class="text-slate-500 font-semibold text-[10px]">J3 (15%)</div>
+                                        <div class="font-mono font-extrabold" :class="scoresMap[{{ $work->id }}]?.judges?.[3]?.is_complete ? 'text-emerald-600' : 'text-amber-600'" x-text="scoresMap[{{ $work->id }}]?.judges?.[3]?.is_complete ? Number(scoresMap[{{ $work->id }}]?.judges?.[3]?.weighted_score).toFixed(1) : (scoresMap[{{ $work->id }}]?.judges?.[3]?.progress_text || '0/3')">
+                                            {{ ($recap['judges'][3]['is_complete'] ?? false) ? number_format($recap['judges'][3]['weighted_score'], 1) : ($recap['judges'][3]['progress_text'] ?? '0/3') }}
+                                        </div>
+                                        <div class="text-[9px] text-slate-400 font-medium truncate mt-0.5 max-w-[85px] mx-auto" x-text="scoresMap[{{ $work->id }}]?.judges?.[3]?.judge_name || 'Juri 3'">
+                                            {{ $recap['judges'][3]['judge_name'] ?? 'Juri 3' }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
                             <!-- Link Karya Digital -->
-                            <div class="p-3 rounded-2xl bg-slate-50 border border-slate-100 mb-4 flex items-center justify-between">
-                                <span class="text-xs text-slate-600 font-medium">Karya Multimedia Digital:</span>
+                            <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between text-xs">
+                                <span class="text-slate-500 font-medium text-[11px]">Media Karya:</span>
                                 <a 
                                     href="{{ $work->media_link }}" 
                                     target="_blank" 
                                     rel="noopener noreferrer"
-                                    class="inline-flex items-center gap-1 text-xs font-bold text-[#5e43f3] hover:underline"
+                                    class="inline-flex items-center gap-1 font-bold text-[#5e43f3] hover:underline text-[11px]"
                                 >
                                     <span>Buka Karya &rarr;</span>
                                 </a>
                             </div>
-
-                            <!-- Ringkasan Aspek Nilai Jika Sudah Ada -->
-                            @if ($myScore)
-                                <div class="grid grid-cols-4 gap-1 p-2 rounded-xl bg-slate-50 text-center text-[10px] mb-3 font-mono">
-                                    <div class="p-1 rounded bg-white border border-slate-100">
-                                        <div class="text-slate-400">Ped (30%)</div>
-                                        <div class="font-bold text-slate-800">{{ $myScore->pedagogical_score }}</div>
-                                    </div>
-                                    <div class="p-1 rounded bg-white border border-slate-100">
-                                        <div class="text-slate-400">Kre (30%)</div>
-                                        <div class="font-bold text-slate-800">{{ $myScore->creativity_score }}</div>
-                                    </div>
-                                    <div class="p-1 rounded bg-white border border-slate-100">
-                                        <div class="text-slate-400">Tek (25%)</div>
-                                        <div class="font-bold text-slate-800">{{ $myScore->technical_score }}</div>
-                                    </div>
-                                    <div class="p-1 rounded bg-white border border-slate-100">
-                                        <div class="text-slate-400">Pre (15%)</div>
-                                        <div class="font-bold text-slate-800">{{ $myScore->presentation_score }}</div>
-                                    </div>
-                                </div>
-                            @endif
                         </div>
 
-                        <!-- Footer Action: Tombol Input / Edit Nilai -->
+                        <!-- Footer Action: Tombol Input / Edit Nilai & Reset -->
                         <div class="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
                             <span class="font-mono text-[11px] text-slate-400 font-bold">{{ $work->registration_number }}</span>
-                            <button 
-                                type="button" 
-                                @click="openScoring(@js($work))"
-                                class="px-4 py-2 rounded-xl text-xs font-bold transition shadow-xs cursor-pointer flex items-center gap-1.5 {{ $myScore ? 'bg-emerald-600 hover:bg-emerald-700 text-white' : 'bg-[#5e43f3] hover:bg-indigo-700 text-white' }}"
-                            >
-                                <span>{{ $myScore ? '✏️ Ubah Penilaian' : '📝 Beri Nilai' }}</span>
-                            </button>
+                            <div class="flex items-center gap-1.5">
+                                @if ($hasMyScore)
+                                    <button 
+                                        type="button" 
+                                        @click="confirmResetScore(@js($work))"
+                                        class="px-2.5 py-2 rounded-xl text-xs font-bold text-rose-600 hover:bg-rose-50 border border-rose-200 transition shadow-2xs cursor-pointer flex items-center gap-1"
+                                        title="Reset / Hapus Nilai Anda untuk karya ini"
+                                    >
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                        </svg>
+                                        <span class="hidden sm:inline">Reset</span>
+                                    </button>
+                                @endif
+                                <button 
+                                    type="button" 
+                                    @click="openScoring(@js($work))"
+                                    class="px-3.5 py-2 rounded-xl text-xs font-bold transition shadow-xs cursor-pointer flex items-center gap-1.5 {{ $hasMyScore ? 'bg-emerald-600 hover:bg-emerald-700 text-white' : 'bg-[#5e43f3] hover:bg-indigo-700 text-white' }}"
+                                >
+                                    <span>{{ $hasMyScore ? '✏️ Ubah Nilai' : '📝 Beri Nilai' }}</span>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 @empty
@@ -764,6 +921,231 @@
                         <p class="text-xs text-slate-400 mt-1">Gunakan tab "Semua Peserta" untuk memberikan rekomendasi karya ke Admin.</p>
                     </div>
                 @endforelse
+            </div>
+
+            <!-- 2. List / Table View (Finalis Top 10 - Tampilan Lengkap Multi-Juri Seperti Admin) -->
+            <div x-show="viewMode === 'list' || viewMode === 'table'" class="bg-white rounded-3xl border border-slate-200/80 shadow-xs overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse text-xs">
+                        <thead>
+                            <tr class="border-b border-slate-100 bg-slate-50/70 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                                <th class="py-4 pl-5 pr-2">Rank</th>
+                                <th class="py-4 px-4">Finalis &amp; Asal Instansi</th>
+                                <th class="py-4 px-3">Kategori</th>
+                                <th class="py-4 px-3">Juri 1: Pedagogis &amp; Teknis (55%)</th>
+                                <th class="py-4 px-3">Juri 2: Kreativitas &amp; Desain (30%)</th>
+                                <th class="py-4 px-3">Juri 3: Presentasi &amp; Dampak (15%)</th>
+                                <th class="py-4 px-4 text-center">Status &amp; Nilai Akhir</th>
+                                <th class="py-4 pr-6 pl-4 text-right">Aksi Penilaian</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            @forelse ($finalists as $work)
+                                @php
+                                    $recap = $work->recap ?? $work->multi_judge_recap;
+                                    $myStatus = $work->my_status ?? 'Belum dinilai';
+                                    $hasMyScore = ($myStatus !== 'Belum dinilai');
+                                @endphp
+                                <tr class="hover:bg-slate-50/80 transition-colors">
+                                    <!-- Rank Peringkat Realtime -->
+                                    <td class="py-3.5 pl-5 pr-2 align-middle">
+                                        <div 
+                                            class="w-7 h-7 rounded-xl flex items-center justify-center font-extrabold text-xs"
+                                            :class="ranksMap[{{ $work->id }}] === 1 ? 'bg-amber-400 text-white shadow-xs' : (ranksMap[{{ $work->id }}] === 2 ? 'bg-slate-300 text-slate-800' : (ranksMap[{{ $work->id }}] === 3 ? 'bg-amber-600 text-white' : (ranksMap[{{ $work->id }}] ? 'bg-slate-100 text-slate-700' : 'bg-slate-100 text-slate-400')))"
+                                            x-text="ranksMap[{{ $work->id }}] ? ('#' + ranksMap[{{ $work->id }}]) : '-'"
+                                        >
+                                            {{ $work->category_rank ? '#' . $work->category_rank : '-' }}
+                                        </div>
+                                    </td>
+
+                                    <!-- Finalis & Info Sekolah -->
+                                    <td class="py-3.5 px-4 align-middle">
+                                        <div class="flex items-center space-x-3">
+                                            <img 
+                                                src="{{ $work->profile_photo_url }}" 
+                                                alt="{{ $work->full_name }}" 
+                                                class="w-10 h-10 rounded-2xl object-cover border border-slate-200 bg-slate-100 shrink-0"
+                                                onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name={{ urlencode($work->full_name) }}&background=5E43F3&color=FFFFFF&size=200';"
+                                            >
+                                            <div>
+                                                <div class="font-bold text-slate-900 text-sm">{{ $work->full_name }}</div>
+                                                <div class="text-[11px] text-slate-500">{{ $work->school_name }} • {{ $work->regency_city }}</div>
+                                                <span class="inline-flex items-center px-2 py-0.5 mt-0.5 rounded-md text-[10px] font-mono font-bold bg-purple-50 text-[#5e43f3] border border-purple-200">
+                                                    {{ $work->registration_number }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </td>
+
+                                    <!-- Kategori -->
+                                    <td class="py-3.5 px-3 align-middle whitespace-nowrap">
+                                        <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold {{ $work->learning_category === 'gim_edukasi' ? 'bg-amber-50 text-amber-800 border border-amber-200/60' : 'bg-sky-50 text-sky-800 border border-sky-200/60' }}">
+                                            {{ $work->category_label }}
+                                        </span>
+                                    </td>
+
+                                    <!-- Juri 1: Pedagogis & Teknis (55%) -->
+                                    <td class="py-3.5 px-3 whitespace-nowrap align-middle">
+                                        <div class="{{ $myRole === 1 ? 'p-1.5 -m-1.5 rounded-xl bg-indigo-50/60 border border-indigo-200/80' : '' }}">
+                                            <template x-if="scoresMap[{{ $work->id }}]?.judges?.[1]?.is_complete">
+                                                <div class="flex items-baseline gap-1">
+                                                    <span class="font-mono font-extrabold text-slate-900 text-xs" x-text="Number(scoresMap[{{ $work->id }}]?.judges?.[1]?.weighted_score).toFixed(2)"></span>
+                                                    <span class="text-[10px] text-slate-400 font-mono" x-text="'(' + scoresMap[{{ $work->id }}]?.judges?.[1]?.total_score + '/25 pt)'"></span>
+                                                </div>
+                                            </template>
+                                            <template x-if="!scoresMap[{{ $work->id }}]?.judges?.[1]?.is_complete">
+                                                <div>
+                                                    <span 
+                                                        class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold"
+                                                        :class="(scoresMap[{{ $work->id }}]?.judges?.[1]?.filled_count > 0) ? 'bg-amber-50 text-amber-700' : 'bg-slate-100 text-slate-400'"
+                                                        x-text="scoresMap[{{ $work->id }}]?.judges?.[1]?.progress_text || 'Belum dinilai'"
+                                                    >
+                                                        {{ $recap['judges'][1]['progress_text'] ?? 'Belum dinilai' }}
+                                                    </span>
+                                                </div>
+                                            </template>
+                                            <div class="text-[10px] text-slate-400 font-medium truncate max-w-[130px] flex items-center gap-1 mt-0.5">
+                                                <span x-text="scoresMap[{{ $work->id }}]?.judges?.[1]?.judge_name">{{ $recap['judges'][1]['judge_name'] ?? 'Juri 1' }}</span>
+                                                @if ($myRole === 1)
+                                                    <span class="px-1 py-0.2 rounded text-[9px] font-extrabold bg-[#5e43f3] text-white">Anda</span>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </td>
+
+                                    <!-- Juri 2: Kreativitas & Desain (30%) -->
+                                    <td class="py-3.5 px-3 whitespace-nowrap align-middle">
+                                        <div class="{{ $myRole === 2 ? 'p-1.5 -m-1.5 rounded-xl bg-indigo-50/60 border border-indigo-200/80' : '' }}">
+                                            <template x-if="scoresMap[{{ $work->id }}]?.judges?.[2]?.is_complete">
+                                                <div class="flex items-baseline gap-1">
+                                                    <span class="font-mono font-extrabold text-slate-900 text-xs" x-text="Number(scoresMap[{{ $work->id }}]?.judges?.[2]?.weighted_score).toFixed(2)"></span>
+                                                    <span class="text-[10px] text-slate-400 font-mono" x-text="'(' + scoresMap[{{ $work->id }}]?.judges?.[2]?.total_score + '/20 pt)'"></span>
+                                                </div>
+                                            </template>
+                                            <template x-if="!scoresMap[{{ $work->id }}]?.judges?.[2]?.is_complete">
+                                                <div>
+                                                    <span 
+                                                        class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold"
+                                                        :class="(scoresMap[{{ $work->id }}]?.judges?.[2]?.filled_count > 0) ? 'bg-amber-50 text-amber-700' : 'bg-slate-100 text-slate-400'"
+                                                        x-text="scoresMap[{{ $work->id }}]?.judges?.[2]?.progress_text || 'Belum dinilai'"
+                                                    >
+                                                        {{ $recap['judges'][2]['progress_text'] ?? 'Belum dinilai' }}
+                                                    </span>
+                                                </div>
+                                            </template>
+                                            <div class="text-[10px] text-slate-400 font-medium truncate max-w-[130px] flex items-center gap-1 mt-0.5">
+                                                <span x-text="scoresMap[{{ $work->id }}]?.judges?.[2]?.judge_name">{{ $recap['judges'][2]['judge_name'] ?? 'Juri 2' }}</span>
+                                                @if ($myRole === 2)
+                                                    <span class="px-1 py-0.2 rounded text-[9px] font-extrabold bg-[#5e43f3] text-white">Anda</span>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </td>
+
+                                    <!-- Juri 3: Presentasi & Dampak (15%) -->
+                                    <td class="py-3.5 px-3 whitespace-nowrap align-middle">
+                                        <div class="{{ $myRole === 3 ? 'p-1.5 -m-1.5 rounded-xl bg-indigo-50/60 border border-indigo-200/80' : '' }}">
+                                            <template x-if="scoresMap[{{ $work->id }}]?.judges?.[3]?.is_complete">
+                                                <div class="flex items-baseline gap-1">
+                                                    <span class="font-mono font-extrabold text-slate-900 text-xs" x-text="Number(scoresMap[{{ $work->id }}]?.judges?.[3]?.weighted_score).toFixed(2)"></span>
+                                                    <span class="text-[10px] text-slate-400 font-mono" x-text="'(' + scoresMap[{{ $work->id }}]?.judges?.[3]?.total_score + '/15 pt)'"></span>
+                                                </div>
+                                            </template>
+                                            <template x-if="!scoresMap[{{ $work->id }}]?.judges?.[3]?.is_complete">
+                                                <div>
+                                                    <span 
+                                                        class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold"
+                                                        :class="(scoresMap[{{ $work->id }}]?.judges?.[3]?.filled_count > 0) ? 'bg-amber-50 text-amber-700' : 'bg-slate-100 text-slate-400'"
+                                                        x-text="scoresMap[{{ $work->id }}]?.judges?.[3]?.progress_text || 'Belum dinilai'"
+                                                    >
+                                                        {{ $recap['judges'][3]['progress_text'] ?? 'Belum dinilai' }}
+                                                    </span>
+                                                </div>
+                                            </template>
+                                            <div class="text-[10px] text-slate-400 font-medium truncate max-w-[130px] flex items-center gap-1 mt-0.5">
+                                                <span x-text="scoresMap[{{ $work->id }}]?.judges?.[3]?.judge_name">{{ $recap['judges'][3]['judge_name'] ?? 'Juri 3' }}</span>
+                                                @if ($myRole === 3)
+                                                    <span class="px-1 py-0.2 rounded text-[9px] font-extrabold bg-[#5e43f3] text-white">Anda</span>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </td>
+
+                                    <!-- Status & Nilai Akhir -->
+                                    <td class="py-3.5 px-4 text-center whitespace-nowrap align-middle">
+                                        <template x-if="scoresMap[{{ $work->id }}]?.is_complete">
+                                            <div class="inline-flex flex-col items-center">
+                                                <span class="text-sm font-extrabold text-[#5e43f3] bg-purple-50 px-2.5 py-1 rounded-xl border border-purple-200 font-mono shadow-2xs" x-text="Number(scoresMap[{{ $work->id }}]?.final_score).toFixed(2)">
+                                                    {{ number_format($recap['final_score'] ?? 0, 2) }}
+                                                </span>
+                                                <span class="text-[10px] text-emerald-600 font-bold mt-0.5 flex items-center gap-0.5">
+                                                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                                    Nilai Akhir
+                                                </span>
+                                            </div>
+                                        </template>
+                                        <template x-if="!scoresMap[{{ $work->id }}]?.is_complete">
+                                            <div class="inline-flex flex-col items-center">
+                                                <span class="text-xs font-bold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-xl border border-amber-200 font-mono" x-text="Number(scoresMap[{{ $work->id }}]?.interim_score || 0).toFixed(2)">
+                                                    {{ number_format($recap['interim_score'] ?? 0, 2) }}
+                                                </span>
+                                                <span class="text-[10px] text-amber-600 font-semibold mt-0.5">
+                                                    ⏳ Nilai Sementara
+                                                </span>
+                                                <span class="text-[9px] text-slate-400 font-medium max-w-[120px] truncate mt-0.5" x-text="scoresMap[{{ $work->id }}]?.waiting_text">
+                                                    {{ $recap['waiting_text'] ?? '' }}
+                                                </span>
+                                            </div>
+                                        </template>
+                                    </td>
+
+                                    <!-- Aksi Penilaian -->
+                                    <td class="py-3.5 pr-6 pl-4 align-middle text-right whitespace-nowrap">
+                                        <div class="flex items-center justify-end gap-1.5">
+                                            <a 
+                                                href="{{ $work->media_link }}" 
+                                                target="_blank" 
+                                                rel="noopener noreferrer"
+                                                class="inline-flex items-center gap-1 text-[11px] font-bold text-[#5e43f3] hover:underline bg-purple-50/70 hover:bg-purple-100 px-2.5 py-1.5 rounded-xl border border-purple-200 transition"
+                                                title="Buka Karya Digital Peserta"
+                                            >
+                                                <span>Buka</span>
+                                                <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                                </svg>
+                                            </a>
+                                            @if ($hasMyScore)
+                                                <button 
+                                                    type="button" 
+                                                    @click="confirmResetScore(@js($work))"
+                                                    class="p-1.5 rounded-xl text-rose-600 hover:bg-rose-50 border border-rose-200 transition shadow-2xs cursor-pointer"
+                                                    title="Reset Nilai Anda untuk karya ini"
+                                                >
+                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                    </svg>
+                                                </button>
+                                            @endif
+                                            <button 
+                                                type="button" 
+                                                @click="openScoring(@js($work))"
+                                                class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition shadow-xs cursor-pointer flex items-center gap-1 {{ $hasMyScore ? 'bg-emerald-600 hover:bg-emerald-700 text-white' : 'bg-[#5e43f3] hover:bg-indigo-700 text-white' }}"
+                                            >
+                                                <span>{{ $hasMyScore ? '✏️ Ubah Nilai' : '📝 Beri Nilai' }}</span>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="7" class="py-12 text-center text-slate-400">
+                                        Belum ada karya yang disetujui Admin masuk Top 10.
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
 
@@ -806,115 +1188,255 @@
                         </div>
                     </template>
 
+                    <!-- Banner Kewenangan Juri -->
+                    <div class="p-4 rounded-2xl bg-gradient-to-r from-indigo-50 via-purple-50 to-indigo-50 border border-indigo-200/80 text-indigo-950 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-2xl bg-indigo-600 text-white font-extrabold flex items-center justify-center text-sm shadow-xs shrink-0">
+                                <span x-text="'J' + myRole"></span>
+                            </div>
+                            <div>
+                                <div class="text-xs font-extrabold flex items-center gap-2">
+                                    <span class="text-slate-900" x-text="myRoleConfig?.name"></span>
+                                    <span class="px-2 py-0.5 rounded-md bg-indigo-600 text-white text-[10px] font-bold" x-text="'Bobot ' + (myRoleConfig?.weight || 0) + '%'"></span>
+                                </div>
+                                <p class="text-xs font-bold text-indigo-900 mt-0.5" x-text="myRoleConfig?.aspect"></p>
+                                <p class="text-[11px] text-slate-500 mt-0.5">
+                                    <span>Tanggung jawab: <strong x-text="myTotalItems + ' Subindikator'"></strong> • Skor Maksimal: <strong x-text="myMaxScore"></strong></span>
+                                </p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2 sm:self-center shrink-0">
+                            <div class="text-left sm:text-right px-3 py-1.5 rounded-xl bg-white border border-indigo-100 shadow-2xs">
+                                <span class="text-[10px] uppercase font-bold tracking-wider text-slate-400">Skala Penilaian</span>
+                                <div class="text-xs font-extrabold text-indigo-900">Tombol Likert 1 – 5</div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Identitas Peserta -->
                     <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex items-center justify-between gap-4">
-                        <div class="flex items-center gap-3">
+                        <div class="flex items-center gap-3 min-w-0">
                             <img 
                                 :src="scoringWork?.profile_photo_url || ('https://ui-avatars.com/api/?name=' + encodeURIComponent(scoringWork?.full_name || 'Peserta') + '&background=5E43F3&color=FFFFFF&size=200')" 
                                 :alt="scoringWork?.full_name"
-                                class="w-11 h-11 rounded-xl object-cover border border-slate-200 bg-white shrink-0 shadow-2xs"
+                                class="w-12 h-12 rounded-2xl object-cover border border-slate-200 bg-white shrink-0 shadow-2xs"
                                 x-on:error="$event.target.src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(scoringWork?.full_name || 'Peserta') + '&background=5E43F3&color=FFFFFF&size=200'"
                             >
-                            <div>
-                                <h4 class="font-extrabold text-slate-900 text-sm" x-text="scoringWork?.full_name"></h4>
-                                <p class="text-xs text-slate-600" x-text="scoringWork?.school_name + ' • ' + scoringWork?.regency_city"></p>
+                            <div class="truncate">
+                                <div class="flex items-center gap-2">
+                                    <h4 class="font-extrabold text-slate-900 text-sm truncate" x-text="scoringWork?.full_name"></h4>
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold"
+                                        :class="scoringWork?.learning_category === 'gim_edukasi' ? 'bg-amber-100 text-amber-800' : 'bg-sky-100 text-sky-800'"
+                                        x-text="scoringWork?.learning_category === 'gim_edukasi' ? 'Gim Edukasi' : 'Media Interaktif (MPI)'">
+                                    </span>
+                                </div>
+                                <p class="text-xs text-slate-600 truncate mt-0.5" x-text="scoringWork?.school_name + ' • ' + scoringWork?.regency_city"></p>
                             </div>
                         </div>
-                        <a :href="scoringWork?.media_link" target="_blank" class="px-3 py-1.5 rounded-xl bg-white border border-slate-300 text-[#5e43f3] font-bold text-xs hover:bg-slate-100 transition whitespace-nowrap">
-                            Buka Karya &rarr;
+                        <a :href="scoringWork?.media_link" target="_blank" class="px-3.5 py-2 rounded-xl bg-white border border-slate-300 text-[#5e43f3] hover:bg-indigo-50 font-bold text-xs transition whitespace-nowrap shadow-2xs flex items-center gap-1.5 shrink-0">
+                            <span>Buka Karya</span>
+                            <span>&rarr;</span>
                         </a>
                     </div>
 
-                    <!-- 4 Aspek Penilaian Sesuai Rubrik Bab IV -->
+                    <!-- Panel Nilai Akhir / Sementara Realtime (Tema Putih Bersih) -->
+                    <div class="p-4 rounded-2xl bg-white border border-slate-200 text-slate-800 space-y-3 shadow-2xs">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs uppercase font-extrabold tracking-wider" 
+                                    :class="liveRecap?.is_complete ? 'text-emerald-600' : 'text-amber-600'" 
+                                    x-text="liveRecap?.status_label || 'Nilai Sementara'">
+                                </span>
+                                <template x-if="liveRecap?.waiting_text">
+                                    <span class="px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 text-[10px] font-bold border border-amber-200" x-text="liveRecap.waiting_text"></span>
+                                </template>
+                                <template x-if="liveRecap?.is_complete">
+                                    <span class="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-bold border border-emerald-200">✓ Lengkap (3 Juri)</span>
+                                </template>
+                            </div>
+
+                            <!-- Sync Connection Status -->
+                            <div class="flex items-center gap-1.5 text-[10px]" title="Sinkronisasi otomatis realtime seiring juri menilai">
+                                <span class="w-2 h-2 rounded-full"
+                                    :class="syncStatus === 'connected' ? 'bg-emerald-500 animate-pulse' : (syncStatus === 'updating' ? 'bg-amber-500 animate-ping' : 'bg-rose-500')"></span>
+                                <span class="text-slate-500 font-medium" x-text="syncStatus === 'connected' ? '● Terhubung' : (syncStatus === 'updating' ? 'Memperbarui...' : '⚠️ Sambungan terputus')"></span>
+                            </div>
+                        </div>
+
+                        <!-- Skor Utama & Kontribusi Juri -->
+                        <div class="flex items-baseline justify-between pt-1 border-t border-slate-100">
+                            <div>
+                                <div class="text-[10px] uppercase font-bold text-slate-400">Total Nilai (Maks. 100)</div>
+                                <div class="text-3xl font-extrabold font-mono tracking-tight text-slate-900 transition-all duration-300 flex items-baseline gap-2">
+                                    <span x-text="liveRecap?.display_score || '0.00'"></span>
+                                    <span class="text-xs font-semibold text-slate-400" x-text="liveRecap?.is_complete ? '(Nilai Akhir Resmi)' : '(Sementara)'"></span>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-[10px] uppercase font-bold text-slate-400">Skor Anda (Juri <span x-text="myRole"></span>)</div>
+                                <div class="text-xl font-extrabold font-mono text-emerald-600">
+                                    <span x-text="myTotalScore + '/' + myMaxScore"></span>
+                                    <span class="text-xs font-normal text-slate-400 font-sans">(<span x-text="myWeightedScore.toFixed(2)"></span>)</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 3 Kolom Rincian Dewan Juri -->
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-2 border-t border-slate-100 text-[11px]">
+                            <!-- Juri 1 -->
+                            <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200/80 transition" :class="myRole === 1 ? 'ring-2 ring-indigo-500 bg-indigo-50/40 border-indigo-200' : ''">
+                                <div class="flex items-center justify-between">
+                                    <div class="font-bold text-slate-800 truncate" x-text="(liveRecap?.judges?.[1]?.name || 'Juri 1') + (myRole === 1 ? ' (Anda)' : '')"></div>
+                                    <span class="text-[9px] px-1.5 py-0.5 rounded bg-indigo-100 text-indigo-800 font-bold">55%</span>
+                                </div>
+                                <div class="text-[10px] text-slate-400 mt-0.5">Maksimal: 25 poin (5 subindikator)</div>
+                                <div class="mt-1 font-mono font-bold" :class="liveRecap?.judges?.[1]?.is_complete ? 'text-emerald-600' : 'text-amber-600'">
+                                    <template x-if="liveRecap?.judges?.[1]?.is_complete">
+                                        <span>Skor: <span x-text="liveRecap?.judges?.[1]?.total_score"></span> &rarr; <span class="text-xs text-slate-900 font-extrabold" x-text="Number(liveRecap?.judges?.[1]?.weighted_score).toFixed(2)"></span></span>
+                                    </template>
+                                    <template x-if="!liveRecap?.judges?.[1]?.is_complete">
+                                        <span x-text="liveRecap?.judges?.[1]?.progress_text || '0/5 terisi'"></span>
+                                    </template>
+                                </div>
+                            </div>
+
+                            <!-- Juri 2 -->
+                            <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200/80 transition" :class="myRole === 2 ? 'ring-2 ring-indigo-500 bg-indigo-50/40 border-indigo-200' : ''">
+                                <div class="flex items-center justify-between">
+                                    <div class="font-bold text-slate-800 truncate" x-text="(liveRecap?.judges?.[2]?.name || 'Juri 2') + (myRole === 2 ? ' (Anda)' : '')"></div>
+                                    <span class="text-[9px] px-1.5 py-0.5 rounded bg-indigo-100 text-indigo-800 font-bold">30%</span>
+                                </div>
+                                <div class="text-[10px] text-slate-400 mt-0.5">Maksimal: 20 poin (4 subindikator)</div>
+                                <div class="mt-1 font-mono font-bold" :class="liveRecap?.judges?.[2]?.is_complete ? 'text-emerald-600' : 'text-amber-600'">
+                                    <template x-if="liveRecap?.judges?.[2]?.is_complete">
+                                        <span>Skor: <span x-text="liveRecap?.judges?.[2]?.total_score"></span> &rarr; <span class="text-xs text-slate-900 font-extrabold" x-text="Number(liveRecap?.judges?.[2]?.weighted_score).toFixed(2)"></span></span>
+                                    </template>
+                                    <template x-if="!liveRecap?.judges?.[2]?.is_complete">
+                                        <span x-text="liveRecap?.judges?.[2]?.progress_text || '0/4 terisi'"></span>
+                                    </template>
+                                </div>
+                            </div>
+
+                            <!-- Juri 3 -->
+                            <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200/80 transition" :class="myRole === 3 ? 'ring-2 ring-indigo-500 bg-indigo-50/40 border-indigo-200' : ''">
+                                <div class="flex items-center justify-between">
+                                    <div class="font-bold text-slate-800 truncate" x-text="(liveRecap?.judges?.[3]?.name || 'Juri 3') + (myRole === 3 ? ' (Anda)' : '')"></div>
+                                    <span class="text-[9px] px-1.5 py-0.5 rounded bg-indigo-100 text-indigo-800 font-bold">15%</span>
+                                </div>
+                                <div class="text-[10px] text-slate-400 mt-0.5">Maksimal: 15 poin (3 subindikator)</div>
+                                <div class="mt-1 font-mono font-bold" :class="liveRecap?.judges?.[3]?.is_complete ? 'text-emerald-600' : 'text-amber-600'">
+                                    <template x-if="liveRecap?.judges?.[3]?.is_complete">
+                                        <span>Skor: <span x-text="liveRecap?.judges?.[3]?.total_score"></span> &rarr; <span class="text-xs text-slate-900 font-extrabold" x-text="Number(liveRecap?.judges?.[3]?.weighted_score).toFixed(2)"></span></span>
+                                    </template>
+                                    <template x-if="!liveRecap?.judges?.[3]?.is_complete">
+                                        <span x-text="liveRecap?.judges?.[3]?.progress_text || '0/3 terisi'"></span>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Formulir 12 Subindikator Penilaian Juri -->
                     <div class="space-y-4">
-                        <!-- Aspek 1: Pedagogis (30%) -->
-                        <div class="p-4 rounded-2xl border border-slate-200 bg-white space-y-2">
-                            <div class="flex items-center justify-between">
-                                <span class="font-bold text-slate-900 text-xs">1. Aspek Pedagogis &amp; Subjek Materi (Bobot: 30%)</span>
-                                <span class="font-mono font-bold text-xs text-emerald-700" x-text="pedagogical"></span>
+                        <div class="flex items-center justify-between pb-1 border-b border-slate-200">
+                            <div>
+                                <h4 class="font-extrabold text-slate-900 text-xs uppercase tracking-wider" x-text="myRoleConfig?.aspect"></h4>
+                                <p class="text-[11px] text-slate-500">Pilih skala 1 sampai 5 untuk setiap subindikator berikut (nilai otomatis dihitung):</p>
                             </div>
-                            <p class="text-[11px] text-slate-500 leading-relaxed">
-                                • Kebenaran &amp; keakuratan substansi materi pelajaran SMA/SMK<br>
-                                • Kesesuaian dengan Capaian Pembelajaran Kurikulum<br>
-                                • Kejelasan alur penyampaian konsep &amp; efektivitas umpan balik (feedback) belajar
-                            </p>
-                            <div class="flex items-center gap-3 pt-1">
-                                <input type="range" min="0" max="100" x-model.number="pedagogical" class="w-full accent-emerald-600 cursor-pointer">
-                                <input type="number" min="0" max="100" x-model.number="pedagogical" class="w-16 px-2 py-1 text-center font-mono font-bold rounded-lg border border-slate-200 text-xs">
+                            <div class="text-right">
+                                <span class="text-[11px] font-extrabold px-3 py-1 rounded-xl shadow-2xs"
+                                    :class="isMyScoringComplete ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-amber-100 text-amber-800 border border-amber-300'">
+                                    <span x-text="myFilledCount + '/' + myTotalItems + ' Terisi'"></span>
+                                </span>
                             </div>
                         </div>
 
-                        <!-- Aspek 2: Kreativitas & Visual (30%) -->
-                        <div class="p-4 rounded-2xl border border-slate-200 bg-white space-y-2">
-                            <div class="flex items-center justify-between">
-                                <span class="font-bold text-slate-900 text-xs">2. Aspek Kreativitas &amp; Desain Visual (Bobot: 30%)</span>
-                                <span class="font-mono font-bold text-xs text-emerald-700" x-text="creativity"></span>
-                            </div>
-                            <p class="text-[11px] text-slate-500 leading-relaxed">
-                                • Keaslian/orisinalitas ide &amp; keunikan konsep media/gim<br>
-                                • Kualitas tata letak (layout), pilihan warna, tipografi, dan estetika visual<br>
-                                • Desain karakter/elemen permainan (khusus Gim) atau kerapian UI/UX (khusus MPI)
-                            </p>
-                            <div class="flex items-center gap-3 pt-1">
-                                <input type="range" min="0" max="100" x-model.number="creativity" class="w-full accent-emerald-600 cursor-pointer">
-                                <input type="number" min="0" max="100" x-model.number="creativity" class="w-16 px-2 py-1 text-center font-mono font-bold rounded-lg border border-slate-200 text-xs">
-                            </div>
+                        <!-- Skala Keterangan Likert 1 - 5 -->
+                        <div class="grid grid-cols-5 gap-1.5 text-[11px] text-center p-2.5 rounded-2xl bg-slate-100/90 border border-slate-200/80 font-semibold text-slate-700 shadow-2xs">
+                            <div class="p-1 rounded-lg bg-white/70 border border-slate-200/60"><strong class="text-slate-900">1:</strong> Sangat Kurang</div>
+                            <div class="p-1 rounded-lg bg-white/70 border border-slate-200/60"><strong class="text-slate-900">2:</strong> Kurang</div>
+                            <div class="p-1 rounded-lg bg-white/70 border border-slate-200/60"><strong class="text-slate-900">3:</strong> Cukup</div>
+                            <div class="p-1 rounded-lg bg-white/70 border border-slate-200/60"><strong class="text-slate-900">4:</strong> Baik</div>
+                            <div class="p-1 rounded-lg bg-white/70 border border-slate-200/60"><strong class="text-slate-900">5:</strong> Sangat Baik</div>
                         </div>
 
-                        <!-- Aspek 3: Teknis & Interaktivitas (25%) -->
-                        <div class="p-4 rounded-2xl border border-slate-200 bg-white space-y-2">
-                            <div class="flex items-center justify-between">
-                                <span class="font-bold text-slate-900 text-xs">3. Aspek Kualitas Teknis &amp; Interaktivitas (Bobot: 25%)</span>
-                                <span class="font-mono font-bold text-xs text-emerald-700" x-text="technical"></span>
-                            </div>
-                            <p class="text-[11px] text-slate-500 leading-relaxed">
-                                • Kemudahan navigasi, responsivitas kontrol, &amp; kebebasan dari kesalahan teknis (bug/crash)<br>
-                                • Kecepatan pemuatan (loading time) dan kemudahan pengoperasian<br>
-                                • Kedalaman tingkat interaktivitas antara pengguna dengan media/gim
-                            </p>
-                            <div class="flex items-center gap-3 pt-1">
-                                <input type="range" min="0" max="100" x-model.number="technical" class="w-full accent-emerald-600 cursor-pointer">
-                                <input type="number" min="0" max="100" x-model.number="technical" class="w-16 px-2 py-1 text-center font-mono font-bold rounded-lg border border-slate-200 text-xs">
-                            </div>
-                        </div>
+                        <!-- Daftar Subindikator Sesuai Peran Juri -->
+                        <div class="space-y-3.5">
+                            <template x-for="(text, idx) in (myRoleConfig?.subindicators || {})" :key="idx">
+                                <div class="p-4 rounded-2xl border transition-all"
+                                    :class="subindicators[idx] ? 'border-emerald-300 bg-white shadow-xs ring-1 ring-emerald-500/20' : 'border-slate-200 bg-white hover:border-slate-300'">
+                                    <div class="flex items-start justify-between gap-3 mb-3">
+                                        <div class="flex items-start gap-2.5">
+                                            <span class="w-6 h-6 rounded-lg bg-indigo-50 border border-indigo-200 text-indigo-700 font-extrabold text-xs flex items-center justify-center shrink-0 mt-0.5" x-text="idx"></span>
+                                            <p class="text-xs font-bold text-slate-800 leading-snug" x-text="text"></p>
+                                        </div>
+                                        <template x-if="subindicators[idx]">
+                                            <span class="px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-800 font-mono font-bold text-xs border border-emerald-200 shrink-0 shadow-2xs">
+                                                Skor: <span class="text-emerald-700 font-extrabold" x-text="subindicators[idx]"></span>
+                                            </span>
+                                        </template>
+                                    </div>
 
-                        <!-- Aspek 4: Presentasi & Dampak (15%) -->
-                        <div class="p-4 rounded-2xl border border-slate-200 bg-white space-y-2">
-                            <div class="flex items-center justify-between">
-                                <span class="font-bold text-slate-900 text-xs">4. Aspek Presentasi &amp; Dampak Penerapan (Bobot: 15%)</span>
-                                <span class="font-mono font-bold text-xs text-emerald-700" x-text="presentation"></span>
-                            </div>
-                            <p class="text-[11px] text-slate-500 leading-relaxed">
-                                • Penguasaan materi &amp; kemampuan mempertahankan argumen di depan Dewan Juri<br>
-                                • Kejujuran demonstrasi produk secara langsung<br>
-                                • Potensi &amp; kepraktisan implementasi karya di dalam kelas secara berkelanjutan
-                            </p>
-                            <div class="flex items-center gap-3 pt-1">
-                                <input type="range" min="0" max="100" x-model.number="presentation" class="w-full accent-emerald-600 cursor-pointer">
-                                <input type="number" min="0" max="100" x-model.number="presentation" class="w-16 px-2 py-1 text-center font-mono font-bold rounded-lg border border-slate-200 text-xs">
-                            </div>
+                                    <!-- Tombol Pilihan 1-5 (Ukuran Touch-Friendly >= 44px) -->
+                                    <div class="flex items-center justify-between gap-2 pt-1" role="radiogroup" :aria-label="'Nilai subindikator ' + idx">
+                                        <template x-for="val in [1, 2, 3, 4, 5]" :key="val">
+                                            <button 
+                                                type="button"
+                                                @click="setSubindicatorScore(idx, val)"
+                                                tabindex="0"
+                                                class="flex-1 min-w-[44px] min-h-[44px] h-12 rounded-xl font-extrabold text-sm flex flex-col items-center justify-center transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#5e43f3] focus:ring-offset-1 select-none"
+                                                :class="subindicators[idx] === val 
+                                                    ? 'bg-gradient-to-br from-indigo-600 to-[#5e43f3] text-white shadow-md ring-2 ring-indigo-400 scale-[1.03]' 
+                                                    : 'bg-slate-100 hover:bg-slate-200/90 text-slate-700 border border-slate-200/80 hover:border-slate-300 active:scale-95'"
+                                                :aria-checked="subindicators[idx] === val ? 'true' : 'false'"
+                                                role="radio"
+                                            >
+                                                <span class="text-sm font-extrabold font-mono" x-text="val"></span>
+                                                <span class="text-[9px] font-medium opacity-85 hidden sm:inline" x-text="val === 1 ? 'S.Kurang' : (val === 2 ? 'Kurang' : (val === 3 ? 'Cukup' : (val === 4 ? 'Baik' : 'S.Baik')))"></span>
+                                            </button>
+                                        </template>
+                                    </div>
+                                </div>
+                            </template>
                         </div>
 
                         <!-- Catatan Evaluasi Juri -->
-                        <div class="space-y-1">
+                        <div class="space-y-1.5 pt-2">
                             <label class="block text-xs font-bold text-slate-700">Catatan Masukan / Umpan Balik (Opsional):</label>
-                            <textarea x-model="notes" rows="3" placeholder="Tuliskan apresiasi, masukan perbaikan, atau catatan khusus dewan juri..." class="w-full p-3 text-xs rounded-xl border border-slate-200 focus:border-emerald-600 outline-none"></textarea>
+                            <textarea x-model="notes" rows="3" placeholder="Tuliskan apresiasi, masukan perbaikan, atau catatan khusus dewan juri..." class="w-full p-3 text-xs rounded-xl border border-slate-200 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 outline-none"></textarea>
                         </div>
                     </div>
                 </div>
 
                 <!-- Modal Footer -->
-                <div class="p-5 bg-slate-50 border-t border-slate-100 flex items-center justify-between shrink-0">
+                <div class="p-5 bg-slate-50 border-t border-slate-100 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 shrink-0">
                     <div>
-                        <span class="text-xs text-slate-500">Nilai Akhir Terbobot:</span>
-                        <div class="text-2xl font-extrabold text-emerald-700 font-mono" x-text="calculatedTotal"></div>
+                        <span class="text-xs text-slate-500 font-medium">Progres Penilaian Juri <span x-text="myRole"></span>:</span>
+                        <div class="text-sm font-extrabold font-mono"
+                            :class="isMyScoringComplete ? 'text-emerald-700' : 'text-amber-700'">
+                            <span x-text="myFilledCount + ' dari ' + myTotalItems + ' Subindikator Dinilai (' + myTotalScore + '/' + myMaxScore + ' Poin)'"></span>
+                        </div>
                     </div>
-                    <div class="flex items-center gap-2">
+                    <div class="flex items-center justify-end gap-2">
+                        <template x-if="hasExistingScore">
+                            <button type="button" @click="resetCurrentScore()" class="px-4 py-2.5 rounded-xl border border-rose-300 text-rose-600 font-bold text-xs hover:bg-rose-50 transition cursor-pointer flex items-center gap-1.5">
+                                <span>🗑️</span>
+                                <span>Reset Penilaian</span>
+                            </button>
+                        </template>
                         <button type="button" @click="closeScoring()" class="px-4 py-2.5 rounded-xl border border-slate-300 text-slate-700 font-bold text-xs hover:bg-slate-100 transition cursor-pointer">
                             Batal
                         </button>
-                        <button type="button" @click="submitScore()" :disabled="isSubmittingScore" class="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md shadow-emerald-600/20 transition cursor-pointer flex items-center gap-2">
-                            <span x-text="isSubmittingScore ? 'Menyimpan...' : 'Simpan Nilai Resmi'"></span>
+                        <button 
+                            type="button" 
+                            @click="submitScore()" 
+                            :disabled="!isMyScoringComplete || isSubmittingScore" 
+                            class="px-6 py-2.5 rounded-xl text-white font-bold text-xs shadow-md transition cursor-pointer flex items-center gap-2"
+                            :class="isMyScoringComplete 
+                                ? 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/20' 
+                                : 'bg-slate-400 cursor-not-allowed opacity-75'"
+                        >
+                            <span x-text="isSubmittingScore ? 'Menyimpan...' : (isMyScoringComplete ? 'Simpan Nilai Resmi' : ('Lengkapi ' + myFilledCount + '/' + myTotalItems))"></span>
                         </button>
                     </div>
                 </div>
@@ -1443,13 +1965,139 @@
             </div>
         </div>
 
+        <!-- ======================================================= -->
+        <!-- 4. MODAL KONFIRMASI RESET PENILAIAN KARYA (POPOVER)    -->
+        <!-- ======================================================= -->
+        <div 
+            x-show="resetTarget !== null" 
+            x-cloak
+            x-transition:enter="transition ease-out duration-200"
+            x-transition:enter-start="opacity-0"
+            x-transition:enter-end="opacity-100"
+            x-transition:leave="transition ease-in duration-150"
+            x-transition:leave-start="opacity-100"
+            x-transition:leave-end="opacity-0"
+            class="fixed inset-0 z-[999999] overflow-y-auto flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-xs"
+            @keydown.escape.window="closeResetModal()"
+        >
+            <div 
+                @click.outside="closeResetModal()"
+                x-show="resetTarget !== null"
+                x-transition:enter="transition ease-out duration-200"
+                x-transition:enter-start="opacity-0 scale-95 translate-y-2"
+                x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                x-transition:leave="transition ease-in duration-150"
+                x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+                x-transition:leave-end="opacity-0 scale-95 translate-y-2"
+                class="bg-white rounded-3xl max-w-md w-full p-6 sm:p-7 text-center shadow-2xl border border-slate-200 relative overflow-hidden transition-all duration-300"
+            >
+                <!-- State 1: Konfirmasi Reset Nilai -->
+                <div x-show="!resetSuccess" class="space-y-4">
+                    <div class="w-20 h-20 mx-auto mb-2 relative">
+                        <img 
+                            :src="resetTarget?.profile_photo_url || ('https://ui-avatars.com/api/?name=' + encodeURIComponent(resetTarget?.full_name || 'Peserta') + '&background=5E43F3&color=FFFFFF&size=200')" 
+                            :alt="resetTarget?.full_name" 
+                            class="w-20 h-20 rounded-3xl object-cover border border-slate-200 shadow-sm bg-slate-100"
+                            x-on:error="$event.target.src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(resetTarget?.full_name || 'Peserta') + '&background=5E43F3&color=FFFFFF&size=200'"
+                        >
+                        <div class="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-rose-500 text-white flex items-center justify-center shadow-md ring-2 ring-white text-xs">
+                            🗑️
+                        </div>
+                    </div>
+
+                    <div>
+                        <h3 class="text-lg sm:text-xl font-extrabold text-slate-900 mb-1">
+                            Reset Penilaian Karya?
+                        </h3>
+                        <p class="text-xs sm:text-sm text-slate-500">
+                            Apakah Anda yakin ingin mereset dan mengosongkan nilai Anda untuk karya ini?
+                        </p>
+                    </div>
+
+                    <div class="bg-slate-50 rounded-2xl p-4 border border-slate-200/80 text-left space-y-1.5">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Nomor Registrasi</span>
+                            <span class="px-2 py-0.5 rounded text-[11px] font-mono font-bold bg-purple-50 text-[#5e43f3]" x-text="resetTarget?.registration_number"></span>
+                        </div>
+                        <div class="text-sm font-bold text-slate-800" x-text="resetTarget?.full_name"></div>
+                        <div class="text-xs text-slate-500" x-text="(resetTarget?.school_name || '') + ' • ' + (resetTarget?.regency_city || '')"></div>
+                    </div>
+
+                    <div class="p-3 rounded-xl bg-amber-50 border border-amber-200/80 text-amber-800 text-xs text-left flex items-start gap-2">
+                        <svg class="w-4 h-4 text-amber-600 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
+                        <span>Nilai subindikator Anda pada karya ini akan dihapus. Rekapitulasi nilai akhir karya akan kembali menjadi <strong>Nilai Sementara</strong>.</span>
+                    </div>
+
+                    <div class="flex items-center gap-3 pt-1">
+                        <button 
+                            type="button" 
+                            :disabled="isResettingScore"
+                            @click="closeResetModal()"
+                            class="flex-1 py-2.5 px-4 rounded-xl border border-slate-300 hover:bg-slate-100 disabled:opacity-50 text-slate-700 font-bold text-xs transition cursor-pointer"
+                        >
+                            Batal
+                        </button>
+                        <button 
+                            type="button" 
+                            :disabled="isResettingScore"
+                            @click="executeResetScore()"
+                            class="flex-1 py-2.5 px-4 rounded-xl bg-rose-600 hover:bg-rose-700 disabled:bg-rose-400 text-white font-bold text-xs shadow-md shadow-rose-600/30 transition cursor-pointer flex items-center justify-center gap-2"
+                        >
+                            <svg x-show="isResettingScore" class="animate-spin w-4 h-4 text-white" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            <span x-text="isResettingScore ? 'Mereset...' : 'Ya, Reset Nilai'"></span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- State 2: Sukses Reset (Hijau / Emerald) -->
+                <div x-show="resetSuccess" class="space-y-4 py-2">
+                    <div class="w-20 h-20 mx-auto rounded-3xl bg-emerald-50 border-2 border-emerald-200 flex items-center justify-center text-emerald-600 shadow-xl shadow-emerald-500/10">
+                        <svg class="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+                        </svg>
+                    </div>
+
+                    <div>
+                        <h3 class="text-lg sm:text-xl font-extrabold text-slate-900 mb-1">
+                            Nilai Berhasil Direset!
+                        </h3>
+                        <p class="text-xs sm:text-sm text-slate-500" x-text="resetSuccessMsg || 'Nilai Anda telah dihapus dan karya kembali berstatus Belum dinilai.'">
+                        </p>
+                    </div>
+
+                    <div class="pt-2">
+                        <button 
+                            type="button" 
+                            @click="closeResetModal(true)"
+                            class="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md shadow-emerald-600/30 transition cursor-pointer"
+                        >
+                            Selesai
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
+
+    <!-- Data Awal Rekap Penilaian & Peringkat Multi-Juri Realtime -->
+    <script id="judge-recap-initial-data" type="application/json">
+        {!! json_encode([
+            'scores' => $initialScoresMap ?? [],
+            'ranks' => $initialRanksMap ?? [],
+        ]) !!}
+    </script>
 
     <script>
         function judgeDashboard() {
             return {
                 activeTab: @json($activeTab ?? 'finalists'),
-                selectedCategory: @json($category ?? 'all'),
+                selectedCategory: @json(!empty($judge->category) ? $judge->category : ($category ?? 'all')),
                 searchQuery: @json($search ?? ''),
                 viewMode: localStorage.getItem('judge_view_mode') || 'grid',
                 isFormOpen: {{ $isFormOpen ? 'true' : 'false' }},
@@ -1458,6 +2106,18 @@
                     this.viewMode = mode;
                     localStorage.setItem('judge_view_mode', mode);
                 },
+
+                // Realtime Scoring & Rankings Map (Sama seperti Panel Admin)
+                scoresMap: {},
+                ranksMap: {},
+                rekapPollTimer: null,
+                rekapPollStatus: 'connected',
+
+                // Reset Score Modal State
+                resetTarget: null,
+                isResettingScore: false,
+                resetSuccess: false,
+                resetSuccessMsg: '',
 
                 // Suggestion Quota State & Map
                 myGimSuggestions: {{ (int) ($stats['my_gim_suggestions'] ?? 0) }},
@@ -1657,15 +2317,128 @@
                     }
                 },
 
-                // Scoring State
+                // Scoring & Realtime Rubrik State
                 scoringWork: null,
-                pedagogical: 0,
-                creativity: 0,
-                technical: 0,
-                presentation: 0,
+                hasExistingScore: false,
+                subindicators: {},
                 notes: '',
                 isSubmittingScore: false,
                 scoreSuccessMsg: null,
+                syncStatus: 'connected',
+                recapData: null,
+                recapPollInterval: null,
+
+                rubricRoles: @json($rubricRoles ?? \App\Services\RubricService::getRoles()),
+                rubricScale: @json($rubricScale ?? \App\Services\RubricService::getScale()),
+                myRole: @json($myRole ?? ($judge->judge_role ?? ($judge->judge_code === 'J1' ? 1 : ($judge->judge_code === 'J2' ? 2 : ($judge->judge_code === 'J3' ? 3 : 1))))),
+                myRoleConfig: @json($myRoleConfig ?? \App\Services\RubricService::getRoleConfig($judge->judge_role ?? 1)),
+
+                setSubindicatorScore(idx, val) {
+                    this.subindicators[idx] = parseInt(val);
+                },
+
+                get myFilledCount() {
+                    if (!this.myRoleConfig || !this.myRoleConfig.subindicators) return 0;
+                    let count = 0;
+                    for (let k in this.myRoleConfig.subindicators) {
+                        let v = parseInt(this.subindicators[k]);
+                        if (v >= 1 && v <= 5) count++;
+                    }
+                    return count;
+                },
+
+                get myTotalItems() {
+                    if (!this.myRoleConfig || !this.myRoleConfig.subindicators) return 0;
+                    return Object.keys(this.myRoleConfig.subindicators).length;
+                },
+
+                get myTotalScore() {
+                    let total = 0;
+                    for (let k in this.subindicators) {
+                        let v = parseInt(this.subindicators[k]);
+                        if (v >= 1 && v <= 5) total += v;
+                    }
+                    return total;
+                },
+
+                get myMaxScore() {
+                    return this.myRoleConfig ? this.myRoleConfig.max_score : 25;
+                },
+
+                get myWeight() {
+                    return this.myRoleConfig ? this.myRoleConfig.weight : 55;
+                },
+
+                get myWeightedScore() {
+                    if (this.myFilledCount < this.myTotalItems || this.myMaxScore <= 0) return 0.0;
+                    let score = (this.myTotalScore / this.myMaxScore) * this.myWeight;
+                    return parseFloat(score.toFixed(2));
+                },
+
+                get isMyScoringComplete() {
+                    return this.myFilledCount === this.myTotalItems && this.myTotalItems > 0;
+                },
+
+                get liveRecap() {
+                    // Kloning objek rekap dari server atau fallback kosong
+                    let base = this.recapData || (this.scoringWork ? (this.scoringWork.recap || null) : null);
+                    let copy = base ? JSON.parse(JSON.stringify(base)) : {
+                        is_complete: false,
+                        status_label: 'Nilai Sementara',
+                        display_score: '0.00',
+                        interim_score: 0.0,
+                        final_score: null,
+                        waiting_judges: ['Juri 1', 'Juri 2', 'Juri 3'],
+                        waiting_text: 'Menunggu: Juri 1, Juri 2, Juri 3',
+                        judges: {}
+                    };
+
+                    if (!copy.judges) copy.judges = {};
+
+                    // Suntikkan pratinjau realtime nilai juri yang sedang aktif mengisi
+                    let r = this.myRole;
+                    if (!copy.judges[r]) {
+                        copy.judges[r] = {
+                            role: r,
+                            name: this.myRoleConfig?.name || ('Juri ' + r),
+                            weight: this.myWeight,
+                            max_score: this.myMaxScore,
+                        };
+                    }
+
+                    copy.judges[r].total_score = this.myTotalScore;
+                    copy.judges[r].filled_count = this.myFilledCount;
+                    copy.judges[r].items_count = this.myTotalItems;
+                    copy.judges[r].progress_text = this.myFilledCount + '/' + this.myTotalItems + ' terisi';
+                    copy.judges[r].is_complete = this.isMyScoringComplete;
+                    copy.judges[r].weighted_score = this.isMyScoringComplete ? this.myWeightedScore : 0.0;
+
+                    // Hitung ulang Nilai Akhir / Sementara secara live
+                    let completedCount = 0;
+                    let sumWeighted = 0;
+                    let waiting = [];
+
+                    for (let j = 1; j <= 3; j++) {
+                        let jData = copy.judges[j];
+                        if (jData && jData.is_complete) {
+                            completedCount++;
+                            sumWeighted += parseFloat(jData.weighted_score || 0);
+                        } else {
+                            waiting.push('Juri ' + j);
+                        }
+                    }
+
+                    copy.completed_judges_count = completedCount;
+                    copy.is_complete = (completedCount === 3);
+                    copy.status_label = copy.is_complete ? 'Nilai Akhir' : 'Nilai Sementara';
+                    copy.interim_score = parseFloat(sumWeighted.toFixed(2));
+                    copy.final_score = copy.is_complete ? copy.interim_score : null;
+                    copy.display_score = copy.interim_score.toFixed(2);
+                    copy.waiting_judges = waiting;
+                    copy.waiting_text = waiting.length > 0 ? ('Menunggu: ' + waiting.join(', ')) : null;
+
+                    return copy;
+                },
 
                 // Profile State
                 showProfileModal: false,
@@ -1682,30 +2455,71 @@
                         work.profile_photo_url = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(work.full_name || 'Peserta') + '&background=5E43F3&color=FFFFFF&size=200';
                     }
                     this.scoringWork = work;
-                    const existingScore = work.judge_scores && work.judge_scores.length > 0 ? work.judge_scores[0] : null;
-                    this.pedagogical = existingScore ? existingScore.pedagogical_score : 80;
-                    this.creativity = existingScore ? existingScore.creativity_score : 80;
-                    this.technical = existingScore ? existingScore.technical_score : 80;
-                    this.presentation = existingScore ? existingScore.presentation_score : 80;
-                    this.notes = existingScore ? (existingScore.notes || '') : '';
+                    this.subindicators = {};
+
+                    // Muat subindikator yang tersimpan sebelumnya jika ada
+                    if (work.my_subindicators && typeof work.my_subindicators === 'object') {
+                        for (let k in work.my_subindicators) {
+                            this.subindicators[k] = parseInt(work.my_subindicators[k]);
+                        }
+                    }
+
+                    this.hasExistingScore = (work.my_status && work.my_status !== 'Belum dinilai');
+                    this.notes = (work.judge_scores && work.judge_scores.length > 0) ? (work.judge_scores[0].notes || '') : '';
                     this.scoreSuccessMsg = null;
+                    this.recapData = work.recap || null;
+
+                    this.startRecapPolling();
                 },
 
                 closeScoring() {
                     this.scoringWork = null;
+                    this.subindicators = {};
+                    this.stopRecapPolling();
                 },
 
-                get calculatedTotal() {
-                    const p = parseFloat(this.pedagogical) || 0;
-                    const c = parseFloat(this.creativity) || 0;
-                    const t = parseFloat(this.technical) || 0;
-                    const pr = parseFloat(this.presentation) || 0;
-                    const total = (p * 0.30) + (c * 0.30) + (t * 0.25) + (pr * 0.15);
-                    return total.toFixed(2);
+                async pollCurrentWorkRecap() {
+                    if (!this.scoringWork) return;
+                    try {
+                        this.syncStatus = 'updating';
+                        const res = await fetch('/realtime/works/' + this.scoringWork.id + '/score-recap', {
+                            headers: { 'Accept': 'application/json' }
+                        });
+                        if (res.ok) {
+                            const data = await res.json();
+                            this.recapData = data;
+                            this.syncStatus = 'connected';
+                        } else {
+                            this.syncStatus = 'error';
+                        }
+                    } catch (e) {
+                        this.syncStatus = 'error';
+                    }
+                },
+
+                startRecapPolling() {
+                    this.stopRecapPolling();
+                    this.pollCurrentWorkRecap();
+                    this.recapPollInterval = setInterval(() => {
+                        this.pollCurrentWorkRecap();
+                    }, 3000);
+                },
+
+                stopRecapPolling() {
+                    if (this.recapPollInterval) {
+                        clearInterval(this.recapPollInterval);
+                        this.recapPollInterval = null;
+                    }
                 },
 
                 async submitScore() {
                     if (!this.scoringWork || this.isSubmittingScore) return;
+
+                    if (!this.isMyScoringComplete) {
+                        alert('Seluruh ' + this.myTotalItems + ' subindikator wajib dinilai sebelum menyimpan (saat ini: ' + this.myFilledCount + '/' + this.myTotalItems + ' terisi).');
+                        return;
+                    }
+
                     this.isSubmittingScore = true;
                     this.scoreSuccessMsg = null;
 
@@ -1720,10 +2534,7 @@
                                 'X-Requested-With': 'XMLHttpRequest'
                             },
                             body: JSON.stringify({
-                                pedagogical_score: this.pedagogical,
-                                creativity_score: this.creativity,
-                                technical_score: this.technical,
-                                presentation_score: this.presentation,
+                                subindicators: this.subindicators,
                                 notes: this.notes
                             })
                         });
@@ -1731,6 +2542,14 @@
                         const data = await res.json();
                         if (res.ok && data.success) {
                             this.scoreSuccessMsg = data.message;
+                            if (data.recap) {
+                                this.recapData = data.recap;
+                                this.scoringWork.recap = data.recap;
+                                this.scoringWork.my_status = 'Sudah dinilai';
+                                this.scoresMap[this.scoringWork.id] = data.recap;
+                            }
+                            this.hasExistingScore = true;
+                            this.pollFinalistsRecap();
                             setTimeout(() => {
                                 window.location.reload();
                             }, 1200);
@@ -1742,6 +2561,73 @@
                     } finally {
                         this.isSubmittingScore = false;
                     }
+                },
+
+                confirmResetScore(work) {
+                    if (!work) return;
+                    this.resetTarget = work;
+                    this.resetSuccess = false;
+                    this.isResettingScore = false;
+                    this.resetSuccessMsg = '';
+                },
+
+                closeResetModal(reload = false) {
+                    if (this.isResettingScore) return;
+                    const shouldReload = this.resetSuccess || reload;
+                    this.resetTarget = null;
+                    this.resetSuccess = false;
+                    this.isResettingScore = false;
+                    if (shouldReload) {
+                        window.location.reload();
+                    }
+                },
+
+                async executeResetScore() {
+                    if (!this.resetTarget || this.isResettingScore) return;
+                    this.isResettingScore = true;
+                    const work = this.resetTarget;
+                    const token = document.querySelector('meta[name=csrf-token]')?.getAttribute('content') || '{{ csrf_token() }}';
+                    try {
+                        const res = await fetch('/judge/works/' + work.id + '/score', {
+                            method: 'DELETE',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': token,
+                                'X-Requested-With': 'XMLHttpRequest'
+                            }
+                        });
+                        const data = await res.json();
+                        if (res.ok && data.success) {
+                            this.resetSuccess = true;
+                            this.resetSuccessMsg = data.message || 'Nilai Anda untuk karya ini berhasil direset.';
+                            this.subindicators = {};
+                            this.hasExistingScore = false;
+                            if (data.recap) {
+                                this.scoresMap[work.id] = data.recap;
+                            }
+                            this.pollFinalistsRecap();
+                            if (this.scoringWork && this.scoringWork.id === work.id) {
+                                this.scoringWork.my_status = 'Belum dinilai';
+                                if (data.recap) {
+                                    this.recapData = data.recap;
+                                    this.scoringWork.recap = data.recap;
+                                }
+                                this.closeScoring();
+                            }
+                        } else {
+                            alert(data.message || 'Gagal mereset nilai.');
+                            this.isResettingScore = false;
+                        }
+                    } catch (e) {
+                        alert('Gagal menghubungi server.');
+                        this.isResettingScore = false;
+                    }
+                },
+
+                async resetCurrentScore() {
+                    if (!this.scoringWork) return;
+                    this.confirmResetScore(this.scoringWork);
                 },
 
                 // Judge Popover & Modal State
@@ -1797,11 +2683,59 @@
                     this.hoveredJudge = null;
                 },
 
+                async pollFinalistsRecap() {
+                    try {
+                        const res = await fetch('{{ route('realtime.category-recap') }}', {
+                            headers: { 'Accept': 'application/json' }
+                        });
+                        if (res.ok) {
+                            const data = await res.json();
+                            if (data && data.works) {
+                                data.works.forEach(w => {
+                                    this.scoresMap[w.id] = w.multi_recap;
+                                    this.ranksMap[w.id] = w.category_rank;
+                                });
+                                this.rekapPollStatus = 'connected';
+                            }
+                        } else {
+                            this.rekapPollStatus = 'error';
+                        }
+                    } catch (e) {
+                        this.rekapPollStatus = 'error';
+                    }
+                },
+
+                startFinalistsRecapPolling() {
+                    this.stopFinalistsRecapPolling();
+                    this.pollFinalistsRecap();
+                    this.rekapPollTimer = setInterval(() => {
+                        this.pollFinalistsRecap();
+                    }, 3500);
+                },
+
+                stopFinalistsRecapPolling() {
+                    if (this.rekapPollTimer) {
+                        clearInterval(this.rekapPollTimer);
+                        this.rekapPollTimer = null;
+                    }
+                },
+
                 get isAnyModalOpen() {
-                    return !!(this.scoringWork !== null || this.showProfileModal || this.isJudgeModalOpen || this.suggestionWork !== null);
+                    return !!(this.scoringWork !== null || this.showProfileModal || this.isJudgeModalOpen || this.suggestionWork !== null || this.resetTarget !== null);
                 },
 
                 init() {
+                    try {
+                        const initEl = document.getElementById('judge-recap-initial-data');
+                        if (initEl && initEl.textContent) {
+                            const parsed = JSON.parse(initEl.textContent);
+                            this.scoresMap = parsed.scores || {};
+                            this.ranksMap = parsed.ranks || {};
+                        }
+                    } catch (e) {
+                        console.error('Failed to parse judge initial recap data', e);
+                    }
+
                     this.$watch('isAnyModalOpen', (isOpen) => {
                         if (isOpen) {
                             document.body.classList.add('overflow-hidden');
@@ -1811,6 +2745,18 @@
                             document.documentElement.classList.remove('overflow-hidden');
                         }
                     });
+
+                    this.$watch('activeTab', (val) => {
+                        if (val === 'finalists') {
+                            this.startFinalistsRecapPolling();
+                        } else {
+                            this.stopFinalistsRecapPolling();
+                        }
+                    });
+
+                    if (this.activeTab === 'finalists') {
+                        this.startFinalistsRecapPolling();
+                    }
                 }
             };
         }

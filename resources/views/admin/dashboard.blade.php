@@ -1,8 +1,16 @@
 <x-layouts.app title="Dashboard Panitia — EduTech Festival BTIKP" maxWidth="max-w-7xl">
+    @php
+        $initialRecapJson = [
+            'scores' => $top10Works->mapWithKeys(fn($tw) => [(string)$tw->id => $tw->multi_recap ?? \App\Services\RubricService::calculateRecap($tw)])->all(),
+            'ranks' => $top10Works->mapWithKeys(fn($tw) => [(string)$tw->id => $tw->category_rank])->all(),
+        ];
+    @endphp
+    <script id="admin-recap-initial-data" type="application/json">{!! json_encode($initialRecapJson, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) !!}</script>
+
     <div 
         class="space-y-6" 
         x-data="{ 
-            activeTab: '{{ $filters['tab'] ?? 'all' }}',
+            activeTab: '{{ ($errors->has('name') || $errors->has('username') || $errors->has('email') || $errors->has('password') || $errors->has('category')) ? 'judges' : ($filters['tab'] ?? 'all') }}',
             viewMode: 'table', 
             previewImage: null, 
             selectedRegistration: null,
@@ -37,8 +45,19 @@
             settingMode: '{{ $registrationSetting->mode }}',
             settingIsOpen: {{ $registrationSetting->is_open ? 'true' : 'false' }},
 
-            // Judge Edit Modal State
-            editingJudge: null,
+            // Judge Management Modal States
+            showCreateJudgeModal: {{ ($errors->has('name') || $errors->has('username') || $errors->has('email') || $errors->has('password') || $errors->has('category')) ? 'true' : 'false' }},
+            showEditJudgeModal: false,
+            deleteJudgeTarget: null,
+            editingJudge: {
+                id: '',
+                name: '',
+                username: '',
+                email: '',
+                category: 'gim_edukasi',
+                judge_role: 1,
+                password: ''
+            },
 
             openDetail(data) {
                 this.selectedRegistration = data;
@@ -147,7 +166,34 @@
             },
 
             openJudgeEdit(judge) {
-                this.editingJudge = { ...judge, password: '' };
+                this.editingJudge = {
+                    id: judge.id,
+                    name: judge.name || '',
+                    username: judge.username || '',
+                    email: judge.email || '',
+                    category: judge.category || 'gim_edukasi',
+                    judge_role: judge.judge_role || (judge.judge_code === 'J1' ? 1 : (judge.judge_code === 'J2' ? 2 : (judge.judge_code === 'J3' ? 3 : 1))),
+                    password: ''
+                };
+                this.showEditJudgeModal = true;
+            },
+            closeJudgeEdit() {
+                this.showEditJudgeModal = false;
+                this.editingJudge = {
+                    id: '',
+                    name: '',
+                    username: '',
+                    email: '',
+                    category: 'gim_edukasi',
+                    judge_role: 1,
+                    password: ''
+                };
+            },
+            deleteJudge(judge) {
+                this.deleteJudgeTarget = judge;
+            },
+            closeDeleteJudge() {
+                this.deleteJudgeTarget = null;
             },
 
             // Hovered & Modal Judge Overview State
@@ -208,10 +254,66 @@
             },
 
             get isAnyModalOpen() {
-                return !!(this.selectedRegistration || this.previewImage || this.showSettingModal || this.editingJudge || this.deleteTarget || this.isJudgeModalOpen);
+                return !!(this.selectedRegistration || this.previewImage || this.showSettingModal || this.showEditJudgeModal || this.showCreateJudgeModal || this.deleteJudgeTarget || this.deleteTarget || this.isJudgeModalOpen);
+            },
+
+            // Realtime Rekap Multi-Juri State (Rubrik Standar Bab IV)
+            rekapFilter: 'all',
+            rekapPollStatus: 'connected',
+            rekapPollTimer: null,
+            scoresMap: {},
+            ranksMap: {},
+
+            async pollAdminRecap() {
+                try {
+                    this.rekapPollStatus = 'updating';
+                    const res = await fetch('{{ route('realtime.category-recap') }}', {
+                        headers: { 'Accept': 'application/json' }
+                    });
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data && data.works) {
+                            data.works.forEach(w => {
+                                this.scoresMap[w.id] = w.multi_recap;
+                                this.ranksMap[w.id] = w.category_rank;
+                            });
+                            this.rekapPollStatus = 'connected';
+                        }
+                    } else {
+                        this.rekapPollStatus = 'error';
+                    }
+                } catch (e) {
+                    this.rekapPollStatus = 'error';
+                }
+            },
+
+            startAdminRecapPolling() {
+                this.stopAdminRecapPolling();
+                this.pollAdminRecap();
+                this.rekapPollTimer = setInterval(() => {
+                    this.pollAdminRecap();
+                }, 3500);
+            },
+
+            stopAdminRecapPolling() {
+                if (this.rekapPollTimer) {
+                    clearInterval(this.rekapPollTimer);
+                    this.rekapPollTimer = null;
+                }
             },
 
             init() {
+                try {
+                    const initEl = document.getElementById('admin-recap-initial-data');
+                    if (initEl && initEl.textContent) {
+                        const parsed = JSON.parse(initEl.textContent);
+                        this.scoresMap = parsed.scores || {};
+                        this.ranksMap = parsed.ranks || {};
+                    }
+                } catch (e) {
+                    console.error('Failed to parse admin initial recap data', e);
+                }
+
                 this.$watch('isAnyModalOpen', (isOpen) => {
                     if (isOpen) {
                         document.body.classList.add('overflow-hidden');
@@ -221,6 +323,18 @@
                         document.documentElement.classList.remove('overflow-hidden');
                     }
                 });
+
+                this.$watch('activeTab', (val) => {
+                    if (val === 'scores') {
+                        this.startAdminRecapPolling();
+                    } else {
+                        this.stopAdminRecapPolling();
+                    }
+                });
+
+                if (this.activeTab === 'scores') {
+                    this.startAdminRecapPolling();
+                }
             }
         }"
     >
@@ -435,44 +549,48 @@
         <div class="border-b border-slate-200/80 flex items-center gap-2 overflow-x-auto pb-1 text-xs sm:text-sm font-bold">
             <a 
                 href="{{ route('admin.dashboard', ['tab' => 'all']) }}" 
-                class="px-4 py-2.5 rounded-xl transition cursor-pointer whitespace-nowrap {{ $filters['tab'] === 'all' ? 'bg-[#5e43f3] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' }}"
+                class="px-4 py-2.5 rounded-xl transition cursor-pointer whitespace-nowrap"
+                :class="(activeTab !== 'scores' && activeTab !== 'judges' && '{{ $filters['tab'] }}' === 'all') ? 'bg-[#5e43f3] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'"
             >
                 Semua Pendaftar ({{ $stats['total'] }})
             </a>
             <a 
                 href="{{ route('admin.dashboard', ['tab' => 'top10']) }}" 
-                class="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl transition cursor-pointer whitespace-nowrap {{ $filters['tab'] === 'top10' ? 'bg-amber-500 text-white shadow-xs' : 'text-amber-800 bg-amber-50 hover:bg-amber-100' }}"
+                class="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl transition cursor-pointer whitespace-nowrap"
+                :class="(activeTab !== 'scores' && activeTab !== 'judges' && '{{ $filters['tab'] }}' === 'top10') ? 'bg-amber-500 text-white shadow-xs' : 'text-amber-800 bg-amber-50 hover:bg-amber-100'"
             >
                 <span>⭐ Top 10 Terpilih ({{ $stats['top10_total'] }}/20)</span>
             </a>
             <a 
                 href="{{ route('admin.dashboard', ['tab' => 'top10_gim']) }}" 
-                class="px-4 py-2.5 rounded-xl transition cursor-pointer whitespace-nowrap {{ $filters['tab'] === 'top10_gim' ? 'bg-amber-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' }}"
+                class="px-4 py-2.5 rounded-xl transition cursor-pointer whitespace-nowrap"
+                :class="(activeTab !== 'scores' && activeTab !== 'judges' && '{{ $filters['tab'] }}' === 'top10_gim') ? 'bg-amber-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'"
             >
                 Top 10 Gim ({{ $stats['top10_gim'] }}/10)
             </a>
             <a 
                 href="{{ route('admin.dashboard', ['tab' => 'top10_media']) }}" 
-                class="px-4 py-2.5 rounded-xl transition cursor-pointer whitespace-nowrap {{ $filters['tab'] === 'top10_media' ? 'bg-sky-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' }}"
+                class="px-4 py-2.5 rounded-xl transition cursor-pointer whitespace-nowrap"
+                :class="(activeTab !== 'scores' && activeTab !== 'judges' && '{{ $filters['tab'] }}' === 'top10_media') ? 'bg-sky-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'"
             >
                 Top 10 Media ({{ $stats['top10_media'] }}/10)
             </a>
-            <button 
-                type="button"
-                @click="activeTab = 'scores'"
+            <a 
+                href="{{ route('admin.dashboard', ['tab' => 'scores']) }}"
+                @click.prevent="activeTab = 'scores'; window.history.pushState(null, '', '{{ route('admin.dashboard', ['tab' => 'scores']) }}')"
                 class="px-4 py-2.5 rounded-xl transition cursor-pointer whitespace-nowrap"
                 :class="activeTab === 'scores' ? 'bg-indigo-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'"
             >
                 📊 Rekap Nilai Juri
-            </button>
-            <button 
-                type="button"
-                @click="activeTab = 'judges'"
+            </a>
+            <a 
+                href="{{ route('admin.dashboard', ['tab' => 'judges']) }}"
+                @click.prevent="activeTab = 'judges'; window.history.pushState(null, '', '{{ route('admin.dashboard', ['tab' => 'judges']) }}')"
                 class="px-4 py-2.5 rounded-xl transition cursor-pointer whitespace-nowrap"
                 :class="activeTab === 'judges' ? 'bg-slate-800 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'"
             >
                 👥 Akun Dewan Juri
-            </button>
+            </a>
         </div>
 
         <!-- ======================================================= -->
@@ -1153,10 +1271,16 @@
                             Rekapitulasi Penilaian Dewan Juri — Nominasi Top 10
                         </h3>
                         <p class="text-xs text-slate-500 mt-1">
-                            Peringkat sementara karya digital berdasarkan rata-rata 4 aspek rubrik penilaian (Skala 0 - 100).
+                            Peringkat karya finalis berdasarkan Rubrik Standar Bab IV EduTech Festival BTIKP (Skala Likert 1–5, J1: 55%, J2: 30%, J3: 15%).
                         </p>
                     </div>
                     <div class="flex flex-wrap items-center gap-3">
+                        <!-- Connection Status Indicator (Realtime) -->
+                        <div class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200/80 text-xs font-semibold">
+                            <span class="w-2 h-2 rounded-full" :class="rekapPollStatus === 'connected' ? 'bg-emerald-500 animate-pulse' : (rekapPollStatus === 'updating' ? 'bg-indigo-500 animate-ping' : 'bg-rose-500')"></span>
+                            <span x-text="rekapPollStatus === 'connected' ? '● Terhubung' : (rekapPollStatus === 'updating' ? '🔄 Memperbarui...' : '⚠️ Terputus')">● Terhubung</span>
+                        </div>
+
                         <!-- Filter Kategori Rekap Nilai Juri: [Semua] | [GIM] | [MPI] -->
                         <div class="flex items-center gap-1 p-1 bg-slate-100 rounded-2xl border border-slate-200/70">
                             <button 
@@ -1203,25 +1327,32 @@
                                 <th class="py-3.5 pl-5 pr-2">Rank</th>
                                 <th class="py-3.5 px-4">Karya &amp; Peserta</th>
                                 <th class="py-3.5 px-3">Kategori</th>
-                                @foreach ($judges as $idx => $j)
-                                    <th class="py-3.5 px-3 text-center">Juri {{ $idx + 1 }}</th>
-                                @endforeach
-                                <th class="py-3.5 px-4 text-center">Skor Rata-rata</th>
-                                <th class="py-3.5 pr-5 pl-3 text-right">Tautan Karya</th>
+                                <th class="py-3.5 px-3">Juri 1: Pedagogis &amp; Teknis (55%)</th>
+                                <th class="py-3.5 px-3">Juri 2: Kreativitas &amp; Desain (30%)</th>
+                                <th class="py-3.5 px-3">Juri 3: Presentasi &amp; Dampak (15%)</th>
+                                <th class="py-3.5 px-4 text-center">Status &amp; Nilai Akhir</th>
+                                <th class="py-3.5 pr-5 pl-3 text-right">Aksi</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100">
-                            @forelse ($top10Works as $rank => $work)
+                            @forelse ($top10Works as $work)
+                                @php
+                                    $recap = $work->multi_recap ?? $work->multi_judge_recap;
+                                @endphp
                                 <tr 
                                     x-show="rekapFilter === 'all' || rekapFilter === '{{ $work->learning_category }}'"
                                     class="hover:bg-slate-50/80 transition-colors"
                                 >
-                                    <td class="py-3.5 pl-5 pr-2">
-                                        <div class="w-7 h-7 rounded-xl flex items-center justify-center font-extrabold text-xs {{ $rank === 0 ? 'bg-amber-400 text-white shadow-xs' : ($rank === 1 ? 'bg-slate-300 text-slate-800' : ($rank === 2 ? 'bg-amber-600 text-white' : 'bg-slate-100 text-slate-600')) }}">
-                                            {{ $rank + 1 }}
+                                    <td class="py-3.5 pl-5 pr-2 align-middle">
+                                        <div 
+                                            class="w-7 h-7 rounded-xl flex items-center justify-center font-extrabold text-xs"
+                                            :class="ranksMap[{{ $work->id }}] === 1 ? 'bg-amber-400 text-white shadow-xs' : (ranksMap[{{ $work->id }}] === 2 ? 'bg-slate-300 text-slate-800' : (ranksMap[{{ $work->id }}] === 3 ? 'bg-amber-600 text-white' : (ranksMap[{{ $work->id }}] ? 'bg-slate-100 text-slate-700' : 'bg-slate-100 text-slate-400')))"
+                                            x-text="ranksMap[{{ $work->id }}] ? ('#' + ranksMap[{{ $work->id }}]) : '-'"
+                                        >
+                                            {{ $work->category_rank ? '#' . $work->category_rank : '-' }}
                                         </div>
                                     </td>
-                                    <td class="py-3.5 px-4">
+                                    <td class="py-3.5 px-4 align-middle">
                                         <div class="flex items-center space-x-3">
                                             <div 
                                                 @click.stop="previewImage = '{{ $work->profile_photo_url }}'"
@@ -1242,46 +1373,186 @@
                                             </div>
                                         </div>
                                     </td>
-                                    <td class="py-3.5 px-3 whitespace-nowrap">
+                                    <td class="py-3.5 px-3 whitespace-nowrap align-middle">
                                         <span class="px-2 py-0.5 rounded-full text-[10px] font-bold {{ $work->learning_category === 'gim_edukasi' ? 'bg-amber-50 text-amber-800' : 'bg-sky-50 text-sky-800' }}">
                                             {{ $work->category_label }}
                                         </span>
                                     </td>
-                                    @foreach ($judges as $j)
-                                        @php
-                                            $judgeScore = $work->judgeScores->firstWhere('user_id', $j->id);
-                                        @endphp
-                                        <td class="py-3.5 px-3 text-center whitespace-nowrap font-mono font-bold">
-                                            @if ($judgeScore)
-                                                <span class="px-2 py-1 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs">
-                                                    {{ number_format($judgeScore->total_score, 1) }}
-                                                </span>
-                                            @else
-                                                <span class="text-slate-300 font-normal">-</span>
-                                            @endif
-                                        </td>
-                                    @endforeach
-                                    <td class="py-3.5 px-4 text-center whitespace-nowrap">
-                                        <span class="text-sm font-extrabold text-[#5e43f3] bg-purple-50 px-2.5 py-1 rounded-xl border border-purple-200">
-                                            {{ number_format($work->calculated_avg_score, 2) }}
-                                        </span>
+
+                                    <!-- Juri 1: Pedagogis & Teknis (55%) -->
+                                    <td class="py-3.5 px-3 whitespace-nowrap align-middle">
+                                        <div>
+                                            <template x-if="scoresMap[{{ $work->id }}]?.judges?.[1]?.is_complete">
+                                                <div class="flex items-baseline gap-1">
+                                                    <span class="font-mono font-extrabold text-slate-900 text-xs" x-text="Number(scoresMap[{{ $work->id }}]?.judges?.[1]?.weighted_score).toFixed(2)"></span>
+                                                    <span class="text-[10px] text-slate-400 font-mono" x-text="'(' + scoresMap[{{ $work->id }}]?.judges?.[1]?.total_score + '/25 pt)'"></span>
+                                                </div>
+                                            </template>
+                                            <template x-if="!scoresMap[{{ $work->id }}]?.judges?.[1]?.is_complete">
+                                                <div>
+                                                    <span 
+                                                        class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold"
+                                                        :class="(scoresMap[{{ $work->id }}]?.judges?.[1]?.filled_count > 0) ? 'bg-amber-50 text-amber-700' : 'bg-slate-100 text-slate-400'"
+                                                        x-text="scoresMap[{{ $work->id }}]?.judges?.[1]?.progress_text || 'Belum dinilai'"
+                                                    >
+                                                        {{ $recap['judges'][1]['progress_text'] ?? 'Belum dinilai' }}
+                                                    </span>
+                                                </div>
+                                            </template>
+                                            <div class="text-[10px] text-slate-400 font-medium truncate max-w-[120px]" x-text="scoresMap[{{ $work->id }}]?.judges?.[1]?.judge_name">
+                                                {{ $recap['judges'][1]['judge_name'] ?? 'Juri 1' }}
+                                            </div>
+                                        </div>
                                     </td>
-                                    <td class="py-3.5 pr-5 pl-3 text-right whitespace-nowrap">
-                                        <a 
-                                            href="{{ $work->media_link }}" 
-                                            target="_blank" 
-                                            class="inline-flex items-center gap-1 text-xs font-bold text-slate-700 hover:text-[#5e43f3] bg-slate-50 hover:bg-purple-50 px-3 py-1.5 rounded-xl border border-slate-200 transition"
-                                        >
-                                            <span>Buka Karya</span>
-                                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                                            </svg>
-                                        </a>
+
+                                    <!-- Juri 2: Kreativitas & Desain (30%) -->
+                                    <td class="py-3.5 px-3 whitespace-nowrap align-middle">
+                                        <div>
+                                            <template x-if="scoresMap[{{ $work->id }}]?.judges?.[2]?.is_complete">
+                                                <div class="flex items-baseline gap-1">
+                                                    <span class="font-mono font-extrabold text-slate-900 text-xs" x-text="Number(scoresMap[{{ $work->id }}]?.judges?.[2]?.weighted_score).toFixed(2)"></span>
+                                                    <span class="text-[10px] text-slate-400 font-mono" x-text="'(' + scoresMap[{{ $work->id }}]?.judges?.[2]?.total_score + '/20 pt)'"></span>
+                                                </div>
+                                            </template>
+                                            <template x-if="!scoresMap[{{ $work->id }}]?.judges?.[2]?.is_complete">
+                                                <div>
+                                                    <span 
+                                                        class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold"
+                                                        :class="(scoresMap[{{ $work->id }}]?.judges?.[2]?.filled_count > 0) ? 'bg-amber-50 text-amber-700' : 'bg-slate-100 text-slate-400'"
+                                                        x-text="scoresMap[{{ $work->id }}]?.judges?.[2]?.progress_text || 'Belum dinilai'"
+                                                    >
+                                                        {{ $recap['judges'][2]['progress_text'] ?? 'Belum dinilai' }}
+                                                    </span>
+                                                </div>
+                                            </template>
+                                            <div class="text-[10px] text-slate-400 font-medium truncate max-w-[120px]" x-text="scoresMap[{{ $work->id }}]?.judges?.[2]?.judge_name">
+                                                {{ $recap['judges'][2]['judge_name'] ?? 'Juri 2' }}
+                                            </div>
+                                        </div>
+                                    </td>
+
+                                    <!-- Juri 3: Presentasi & Dampak (15%) -->
+                                    <td class="py-3.5 px-3 whitespace-nowrap align-middle">
+                                        <div>
+                                            <template x-if="scoresMap[{{ $work->id }}]?.judges?.[3]?.is_complete">
+                                                <div class="flex items-baseline gap-1">
+                                                    <span class="font-mono font-extrabold text-slate-900 text-xs" x-text="Number(scoresMap[{{ $work->id }}]?.judges?.[3]?.weighted_score).toFixed(2)"></span>
+                                                    <span class="text-[10px] text-slate-400 font-mono" x-text="'(' + scoresMap[{{ $work->id }}]?.judges?.[3]?.total_score + '/15 pt)'"></span>
+                                                </div>
+                                            </template>
+                                            <template x-if="!scoresMap[{{ $work->id }}]?.judges?.[3]?.is_complete">
+                                                <div>
+                                                    <span 
+                                                        class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold"
+                                                        :class="(scoresMap[{{ $work->id }}]?.judges?.[3]?.filled_count > 0) ? 'bg-amber-50 text-amber-700' : 'bg-slate-100 text-slate-400'"
+                                                        x-text="scoresMap[{{ $work->id }}]?.judges?.[3]?.progress_text || 'Belum dinilai'"
+                                                    >
+                                                        {{ $recap['judges'][3]['progress_text'] ?? 'Belum dinilai' }}
+                                                    </span>
+                                                </div>
+                                            </template>
+                                            <div class="text-[10px] text-slate-400 font-medium truncate max-w-[120px]" x-text="scoresMap[{{ $work->id }}]?.judges?.[3]?.judge_name">
+                                                {{ $recap['judges'][3]['judge_name'] ?? 'Juri 3' }}
+                                            </div>
+                                        </div>
+                                    </td>
+
+                                    <!-- Status & Nilai Akhir -->
+                                    <td class="py-3.5 px-4 text-center whitespace-nowrap align-middle">
+                                        <template x-if="scoresMap[{{ $work->id }}]?.is_complete">
+                                            <div class="inline-flex flex-col items-center">
+                                                <span class="text-sm font-extrabold text-[#5e43f3] bg-purple-50 px-2.5 py-1 rounded-xl border border-purple-200 font-mono shadow-2xs" x-text="Number(scoresMap[{{ $work->id }}]?.final_score).toFixed(2)">
+                                                    {{ number_format($recap['final_score'] ?? 0, 2) }}
+                                                </span>
+                                                <span class="text-[10px] text-emerald-600 font-bold mt-0.5 flex items-center gap-0.5">
+                                                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                                    Nilai Akhir
+                                                </span>
+                                            </div>
+                                        </template>
+                                        <template x-if="!scoresMap[{{ $work->id }}]?.is_complete">
+                                            <div class="inline-flex flex-col items-center">
+                                                <span class="text-xs font-bold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-xl border border-amber-200 font-mono" x-text="Number(scoresMap[{{ $work->id }}]?.interim_score || 0).toFixed(2)">
+                                                    {{ number_format($recap['interim_score'] ?? 0, 2) }}
+                                                </span>
+                                                <span class="text-[10px] text-amber-600 font-semibold mt-0.5">
+                                                    ⏳ Nilai Sementara
+                                                </span>
+                                                <span class="text-[9px] text-slate-400 font-medium max-w-[120px] truncate mt-0.5" x-text="scoresMap[{{ $work->id }}]?.waiting_text">
+                                                    {{ $recap['waiting_text'] ?? '' }}
+                                                </span>
+                                            </div>
+                                        </template>
+                                    </td>
+
+                                    <!-- Aksi & Tautan -->
+                                    <td class="py-3.5 pr-5 pl-3 text-right whitespace-nowrap align-middle">
+                                        <div class="flex items-center justify-end gap-1.5">
+                                            <a 
+                                                href="{{ $work->media_link }}" 
+                                                target="_blank" 
+                                                class="inline-flex items-center gap-1 text-[11px] font-bold text-slate-700 hover:text-[#5e43f3] bg-slate-50 hover:bg-purple-50 px-2.5 py-1.5 rounded-xl border border-slate-200 transition"
+                                            >
+                                                <span>Buka</span>
+                                                <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                                </svg>
+                                            </a>
+
+                                            <!-- Dropdown / Tombol Reset Nilai Admin per Juri -->
+                                            @if ($work->judgeScores->isNotEmpty() || $work->rubricScores->isNotEmpty())
+                                                <div x-data="{ openResetMenu: false }" class="relative inline-block text-left">
+                                                    <button 
+                                                        type="button" 
+                                                        @click="openResetMenu = !openResetMenu" 
+                                                        class="p-1.5 rounded-xl border border-rose-200 bg-rose-50 text-rose-600 hover:bg-rose-100 transition cursor-pointer"
+                                                        title="Reset Nilai Juri Tertentu"
+                                                    >
+                                                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                        </svg>
+                                                    </button>
+                                                    <div 
+                                                        x-show="openResetMenu" 
+                                                        @click.away="openResetMenu = false" 
+                                                        x-cloak
+                                                        class="absolute right-0 mt-1 w-52 bg-white rounded-xl shadow-xl border border-slate-100 py-1 z-30 text-left text-xs"
+                                                    >
+                                                        <div class="px-3 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">
+                                                            Reset Nilai Juri
+                                                        </div>
+                                                        @php
+                                                            $distinctJudges = collect();
+                                                            foreach ($work->judgeScores as $js) {
+                                                                if ($js->judge) $distinctJudges->put($js->user_id, $js->judge);
+                                                            }
+                                                            foreach ($work->rubricScores as $rs) {
+                                                                if ($rs->user) $distinctJudges->put($rs->user_id, $rs->user);
+                                                            }
+                                                        @endphp
+                                                        @foreach ($distinctJudges as $judgeUser)
+                                                            <form 
+                                                                action="{{ route('admin.works.judge-score.reset', ['registration' => $work->id, 'judge' => $judgeUser->id]) }}" 
+                                                                method="POST"
+                                                                onsubmit="return confirm('Yakin ingin mereset nilai dari {{ $judgeUser->name }} untuk karya ini?');"
+                                                            >
+                                                                @csrf
+                                                                @method('DELETE')
+                                                                <button type="submit" class="w-full text-left px-3 py-1.5 hover:bg-rose-50 text-rose-600 font-semibold flex items-center justify-between text-[11px] cursor-pointer">
+                                                                    <span class="truncate max-w-[120px]">{{ $judgeUser->name }}</span>
+                                                                    <span class="text-[10px] text-slate-400 font-mono">{{ $judgeUser->judge_role_label }}</span>
+                                                                </button>
+                                                            </form>
+                                                        @endforeach
+                                                    </div>
+                                                </div>
+                                            @endif
+                                        </div>
                                     </td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="{{ 5 + $judges->count() }}" class="py-12 text-center text-slate-400">
+                                    <td colspan="8" class="py-12 text-center text-slate-400">
                                         Belum ada karya yang dipilih ke dalam Top 10. Pilih karya melalui tab pendaftar terlebih dahulu.
                                     </td>
                                 </tr>
@@ -1324,7 +1595,7 @@
                             <div class="space-y-2">
                                 <div class="flex items-center justify-between gap-2">
                                     <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-purple-100 text-[#5e43f3]">
-                                        Role: Judge
+                                        {{ $judge->judge_role_label ?? ('Juri ' . ($judge->judge_role ?? '-')) }}
                                     </span>
                                     <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold {{ $judge->category === 'media_pembelajaran_interaktif' ? 'bg-sky-100 text-sky-800' : 'bg-amber-100 text-amber-800' }}">
                                         {{ $judge->category === 'media_pembelajaran_interaktif' ? 'Kategori: MPI' : ($judge->category === 'gim_edukasi' ? 'Kategori: GIM' : 'Kategori: Semua') }}
@@ -1655,28 +1926,28 @@
         <!-- MODAL 3: EDIT AKUN DEWAN JURI (ADMIN)                   -->
         <!-- ======================================================= -->
         <div 
-            x-show="editingJudge !== null" 
+            x-show="showEditJudgeModal" 
             x-cloak
             class="fixed inset-0 z-[999998] flex items-center justify-center p-3 sm:p-5 bg-slate-900/80 backdrop-blur-sm overflow-y-auto"
-            @keydown.escape.window="editingJudge = null"
+            @keydown.escape.window="closeJudgeEdit()"
         >
             <div 
                 class="relative w-full max-w-md bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden transform transition-all my-auto max-h-[92vh] flex flex-col"
-                @click.away="editingJudge = null"
+                @click.away="closeJudgeEdit()"
             >
                 <div class="px-6 py-5 bg-gradient-to-r from-slate-900 to-[#5e43f3] text-white flex items-center justify-between">
                     <div>
                         <span class="text-[10px] uppercase font-bold tracking-wider text-purple-200">Manajemen Juri</span>
-                        <h3 class="text-base font-bold" x-text="'Edit Akun: ' + (editingJudge?.name || '')"></h3>
+                        <h3 class="text-base font-bold" x-text="'Edit Akun: ' + (editingJudge.name || '')"></h3>
                     </div>
-                    <button type="button" @click="editingJudge = null" class="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white">
+                    <button type="button" @click="closeJudgeEdit()" class="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white">
                         <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                         </svg>
                     </button>
                 </div>
 
-                <form :action="'/admin/judges/' + (editingJudge?.id || '')" method="POST" class="p-6 space-y-4">
+                <form :action="'/admin/judges/' + (editingJudge.id || '')" method="POST" class="p-6 space-y-4">
                     @csrf
                     @method('PUT')
 
@@ -1704,12 +1975,21 @@
                     </div>
 
                     <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Peran Juri</label>
+                        <select name="judge_role" x-model.number="editingJudge.judge_role" class="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-300 bg-white">
+                            <option :value="1">Juri 1 (Poin 1: Pedagogis 30% &amp; Poin 3: Teknis 25%)</option>
+                            <option :value="2">Juri 2 (Poin 2: Kreativitas &amp; Desain Visual 30%)</option>
+                            <option :value="3">Juri 3 (Poin 4: Presentasi &amp; Dampak 15%)</option>
+                        </select>
+                    </div>
+
+                    <div>
                         <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Reset Kata Sandi (Opsional)</label>
                         <input type="password" name="password" x-model="editingJudge.password" placeholder="Kosongkan jika tidak diubah" class="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-300">
                     </div>
 
                     <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
-                        <button type="button" @click="editingJudge = null" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl">
+                        <button type="button" @click="closeJudgeEdit()" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl">
                             Batal
                         </button>
                         <button type="submit" class="px-5 py-2.5 text-xs font-bold text-white bg-[#5e43f3] hover:bg-indigo-700 rounded-xl shadow-xs">
@@ -1747,34 +2027,64 @@
 
                 <form action="{{ route('admin.judges.store') }}" method="POST" class="p-6 space-y-4">
                     @csrf
+                    <input type="hidden" name="tab" value="judges">
 
                     <div>
                         <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Nama Lengkap Juri <span class="text-rose-500">*</span></label>
-                        <input type="text" name="name" required placeholder="mis. Dr. Ir. Ahmad Juri, M.Pd." class="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-300">
+                        <input type="text" name="name" value="{{ old('name') }}" required placeholder="mis. Dr. Ir. Ahmad Juri, M.Pd." class="w-full px-3.5 py-2.5 text-xs rounded-xl border {{ $errors->has('name') ? 'border-rose-400 bg-rose-50/30' : 'border-slate-300' }}">
+                        @error('name')
+                            <p class="text-[11px] text-rose-500 mt-1 font-semibold">{{ $message }}</p>
+                        @enderror
                     </div>
 
                     <div>
                         <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Username Login <span class="text-rose-500">*</span></label>
-                        <input type="text" name="username" required placeholder="mis. jurigim1" class="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-300 font-mono">
+                        <input type="text" name="username" value="{{ old('username') }}" required placeholder="mis. jurigim1 atau juri_mpi1" class="w-full px-3.5 py-2.5 text-xs rounded-xl border {{ $errors->has('username') ? 'border-rose-400 bg-rose-50/30' : 'border-slate-300' }} font-mono">
+                        <p class="text-[10px] text-slate-400 mt-0.5">Gunakan huruf kecil, angka, atau strip/garis bawah tanpa spasi.</p>
+                        @error('username')
+                            <p class="text-[11px] text-rose-500 mt-1 font-semibold">{{ $message }}</p>
+                        @enderror
                     </div>
 
                     <div>
                         <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Email Juri <span class="text-rose-500">*</span></label>
-                        <input type="email" name="email" required placeholder="mis. jurigim@edutech.btikp.id" class="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-300">
+                        <input type="email" name="email" value="{{ old('email') }}" required placeholder="mis. jurigim@edutech.btikp.id" class="w-full px-3.5 py-2.5 text-xs rounded-xl border {{ $errors->has('email') ? 'border-rose-400 bg-rose-50/30' : 'border-slate-300' }}">
+                        @error('email')
+                            <p class="text-[11px] text-rose-500 mt-1 font-semibold">{{ $message }}</p>
+                        @enderror
                     </div>
 
                     <div>
                         <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Kategori Penilaian <span class="text-rose-500">*</span></label>
                         <select name="category" required class="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-300 bg-white">
-                            <option value="gim_edukasi">GIM (Gim Edukasi)</option>
-                            <option value="media_pembelajaran_interaktif">MPI (Media Pembelajaran Interaktif)</option>
+                            <option value="gim_edukasi" {{ old('category') === 'gim_edukasi' ? 'selected' : '' }}>GIM (Gim Edukasi)</option>
+                            <option value="media_pembelajaran_interaktif" {{ old('category') === 'media_pembelajaran_interaktif' ? 'selected' : '' }}>MPI (Media Pembelajaran Interaktif)</option>
                         </select>
                         <p class="text-[11px] text-slate-500 mt-1">Juri hanya berwenang melihat, merekomendasikan, dan menilai karya sesuai kategori yang dipilih.</p>
+                        @error('category')
+                            <p class="text-[11px] text-rose-500 mt-1 font-semibold">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Peran Juri <span class="text-rose-500">*</span></label>
+                        <select name="judge_role" required class="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-300 bg-white">
+                            <option value="1" {{ old('judge_role', 1) == 1 ? 'selected' : '' }}>Juri 1 (Poin 1: Pedagogis 30% &amp; Poin 3: Teknis 25%)</option>
+                            <option value="2" {{ old('judge_role') == 2 ? 'selected' : '' }}>Juri 2 (Poin 2: Kreativitas &amp; Desain Visual 30%)</option>
+                            <option value="3" {{ old('judge_role') == 3 ? 'selected' : '' }}>Juri 3 (Poin 4: Presentasi &amp; Dampak 15%)</option>
+                        </select>
+                        <p class="text-[11px] text-slate-500 mt-1">Satu peran hanya boleh dipakai satu akun juri per kategori lomba.</p>
+                        @error('judge_role')
+                            <p class="text-[11px] text-rose-500 mt-1 font-semibold">{{ $message }}</p>
+                        @enderror
                     </div>
 
                     <div>
                         <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Kata Sandi (Min. 8 Karakter) <span class="text-rose-500">*</span></label>
-                        <input type="password" name="password" required minlength="8" placeholder="Minimal 8 karakter" class="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-300">
+                        <input type="password" name="password" required minlength="8" placeholder="Minimal 8 karakter" class="w-full px-3.5 py-2.5 text-xs rounded-xl border {{ $errors->has('password') ? 'border-rose-400 bg-rose-50/30' : 'border-slate-300' }}">
+                        @error('password')
+                            <p class="text-[11px] text-rose-500 mt-1 font-semibold">{{ $message }}</p>
+                        @enderror
                     </div>
 
                     <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">

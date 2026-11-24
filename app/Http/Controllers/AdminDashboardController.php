@@ -108,17 +108,33 @@ class AdminDashboardController extends Controller
             'top10_total' => Registration::where('is_curated_top10', true)->count(),
         ];
 
-        // Daftar Karya Top 10 Terpilih beserta Rekap Penilaian Juri
+        // Daftar Karya Top 10 Terpilih beserta Rekap Penilaian Juri & Peringkat per Kategori
         $top10Works = Registration::where('is_curated_top10', true)
-            ->with(['judgeScores.judge'])
-            ->get()
-            ->map(function ($work) {
-                $scores = $work->judgeScores;
-                $avgScore = $scores->count() > 0 ? round($scores->avg('total_score'), 2) : 0;
-                $work->calculated_avg_score = $avgScore;
-                return $work;
-            })
-            ->sortByDesc('calculated_avg_score');
+            ->with(['rubricScores.user', 'judgeScores.judge'])
+            ->get();
+
+        $rankedGim = \App\Services\RubricService::getRankedWorks('gim_edukasi');
+        $rankedMpi = \App\Services\RubricService::getRankedWorks('media_pembelajaran_interaktif');
+
+        $gimRankMap = collect($rankedGim)->pluck('category_rank', 'id')->all();
+        $mpiRankMap = collect($rankedMpi)->pluck('category_rank', 'id')->all();
+
+        $top10Works = $top10Works->map(function ($work) use ($gimRankMap, $mpiRankMap) {
+            $recap = \App\Services\RubricService::calculateRecap($work);
+            $work->recap = $recap;
+            $work->multi_recap = $recap;
+            $work->category_rank = ($work->learning_category === 'gim_edukasi')
+                ? ($gimRankMap[$work->id] ?? null)
+                : ($mpiRankMap[$work->id] ?? null);
+            $work->calculated_avg_score = $recap['is_complete'] ? $recap['final_score'] : ($recap['interim_score'] ?? 0.0);
+            return $work;
+        })
+        ->sortBy([
+            fn ($a, $b) => ($a->category_rank === null) <=> ($b->category_rank === null),
+            ['category_rank', 'asc'],
+            ['calculated_avg_score', 'desc'],
+        ])
+        ->values();
 
         // Pengaturan Pendaftaran & Daftar Dewan Juri
         $registrationSetting = RegistrationSetting::current();
@@ -243,15 +259,53 @@ class AdminDashboardController extends Controller
      */
     public function storeJudge(Request $request): RedirectResponse|JsonResponse
     {
+        // Bersihkan dan format username serta email sebelum validasi
+        if ($request->filled('username')) {
+            $request->merge([
+                'username' => strtolower(trim(str_replace(' ', '', (string) $request->input('username')))),
+            ]);
+        }
+        if ($request->filled('email')) {
+            $request->merge([
+                'email' => strtolower(trim((string) $request->input('email'))),
+            ]);
+        }
+        if (!$request->filled('judge_role')) {
+            $category = $request->input('category');
+            $existingRoles = User::where('role', 'judge')
+                ->where('category', $category)
+                ->whereNotNull('judge_role')
+                ->pluck('judge_role')
+                ->toArray();
+            $availableRole = 1;
+            for ($r = 1; $r <= 3; $r++) {
+                if (!in_array($r, $existingRoles)) {
+                    $availableRole = $r;
+                    break;
+                }
+            }
+            $request->merge(['judge_role' => $availableRole]);
+        }
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:150'],
             'username' => ['required', 'string', 'max:50', 'alpha_dash', Rule::unique('users', 'username')],
             'email' => ['required', 'email', 'max:150', Rule::unique('users', 'email')],
             'password' => ['required', 'string', 'min:8'],
             'category' => ['required', 'string', 'in:gim_edukasi,media_pembelajaran_interaktif'],
+            'judge_role' => [
+                'required',
+                'integer',
+                'in:1,2,3',
+                Rule::unique('users', 'judge_role')->where(function ($q) use ($request) {
+                    return $q->where('role', 'judge')
+                             ->where('category', $request->input('category'));
+                }),
+            ],
         ], [
             'name.required' => 'Nama dewan juri wajib diisi.',
             'username.required' => 'Username wajib diisi.',
+            'username.alpha_dash' => 'Username hanya boleh berisi huruf, angka, strip (-), atau garis bawah (_).',
             'username.unique' => 'Username tersebut sudah digunakan oleh akun lain.',
             'email.required' => 'Alamat email wajib diisi.',
             'email.unique' => 'Alamat email tersebut sudah terdaftar.',
@@ -259,6 +313,9 @@ class AdminDashboardController extends Controller
             'password.min' => 'Kata sandi minimal 8 karakter.',
             'category.required' => 'Pilih kategori penilaian juri (GIM atau MPI).',
             'category.in' => 'Kategori penilaian yang dipilih tidak valid.',
+            'judge_role.required' => 'Pilih peran juri (Juri 1, Juri 2, atau Juri 3).',
+            'judge_role.in' => 'Peran juri yang dipilih tidak valid.',
+            'judge_role.unique' => 'Peran juri tersebut sudah digunakan oleh akun lain dalam kategori ini.',
         ]);
 
         $judge = User::create([
@@ -267,6 +324,7 @@ class AdminDashboardController extends Controller
             'email' => strtolower(trim($validated['email'])),
             'role' => 'judge',
             'category' => $validated['category'],
+            'judge_role' => (int) $validated['judge_role'],
             'password' => Hash::make($validated['password']),
         ]);
 
@@ -280,7 +338,7 @@ class AdminDashboardController extends Controller
             ]);
         }
 
-        return back()->with('status', $message);
+        return redirect()->route('admin.dashboard', ['tab' => 'judges'])->with('status', $message);
     }
 
     /**
@@ -288,15 +346,43 @@ class AdminDashboardController extends Controller
      */
     public function updateJudge(Request $request, User $judge): RedirectResponse|JsonResponse
     {
+        if ($request->filled('username')) {
+            $request->merge([
+                'username' => strtolower(trim(str_replace(' ', '', (string) $request->input('username')))),
+            ]);
+        }
+        if ($request->filled('email')) {
+            $request->merge([
+                'email' => strtolower(trim((string) $request->input('email'))),
+            ]);
+        }
+        if (!$request->filled('judge_role')) {
+            $request->merge(['judge_role' => $judge->judge_role ?? 1]);
+        }
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:150'],
-            'username' => ['required', 'string', 'max:50', Rule::unique('users', 'username')->ignore($judge->id)],
+            'username' => ['required', 'string', 'max:50', 'alpha_dash', Rule::unique('users', 'username')->ignore($judge->id)],
             'email' => ['required', 'email', 'max:150', Rule::unique('users', 'email')->ignore($judge->id)],
             'category' => ['nullable', 'string', 'in:gim_edukasi,media_pembelajaran_interaktif'],
+            'judge_role' => [
+                'nullable',
+                'integer',
+                'in:1,2,3',
+                Rule::unique('users', 'judge_role')->where(function ($q) use ($request, $judge) {
+                    $cat = $request->input('category', $judge->category);
+                    return $q->where('role', 'judge')->where('category', $cat);
+                })->ignore($judge->id),
+            ],
             'password' => ['nullable', 'string', 'min:8'],
         ], [
+            'username.required' => 'Username wajib diisi.',
+            'username.alpha_dash' => 'Username hanya boleh berisi huruf, angka, strip (-), atau garis bawah (_).',
             'username.unique' => 'Username tersebut sudah digunakan oleh akun lain.',
+            'email.required' => 'Email wajib diisi.',
             'email.unique' => 'Email tersebut sudah terdaftar untuk akun lain.',
+            'judge_role.in' => 'Peran juri yang dipilih tidak valid.',
+            'judge_role.unique' => 'Peran juri tersebut sudah digunakan oleh akun lain dalam kategori ini.',
             'password.min' => 'Kata sandi minimal 8 karakter.',
             'category.in' => 'Kategori penilaian yang dipilih tidak valid.',
         ]);
@@ -307,6 +393,10 @@ class AdminDashboardController extends Controller
 
         if (!empty($validated['category'])) {
             $judge->category = $validated['category'];
+        }
+
+        if (isset($validated['judge_role']) && !empty($validated['judge_role'])) {
+            $judge->judge_role = (int) $validated['judge_role'];
         }
 
         if (!empty($validated['password'])) {
@@ -328,11 +418,38 @@ class AdminDashboardController extends Controller
                     'email' => $judge->email,
                     'category' => $judge->category,
                     'category_label' => $judge->category_label,
+                    'judge_role' => $judge->judge_role,
+                    'judge_role_label' => $judge->judge_role_label,
                 ],
             ]);
         }
 
-        return back()->with('status', $message);
+        return redirect()->route('admin.dashboard', ['tab' => 'judges'])->with('status', $message);
+    }
+
+    /**
+     * Administrator mereset penilaian dari juri tertentu pada karya finalis.
+     */
+    public function resetJudgeScore(Request $request, Registration $registration, User $judge): RedirectResponse|JsonResponse
+    {
+        \App\Models\RubricScore::where('user_id', $judge->id)
+            ->where('registration_id', $registration->id)
+            ->delete();
+
+        JudgeScore::where('user_id', $judge->id)
+            ->where('registration_id', $registration->id)
+            ->delete();
+
+        $message = "Nilai dari {$judge->name} untuk karya '{$registration->full_name}' berhasil direset.";
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => $message,
+            ]);
+        }
+
+        return redirect()->route('admin.dashboard', ['tab' => 'scores'])->with('status', $message);
     }
 
     /**
@@ -360,7 +477,7 @@ class AdminDashboardController extends Controller
             ]);
         }
 
-        return back()->with('status', $message);
+        return redirect()->route('admin.dashboard', ['tab' => 'judges'])->with('status', $message);
     }
 
     /**
