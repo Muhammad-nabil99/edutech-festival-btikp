@@ -53,39 +53,41 @@
     <div class="fixed bottom-10 left-10 w-80 h-80 ambient-glow-purple opacity-70 pointer-events-none z-0"></div>
 
     <!-- Main Navigation Header -->
-    <header class="sticky top-0 z-40 bg-white/85 backdrop-blur-md border-b border-slate-100 transition-all">
-        <div class="{{ $maxWidth ?? 'max-w-7xl' }} mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center justify-between h-20">
+    <header class="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-100 transition-all">
+        <div class="{{ $maxWidth ?? 'max-w-7xl' }} mx-auto px-3 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16 sm:h-20">
                 <!-- Brand / Logo & Agency Badge -->
-                <a href="{{ route('registration.create') }}" class="flex items-center gap-3.5 group">
-                    <div class="w-11 h-11 rounded-2xl bg-white border border-slate-200/80 p-1 flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform overflow-hidden">
+                <a href="{{ route('registration.create') }}" class="flex items-center gap-2 sm:gap-3.5 group shrink-0">
+                    <div class="w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-white border border-slate-200/80 p-1 flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform overflow-hidden">
                         <img src="{{ asset('logo.png') }}" alt="Logo EduTech BTIKP" class="w-full h-full object-contain">
                     </div>
                     <div>
-                        <div class="flex items-center gap-2">
-                            <span class="text-lg sm:text-xl font-extrabold tracking-tight text-slate-900 group-hover:text-[#5e43f3] transition-colors">
+                        <div class="flex items-center gap-1.5 sm:gap-2">
+                            <span class="text-base sm:text-xl font-extrabold tracking-tight text-slate-900 group-hover:text-[#5e43f3] transition-colors">
                                 EduTech<span class="text-[#5e43f3]">Festival</span>
                             </span>
-                            <span class="px-2 py-0.5 text-[11px] font-bold tracking-wide uppercase bg-purple-50 text-[#5e43f3] rounded-md border border-purple-200/60">
+                            <span class="px-1.5 sm:px-2 py-0.5 text-[10px] sm:text-[11px] font-bold tracking-wide uppercase bg-purple-50 text-[#5e43f3] rounded-md border border-purple-200/60">
                                 BTIKP
                             </span>
                         </div>
-                        <p class="text-xs font-medium text-slate-500 hidden sm:block">Dinas Pendidikan dan Kebudayaan Provinsi Sulawesi Tenggara</p>
+                        <p class="text-[11px] sm:text-xs font-medium text-slate-500 hidden md:block">Dinas Pendidikan dan Kebudayaan Provinsi Sulawesi Tenggara</p>
                     </div>
                 </a>
 
                 <!-- Right Nav Actions -->
-                <div class="flex items-center space-x-3 sm:space-x-4">
+                <div class="flex items-center space-x-2 sm:space-x-4">
                     @auth
                         @if (auth()->user()->isJudge())
-                            <a href="{{ route('judge.dashboard') }}" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-50 text-[#5e43f3] border border-purple-200/80 text-xs font-bold hover:bg-purple-100 transition">
+                            <a href="{{ route('judge.dashboard') }}" class="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl bg-purple-50 text-[#5e43f3] border border-purple-200/80 text-xs font-bold hover:bg-purple-100 transition">
                                 <span class="w-2 h-2 rounded-full bg-[#5e43f3] animate-pulse"></span>
-                                <span>Dashboard Juri</span>
+                                <span class="hidden sm:inline">Dashboard Juri</span>
+                                <span class="sm:hidden">Juri</span>
                             </a>
                         @else
-                            <a href="{{ route('admin.dashboard') }}" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-50 text-[#5e43f3] border border-purple-200/80 text-xs font-bold hover:bg-purple-100 transition">
+                            <a href="{{ route('admin.dashboard') }}" class="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl bg-purple-50 text-[#5e43f3] border border-purple-200/80 text-xs font-bold hover:bg-purple-100 transition">
                                 <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                                <span>Dashboard Admin</span>
+                                <span class="hidden sm:inline">Dashboard Admin</span>
+                                <span class="sm:hidden">Admin</span>
                             </a>
                         @endif
 
@@ -103,23 +105,23 @@
                         </div>
 
                         <!-- Divider -->
-                        <div class="h-6 w-px bg-slate-200 hidden sm:block"></div>
+                        <div class="h-5 sm:h-6 w-px bg-slate-200 hidden sm:block"></div>
 
                         <!-- Logout Button -->
                         <form method="POST" action="{{ route('admin.logout', [], false) }}" class="inline">
                             @csrf
-                            <button type="submit" class="inline-flex items-center text-xs font-bold text-rose-500 hover:text-rose-600 px-3 py-2 rounded-xl hover:bg-rose-50 transition-colors cursor-pointer" title="Keluar dari sistem">
-                                <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <button type="submit" class="inline-flex items-center text-xs font-bold text-rose-500 hover:text-rose-600 px-2 sm:px-3 py-1.5 sm:py-2 rounded-xl hover:bg-rose-50 transition-colors cursor-pointer" title="Keluar dari sistem">
+                                <svg class="w-4 h-4 sm:mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                                 </svg>
-                                <span>Keluar</span>
+                                <span class="hidden sm:inline">Keluar</span>
                             </button>
                         </form>
                     @else
                         <a href="{{ route('registration.create') }}" class="text-xs sm:text-sm font-semibold text-slate-600 hover:text-[#5e43f3] hidden sm:inline-block">
                             Formulir Pendaftaran
                         </a>
-                        <a href="{{ route('admin.login') }}" class="inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-slate-700 hover:text-slate-900 px-3.5 py-2 rounded-xl border border-slate-200 hover:border-slate-300 bg-white shadow-xs transition">
+                        <a href="{{ route('admin.login') }}" class="inline-flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm font-bold text-slate-700 hover:text-slate-900 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl border border-slate-200 hover:border-slate-300 bg-white shadow-xs transition">
                             <img src="{{ asset('logo.png') }}" alt="Logo" class="h-4 w-auto object-contain shrink-0">
                             <span>Portal Masuk</span>
                         </a>
@@ -130,7 +132,7 @@
     </header>
 
     <!-- Main Content -->
-    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 relative">
+    <main class="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8 relative">
         <!-- Floating Toast Notification System (Auto-slides away after 5s) -->
         @if (session('status') || session('error') || $errors->any())
             <div 

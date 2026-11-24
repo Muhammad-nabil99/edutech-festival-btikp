@@ -1,31 +1,31 @@
 <x-layouts.app title="Portal Dewan Juri — EduTech Festival BTIKP" maxWidth="max-w-7xl">
     <div x-data="judgeDashboard()" class="space-y-6">
         <!-- Welcome Juri Header Banner -->
-        <div class="rounded-3xl bg-gradient-to-r from-purple-900 via-indigo-900 to-[#5e43f3] text-white p-6 sm:p-8 shadow-soft relative overflow-hidden">
-            <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div class="rounded-2xl sm:rounded-3xl bg-gradient-to-r from-purple-900 via-indigo-900 to-[#5e43f3] text-white p-4 sm:p-6 lg:p-8 shadow-soft relative overflow-hidden">
+            <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4 sm:gap-6">
                 <div class="space-y-2 max-w-2xl">
-                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-extrabold bg-white/10 backdrop-blur-md border border-white/20 text-purple-200">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11px] sm:text-xs font-extrabold bg-white/10 backdrop-blur-md border border-white/20 text-purple-200">
                         <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                        Portal Resmi Dewan Juri — EduTech Festival BTIKP Sultra
+                        <span>Portal Resmi Dewan Juri — EduTech Festival BTIKP</span>
                     </div>
-                    <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight">
+                    <h1 class="text-xl sm:text-2xl lg:text-3xl font-extrabold tracking-tight">
                         Evaluasi &amp; Rekomendasi Karya Digital
                     </h1>
                     <p class="text-xs sm:text-sm text-purple-100/90 leading-relaxed">
                         Selamat datang, <strong>{{ $judge->name }}</strong> ({{ $judge->username }}).
                         @if (!empty($judge->category))
-                            Penugasan Anda: <strong class="text-white underline decoration-amber-300 decoration-2 underline-offset-2">{{ $judge->category === 'gim_edukasi' ? 'Kategori Gim Edukasi' : 'Kategori Media Pembelajaran Interaktif (MPI)' }}</strong>
+                            Penugasan: <strong class="text-white underline decoration-amber-300 decoration-2 underline-offset-2">{{ $judge->category === 'gim_edukasi' ? 'Kategori Gim Edukasi' : 'Kategori Media Pembelajaran Interaktif (MPI)' }}</strong>
                             sebagai <strong class="text-white">{{ $judge->judge_role_label }}</strong>.
                         @endif
                         Anda dapat merekomendasikan karya terbaik ke Panitia dengan mengisi checklist kelayakan, serta menilai karya Finalis Top 10 yang telah disetujui Admin.
                     </p>
                 </div>
 
-                <div class="flex items-center gap-3 self-start md:self-auto shrink-0">
+                <div class="flex items-center gap-3 w-full sm:w-auto shrink-0">
                     <button 
                         type="button" 
                         @click="showProfileModal = true"
-                        class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold border border-white/20 transition cursor-pointer shadow-xs"
+                        class="w-full sm:w-auto justify-center inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold border border-white/20 transition cursor-pointer shadow-xs min-h-[44px]"
                     >
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -37,122 +37,179 @@
         </div>
 
         <!-- Metric Cards: Saran Rekomendasi & Penilaian -->
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
             @if (empty($judge->category))
                 <!-- Saran Gim -->
-                <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-xs flex flex-col justify-between">
+                <div class="bg-white p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl border border-slate-100 shadow-xs flex flex-col justify-between">
                     <div>
-                        <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">Saran Top 10: Gim</span>
-                        <div class="text-2xl sm:text-3xl font-extrabold text-amber-600 mt-1 font-mono">
+                        <span class="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-slate-400 block truncate">Saran Top 10: Gim</span>
+                        <div class="text-xl sm:text-3xl font-extrabold text-amber-600 mt-1 font-mono">
                             <span x-text="myGimSuggestions"></span><span class="text-slate-400 text-xs font-semibold ml-1">Karya</span>
                         </div>
                     </div>
-                    <p class="text-[11px] text-slate-500 mt-2 font-medium">
-                        Rekomendasi Anda untuk Gim Edukasi
+                    <p class="text-[10px] sm:text-[11px] text-slate-500 mt-2 font-medium truncate">
+                        Rekomendasi Anda untuk Gim
                     </p>
                 </div>
 
                 <!-- Saran Media -->
-                <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-xs flex flex-col justify-between">
+                <div class="bg-white p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl border border-slate-100 shadow-xs flex flex-col justify-between">
                     <div>
-                        <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">Saran Top 10: Media</span>
-                        <div class="text-2xl sm:text-3xl font-extrabold text-sky-600 mt-1 font-mono">
+                        <span class="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-slate-400 block truncate">Saran Top 10: Media</span>
+                        <div class="text-xl sm:text-3xl font-extrabold text-sky-600 mt-1 font-mono">
                             <span x-text="myMediaSuggestions"></span><span class="text-slate-400 text-xs font-semibold ml-1">Karya</span>
                         </div>
                     </div>
-                    <p class="text-[11px] text-slate-500 mt-2 font-medium">
-                        Rekomendasi Anda untuk Media Interaktif
+                    <p class="text-[10px] sm:text-[11px] text-slate-500 mt-2 font-medium truncate">
+                        Rekomendasi Anda untuk MPI
                     </p>
                 </div>
             @elseif ($judge->category === 'gim_edukasi')
                 <!-- Saran Gim -->
-                <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-xs flex flex-col justify-between">
+                <div class="bg-white p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl border border-slate-100 shadow-xs flex flex-col justify-between">
                     <div>
-                        <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">Saran Top 10: Gim</span>
-                        <div class="text-2xl sm:text-3xl font-extrabold text-amber-600 mt-1 font-mono">
+                        <span class="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-slate-400 block truncate">Saran Top 10: Gim</span>
+                        <div class="text-xl sm:text-3xl font-extrabold text-amber-600 mt-1 font-mono">
                             <span x-text="myGimSuggestions"></span><span class="text-slate-400 text-xs font-semibold ml-1">Karya</span>
                         </div>
                     </div>
-                    <p class="text-[11px] text-slate-500 mt-2 font-medium">
-                        Rekomendasi Anda untuk Gim Edukasi
+                    <p class="text-[10px] sm:text-[11px] text-slate-500 mt-2 font-medium truncate">
+                        Rekomendasi Anda untuk Gim
                     </p>
                 </div>
 
                 <!-- Total Peserta Gim -->
-                <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-xs flex flex-col justify-between">
+                <div class="bg-white p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl border border-slate-100 shadow-xs flex flex-col justify-between">
                     <div>
-                        <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">Total Peserta Gim</span>
-                        <div class="text-2xl sm:text-3xl font-extrabold text-amber-600 mt-1 font-mono">
+                        <span class="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-slate-400 block truncate">Total Peserta Gim</span>
+                        <div class="text-xl sm:text-3xl font-extrabold text-amber-600 mt-1 font-mono">
                             {{ $allWorks->count() }}<span class="text-slate-400 text-xs font-semibold ml-1">Karya</span>
                         </div>
                     </div>
-                    <p class="text-[11px] text-slate-500 mt-2 font-medium">
+                    <p class="text-[10px] sm:text-[11px] text-slate-500 mt-2 font-medium truncate">
                         Karya yang Anda evaluasi
                     </p>
                 </div>
             @else
                 <!-- Saran Media -->
-                <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-xs flex flex-col justify-between">
+                <div class="bg-white p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl border border-slate-100 shadow-xs flex flex-col justify-between">
                     <div>
-                        <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">Saran Top 10: MPI</span>
-                        <div class="text-2xl sm:text-3xl font-extrabold text-sky-600 mt-1 font-mono">
+                        <span class="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-slate-400 block truncate">Saran Top 10: MPI</span>
+                        <div class="text-xl sm:text-3xl font-extrabold text-sky-600 mt-1 font-mono">
                             <span x-text="myMediaSuggestions"></span><span class="text-slate-400 text-xs font-semibold ml-1">Karya</span>
                         </div>
                     </div>
-                    <p class="text-[11px] text-slate-500 mt-2 font-medium">
+                    <p class="text-[10px] sm:text-[11px] text-slate-500 mt-2 font-medium truncate">
                         Rekomendasi Media Interaktif
                     </p>
                 </div>
 
                 <!-- Total Peserta Media -->
-                <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-xs flex flex-col justify-between">
+                <div class="bg-white p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl border border-slate-100 shadow-xs flex flex-col justify-between">
                     <div>
-                        <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">Total Peserta MPI</span>
-                        <div class="text-2xl sm:text-3xl font-extrabold text-sky-600 mt-1 font-mono">
+                        <span class="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-slate-400 block truncate">Total Peserta MPI</span>
+                        <div class="text-xl sm:text-3xl font-extrabold text-sky-600 mt-1 font-mono">
                             {{ $allWorks->count() }}<span class="text-slate-400 text-xs font-semibold ml-1">Karya</span>
                         </div>
                     </div>
-                    <p class="text-[11px] text-slate-500 mt-2 font-medium">
+                    <p class="text-[10px] sm:text-[11px] text-slate-500 mt-2 font-medium truncate">
                         Karya yang Anda evaluasi
                     </p>
                 </div>
             @endif
 
             <!-- Total Finalis yang Disetujui Admin -->
-            <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-xs flex flex-col justify-between">
+            <div class="bg-white p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl border border-slate-100 shadow-xs flex flex-col justify-between">
                 <div>
-                    <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">Finalis Resmi Top 10</span>
-                    <div class="text-2xl sm:text-3xl font-extrabold text-[#5e43f3] mt-1 font-mono">
-                        {{ $stats['finalists_count'] }}<span class="text-slate-300 text-lg font-normal"> / {{ !empty($judge->category) ? '10' : '20' }}</span>
+                    <span class="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-slate-400 block truncate">Finalis Top 10</span>
+                    <div class="text-xl sm:text-3xl font-extrabold text-[#5e43f3] mt-1 font-mono">
+                        {{ $stats['finalists_count'] }}<span class="text-slate-300 text-sm sm:text-lg font-normal"> / {{ !empty($judge->category) ? '10' : '20' }}</span>
                     </div>
                 </div>
-                <p class="text-[11px] text-[#5e43f3] mt-2 font-semibold">
+                <p class="text-[10px] sm:text-[11px] text-[#5e43f3] mt-2 font-semibold truncate">
                     {{ !empty($judge->category) ? ($judge->category === 'gim_edukasi' ? 'Top 10 Gim Edukasi' : 'Top 10 Media Interaktif') : 'Keputusan resmi Admin' }}
                 </p>
             </div>
 
             <!-- Status Penilaian Juri Ini -->
-            <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-xs flex flex-col justify-between">
+            <div class="bg-white p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl border border-slate-100 shadow-xs flex flex-col justify-between">
                 <div>
-                    <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">Status Nilai Anda</span>
-                    <div class="text-2xl sm:text-3xl font-extrabold text-emerald-600 mt-1 font-mono">
-                        {{ $stats['scored_finalists_count'] }}<span class="text-slate-300 text-lg font-normal"> / {{ $stats['finalists_count'] }}</span>
+                    <span class="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-slate-400 block truncate">Status Nilai Anda</span>
+                    <div class="text-xl sm:text-3xl font-extrabold text-emerald-600 mt-1 font-mono">
+                        {{ $stats['scored_finalists_count'] }}<span class="text-slate-300 text-sm sm:text-lg font-normal"> / {{ $stats['finalists_count'] }}</span>
                     </div>
                 </div>
-                <p class="text-[11px] text-emerald-600 mt-2 font-semibold">
-                    {{ $stats['remaining_finalists_to_score'] > 0 ? $stats['remaining_finalists_to_score'] . ' karya belum dinilai' : 'Semua finalis telah dinilai' }}
+                <p class="text-[10px] sm:text-[11px] text-emerald-600 mt-2 font-semibold truncate">
+                    {{ $stats['remaining_finalists_to_score'] > 0 ? $stats['remaining_finalists_to_score'] . ' belum dinilai' : 'Semua finalis dinilai' }}
                 </p>
             </div>
         </div>
 
         <!-- 3 TABS UTAMA DEWAN JURI -->
-        <div class="bg-white rounded-3xl border border-slate-200/80 p-2 shadow-xs flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-            <div class="flex items-center gap-1 sm:gap-2 overflow-x-auto p-1">
+        <div class="bg-white rounded-2xl sm:rounded-3xl border border-slate-200/80 p-1.5 sm:p-2 shadow-xs flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 sm:gap-3">
+            <div class="flex items-center gap-1 sm:gap-2 overflow-x-auto p-0.5 sm:p-1">
                 <!-- Tab 1: Semua Peserta -->
                 <button 
                     type="button" 
                     @click="activeTab = 'all'"
-                    class="px-4 py-2.5 rounded-2xl text-xs font-bold transition flex items-center gap-2 cursor-pointer whitespace-nowrap"
+                    class="px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl sm:rounded-2xl text-xs font-bold transition flex items-center gap-1.5 sm:gap-2 cursor-pointer whitespace-nowrap min-h-[40px]"
+                    :class="activeTab === 'all' ? 'bg-[#5e43f3] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'"
+                >
+                    <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                    </svg>
+                    <span>1. Semua Peserta</span>
+                    <span class="px-1.5 sm:px-2 py-0.5 rounded-full text-[10px] font-extrabold" :class="activeTab === 'all' ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-700'">
+                        {{ $allWorks->count() }}
+                    </span>
+                </button>
+
+                <!-- Tab 2: Saran Saya -->
+                <button 
+                    type="button" 
+                    @click="activeTab = 'my_suggestions'"
+                    class="px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl sm:rounded-2xl text-xs font-bold transition flex items-center gap-1.5 sm:gap-2 cursor-pointer whitespace-nowrap min-h-[40px]"
+                    :class="activeTab === 'my_suggestions' ? 'bg-purple-700 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'"
+                >
+                    <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                    </svg>
+                    <span>2. Saran Saya</span>
+                    <span class="px-1.5 sm:px-2 py-0.5 rounded-full text-[10px] font-extrabold" :class="activeTab === 'my_suggestions' ? 'bg-white/20 text-white' : 'bg-purple-100 text-purple-800'">
+                        <span x-text="myGimSuggestions + myMediaSuggestions"></span>
+                    </span>
+                </button>
+
+                <!-- Tab 3: Finalis (Siap Dinilai) -->
+                <button 
+                    type="button" 
+                    @click="activeTab = 'finalists'"
+                    class="px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl sm:rounded-2xl text-xs font-bold transition flex items-center gap-1.5 sm:gap-2 cursor-pointer whitespace-nowrap min-h-[40px]"
+                    :class="activeTab === 'finalists' ? 'bg-emerald-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'"
+                >
+                    <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span>3. Finalis Top 10</span>
+                    <span class="px-1.5 sm:px-2 py-0.5 rounded-full text-[10px] font-extrabold" :class="activeTab === 'finalists' ? 'bg-white/20 text-white' : 'bg-emerald-100 text-emerald-800'">
+                        {{ $finalists->count() }}
+                    </span>
+                </button>
+            </div>
+
+            <!-- Petunjuk Singkat Tab -->
+            <div class="px-2.5 sm:px-3 py-1.5 rounded-xl bg-slate-50 text-[10px] sm:text-[11px] text-slate-500 font-medium">
+                <template x-if="activeTab === 'all'">
+                    <span>💡 Klik <strong>Sarankan Top 10</strong> untuk mengisi checklist kriteria kelayakan.</span>
+                </template>
+                <template x-if="activeTab === 'my_suggestions'">
+                    <span>💡 Daftar karya yang Anda usulkan beserta checklist alasan. Anda dapat memperbarui/menarik saran.</span>
+                </template>
+                <template x-if="activeTab === 'finalists'">
+                    <span>⭐ Hanya karya di tab ini yang dinilai menggunakan <strong>Rubrik Bab IV</strong>.</span>
+                </template>
+            </div>
+        </div>
                     :class="activeTab === 'all' ? 'bg-[#5e43f3] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'"
                 >
                     <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -924,7 +981,14 @@
             </div>
 
             <!-- 2. List / Table View (Finalis Top 10 - Tampilan Lengkap Multi-Juri Seperti Admin) -->
-            <div x-show="viewMode === 'list' || viewMode === 'table'" class="bg-white rounded-3xl border border-slate-200/80 shadow-xs overflow-hidden">
+            <div x-show="viewMode === 'list' || viewMode === 'table'" class="bg-white rounded-2xl sm:rounded-3xl border border-slate-200/80 shadow-xs overflow-hidden">
+                <!-- Mobile Horizontal Scroll Hint -->
+                <div class="sm:hidden px-3.5 py-2 bg-purple-50 text-[#5e43f3] text-[11px] font-bold border-b border-purple-100 flex items-center gap-1.5">
+                    <svg class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                    </svg>
+                    <span>Geser tabel ke samping untuk melihat seluruh nilai juri</span>
+                </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse text-xs">
                         <thead>
@@ -1155,41 +1219,41 @@
         <div 
             x-show="scoringWork !== null" 
             x-cloak
-            class="fixed inset-0 z-[999999] flex items-center justify-center p-3 sm:p-5 bg-slate-900/60 backdrop-blur-xs overflow-y-auto"
+            class="fixed inset-0 z-[999999] flex items-center justify-center p-2 sm:p-5 bg-slate-900/60 backdrop-blur-xs overflow-y-auto"
             @click.self="closeScoring()"
         >
             <div 
                 x-show="scoringWork !== null"
-                class="w-full max-w-2xl bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden flex flex-col my-auto relative text-slate-800 max-h-[92vh]"
+                class="w-full max-w-2xl bg-white rounded-2xl sm:rounded-3xl shadow-2xl border border-slate-100 overflow-hidden flex flex-col my-auto relative text-slate-800 max-h-[92vh] sm:max-h-[88vh]"
             >
                 <!-- Modal Header -->
-                <div class="px-6 py-4.5 bg-gradient-to-r from-emerald-700 via-teal-800 to-emerald-900 text-white flex items-center justify-between shrink-0">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-lg font-bold border border-white/30">
+                <div class="px-4 py-3 sm:px-6 sm:py-4.5 bg-gradient-to-r from-emerald-700 via-teal-800 to-emerald-900 text-white flex items-center justify-between shrink-0">
+                    <div class="flex items-center gap-2.5 sm:gap-3">
+                        <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-base sm:text-lg font-bold border border-white/30 shrink-0">
                             📝
                         </div>
                         <div>
-                            <h3 class="font-bold text-base text-white">Lembar Penilaian Finalis</h3>
-                            <p class="text-xs text-emerald-200">Rubrik Standar Bab IV — EduTech Festival BTIKP</p>
+                            <h3 class="font-bold text-sm sm:text-base text-white">Lembar Penilaian Finalis</h3>
+                            <p class="text-[11px] sm:text-xs text-emerald-200">Rubrik Standar Bab IV — EduTech Festival BTIKP</p>
                         </div>
                     </div>
-                    <button type="button" @click="closeScoring()" class="w-8 h-8 rounded-xl bg-white/20 hover:bg-white/30 text-white flex items-center justify-center transition cursor-pointer">
+                    <button type="button" @click="closeScoring()" class="w-8 h-8 rounded-xl bg-white/20 hover:bg-white/30 text-white flex items-center justify-center transition cursor-pointer shrink-0">
                         ✕
                     </button>
                 </div>
 
                 <!-- Modal Body (Scrollable) -->
-                <div class="p-6 overflow-y-auto space-y-6 flex-1 text-xs">
+                <div class="p-3.5 sm:p-6 overflow-y-auto space-y-4 sm:space-y-6 flex-1 text-xs">
                     <!-- Alert Success -->
                     <template x-if="scoreSuccessMsg">
-                        <div class="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold flex items-center gap-2">
+                        <div class="p-3 rounded-xl sm:rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold flex items-center gap-2">
                             <span>✓</span>
                             <span x-text="scoreSuccessMsg"></span>
                         </div>
                     </template>
 
                     <!-- Banner Kewenangan Juri -->
-                    <div class="p-4 rounded-2xl bg-gradient-to-r from-indigo-50 via-purple-50 to-indigo-50 border border-indigo-200/80 text-indigo-950 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
+                    <div class="p-3.5 sm:p-4 rounded-xl sm:rounded-2xl bg-gradient-to-r from-indigo-50 via-purple-50 to-indigo-50 border border-indigo-200/80 text-indigo-950 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
                         <div class="flex items-center gap-3">
                             <div class="w-10 h-10 rounded-2xl bg-indigo-600 text-white font-extrabold flex items-center justify-center text-sm shadow-xs shrink-0">
                                 <span x-text="'J' + myRole"></span>
@@ -1214,12 +1278,12 @@
                     </div>
 
                     <!-- Identitas Peserta -->
-                    <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex items-center justify-between gap-4">
+                    <div class="p-3.5 sm:p-4 rounded-xl sm:rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
                         <div class="flex items-center gap-3 min-w-0">
                             <img 
                                 :src="scoringWork?.profile_photo_url || ('https://ui-avatars.com/api/?name=' + encodeURIComponent(scoringWork?.full_name || 'Peserta') + '&background=5E43F3&color=FFFFFF&size=200')" 
                                 :alt="scoringWork?.full_name"
-                                class="w-12 h-12 rounded-2xl object-cover border border-slate-200 bg-white shrink-0 shadow-2xs"
+                                class="w-11 h-11 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl object-cover border border-slate-200 bg-white shrink-0 shadow-2xs"
                                 x-on:error="$event.target.src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(scoringWork?.full_name || 'Peserta') + '&background=5E43F3&color=FFFFFF&size=200'"
                             >
                             <div class="truncate">
@@ -1233,14 +1297,14 @@
                                 <p class="text-xs text-slate-600 truncate mt-0.5" x-text="scoringWork?.school_name + ' • ' + scoringWork?.regency_city"></p>
                             </div>
                         </div>
-                        <a :href="scoringWork?.media_link" target="_blank" class="px-3.5 py-2 rounded-xl bg-white border border-slate-300 text-[#5e43f3] hover:bg-indigo-50 font-bold text-xs transition whitespace-nowrap shadow-2xs flex items-center gap-1.5 shrink-0">
+                        <a :href="scoringWork?.media_link" target="_blank" class="px-3.5 py-2 rounded-xl bg-white border border-slate-300 text-[#5e43f3] hover:bg-indigo-50 font-bold text-xs transition whitespace-nowrap shadow-2xs flex items-center justify-center gap-1.5 shrink-0 min-h-[40px]">
                             <span>Buka Karya</span>
                             <span>&rarr;</span>
                         </a>
                     </div>
 
                     <!-- Panel Nilai Akhir / Sementara Realtime (Tema Putih Bersih) -->
-                    <div class="p-4 rounded-2xl bg-white border border-slate-200 text-slate-800 space-y-3 shadow-2xs">
+                    <div class="p-3.5 sm:p-4 rounded-xl sm:rounded-2xl bg-white border border-slate-200 text-slate-800 space-y-3 shadow-2xs">
                         <div class="flex items-center justify-between">
                             <div class="flex items-center gap-2">
                                 <span class="text-xs uppercase font-extrabold tracking-wider" 
@@ -1248,7 +1312,7 @@
                                     x-text="liveRecap?.status_label || 'Nilai Sementara'">
                                 </span>
                                 <template x-if="liveRecap?.waiting_text">
-                                    <span class="px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 text-[10px] font-bold border border-amber-200" x-text="liveRecap.waiting_text"></span>
+                                    <span class="px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 text-[10px] font-bold border border-amber-200 truncate max-w-[140px] sm:max-w-none" x-text="liveRecap.waiting_text"></span>
                                 </template>
                                 <template x-if="liveRecap?.is_complete">
                                     <span class="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-bold border border-emerald-200">✓ Lengkap (3 Juri)</span>
@@ -1259,7 +1323,7 @@
                             <div class="flex items-center gap-1.5 text-[10px]" title="Sinkronisasi otomatis realtime seiring juri menilai">
                                 <span class="w-2 h-2 rounded-full"
                                     :class="syncStatus === 'connected' ? 'bg-emerald-500 animate-pulse' : (syncStatus === 'updating' ? 'bg-amber-500 animate-ping' : 'bg-rose-500')"></span>
-                                <span class="text-slate-500 font-medium" x-text="syncStatus === 'connected' ? '● Terhubung' : (syncStatus === 'updating' ? 'Memperbarui...' : '⚠️ Sambungan terputus')"></span>
+                                <span class="text-slate-500 font-medium" x-text="syncStatus === 'connected' ? '● Terhubung' : (syncStatus === 'updating' ? 'Memperbarui...' : '⚠️ Terputus')"></span>
                             </div>
                         </div>
 
@@ -1267,14 +1331,14 @@
                         <div class="flex items-baseline justify-between pt-1 border-t border-slate-100">
                             <div>
                                 <div class="text-[10px] uppercase font-bold text-slate-400">Total Nilai (Maks. 100)</div>
-                                <div class="text-3xl font-extrabold font-mono tracking-tight text-slate-900 transition-all duration-300 flex items-baseline gap-2">
+                                <div class="text-2xl sm:text-3xl font-extrabold font-mono tracking-tight text-slate-900 transition-all duration-300 flex items-baseline gap-2">
                                     <span x-text="liveRecap?.display_score || '0.00'"></span>
-                                    <span class="text-xs font-semibold text-slate-400" x-text="liveRecap?.is_complete ? '(Nilai Akhir Resmi)' : '(Sementara)'"></span>
+                                    <span class="text-xs font-semibold text-slate-400" x-text="liveRecap?.is_complete ? '(Nilai Akhir)' : '(Sementara)'"></span>
                                 </div>
                             </div>
                             <div class="text-right">
-                                <div class="text-[10px] uppercase font-bold text-slate-400">Skor Anda (Juri <span x-text="myRole"></span>)</div>
-                                <div class="text-xl font-extrabold font-mono text-emerald-600">
+                                <div class="text-[10px] uppercase font-bold text-slate-400">Skor Juri <span x-text="myRole"></span></div>
+                                <div class="text-lg sm:text-xl font-extrabold font-mono text-emerald-600">
                                     <span x-text="myTotalScore + '/' + myMaxScore"></span>
                                     <span class="text-xs font-normal text-slate-400 font-sans">(<span x-text="myWeightedScore.toFixed(2)"></span>)</span>
                                 </div>
@@ -1284,7 +1348,7 @@
                         <!-- 3 Kolom Rincian Dewan Juri -->
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-2 border-t border-slate-100 text-[11px]">
                             <!-- Juri 1 -->
-                            <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200/80 transition" :class="myRole === 1 ? 'ring-2 ring-indigo-500 bg-indigo-50/40 border-indigo-200' : ''">
+                            <div class="p-2 sm:p-2.5 rounded-xl bg-slate-50 border border-slate-200/80 transition" :class="myRole === 1 ? 'ring-2 ring-indigo-500 bg-indigo-50/40 border-indigo-200' : ''">
                                 <div class="flex items-center justify-between">
                                     <div class="font-bold text-slate-800 truncate" x-text="(liveRecap?.judges?.[1]?.name || 'Juri 1') + (myRole === 1 ? ' (Anda)' : '')"></div>
                                     <span class="text-[9px] px-1.5 py-0.5 rounded bg-indigo-100 text-indigo-800 font-bold">55%</span>
@@ -1301,7 +1365,7 @@
                             </div>
 
                             <!-- Juri 2 -->
-                            <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200/80 transition" :class="myRole === 2 ? 'ring-2 ring-indigo-500 bg-indigo-50/40 border-indigo-200' : ''">
+                            <div class="p-2 sm:p-2.5 rounded-xl bg-slate-50 border border-slate-200/80 transition" :class="myRole === 2 ? 'ring-2 ring-indigo-500 bg-indigo-50/40 border-indigo-200' : ''">
                                 <div class="flex items-center justify-between">
                                     <div class="font-bold text-slate-800 truncate" x-text="(liveRecap?.judges?.[2]?.name || 'Juri 2') + (myRole === 2 ? ' (Anda)' : '')"></div>
                                     <span class="text-[9px] px-1.5 py-0.5 rounded bg-indigo-100 text-indigo-800 font-bold">30%</span>
@@ -1318,7 +1382,7 @@
                             </div>
 
                             <!-- Juri 3 -->
-                            <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200/80 transition" :class="myRole === 3 ? 'ring-2 ring-indigo-500 bg-indigo-50/40 border-indigo-200' : ''">
+                            <div class="p-2 sm:p-2.5 rounded-xl bg-slate-50 border border-slate-200/80 transition" :class="myRole === 3 ? 'ring-2 ring-indigo-500 bg-indigo-50/40 border-indigo-200' : ''">
                                 <div class="flex items-center justify-between">
                                     <div class="font-bold text-slate-800 truncate" x-text="(liveRecap?.judges?.[3]?.name || 'Juri 3') + (myRole === 3 ? ' (Anda)' : '')"></div>
                                     <span class="text-[9px] px-1.5 py-0.5 rounded bg-indigo-100 text-indigo-800 font-bold">15%</span>
@@ -1337,56 +1401,56 @@
                     </div>
 
                     <!-- Formulir 12 Subindikator Penilaian Juri -->
-                    <div class="space-y-4">
+                    <div class="space-y-3.5 sm:space-y-4">
                         <div class="flex items-center justify-between pb-1 border-b border-slate-200">
                             <div>
                                 <h4 class="font-extrabold text-slate-900 text-xs uppercase tracking-wider" x-text="myRoleConfig?.aspect"></h4>
                                 <p class="text-[11px] text-slate-500">Pilih skala 1 sampai 5 untuk setiap subindikator berikut (nilai otomatis dihitung):</p>
                             </div>
                             <div class="text-right">
-                                <span class="text-[11px] font-extrabold px-3 py-1 rounded-xl shadow-2xs"
+                                <span class="text-[11px] font-extrabold px-2.5 sm:px-3 py-1 rounded-xl shadow-2xs"
                                     :class="isMyScoringComplete ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-amber-100 text-amber-800 border border-amber-300'">
                                     <span x-text="myFilledCount + '/' + myTotalItems + ' Terisi'"></span>
                                 </span>
                             </div>
                         </div>
 
-                        <!-- Skala Keterangan Likert 1 - 5 -->
-                        <div class="grid grid-cols-5 gap-1.5 text-[11px] text-center p-2.5 rounded-2xl bg-slate-100/90 border border-slate-200/80 font-semibold text-slate-700 shadow-2xs">
-                            <div class="p-1 rounded-lg bg-white/70 border border-slate-200/60"><strong class="text-slate-900">1:</strong> Sangat Kurang</div>
+                        <!-- Skala Keterangan Likert 1 - 5 (Mobile Friendly) -->
+                        <div class="grid grid-cols-5 gap-1 sm:gap-1.5 text-[9px] sm:text-[11px] text-center p-2 sm:p-2.5 rounded-xl sm:rounded-2xl bg-slate-100/90 border border-slate-200/80 font-semibold text-slate-700 shadow-2xs">
+                            <div class="p-1 rounded-lg bg-white/70 border border-slate-200/60"><strong class="text-slate-900">1:</strong> <span class="hidden sm:inline">Sangat Kurang</span><span class="sm:hidden">S.Kurang</span></div>
                             <div class="p-1 rounded-lg bg-white/70 border border-slate-200/60"><strong class="text-slate-900">2:</strong> Kurang</div>
                             <div class="p-1 rounded-lg bg-white/70 border border-slate-200/60"><strong class="text-slate-900">3:</strong> Cukup</div>
                             <div class="p-1 rounded-lg bg-white/70 border border-slate-200/60"><strong class="text-slate-900">4:</strong> Baik</div>
-                            <div class="p-1 rounded-lg bg-white/70 border border-slate-200/60"><strong class="text-slate-900">5:</strong> Sangat Baik</div>
+                            <div class="p-1 rounded-lg bg-white/70 border border-slate-200/60"><strong class="text-slate-900">5:</strong> <span class="hidden sm:inline">Sangat Baik</span><span class="sm:hidden">S.Baik</span></div>
                         </div>
 
                         <!-- Daftar Subindikator Sesuai Peran Juri -->
-                        <div class="space-y-3.5">
+                        <div class="space-y-3 sm:space-y-3.5">
                             <template x-for="(text, idx) in (myRoleConfig?.subindicators || {})" :key="idx">
-                                <div class="p-4 rounded-2xl border transition-all"
+                                <div class="p-3.5 sm:p-4 rounded-xl sm:rounded-2xl border transition-all"
                                     :class="subindicators[idx] ? 'border-emerald-300 bg-white shadow-xs ring-1 ring-emerald-500/20' : 'border-slate-200 bg-white hover:border-slate-300'">
-                                    <div class="flex items-start justify-between gap-3 mb-3">
-                                        <div class="flex items-start gap-2.5">
-                                            <span class="w-6 h-6 rounded-lg bg-indigo-50 border border-indigo-200 text-indigo-700 font-extrabold text-xs flex items-center justify-center shrink-0 mt-0.5" x-text="idx"></span>
+                                    <div class="flex items-start justify-between gap-2.5 sm:gap-3 mb-2.5 sm:mb-3">
+                                        <div class="flex items-start gap-2 sm:gap-2.5">
+                                            <span class="w-5 h-5 sm:w-6 sm:h-6 rounded-md sm:rounded-lg bg-indigo-50 border border-indigo-200 text-indigo-700 font-extrabold text-[11px] sm:text-xs flex items-center justify-center shrink-0 mt-0.5" x-text="idx"></span>
                                             <p class="text-xs font-bold text-slate-800 leading-snug" x-text="text"></p>
                                         </div>
                                         <template x-if="subindicators[idx]">
-                                            <span class="px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-800 font-mono font-bold text-xs border border-emerald-200 shrink-0 shadow-2xs">
+                                            <span class="px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-lg bg-emerald-50 text-emerald-800 font-mono font-bold text-[11px] sm:text-xs border border-emerald-200 shrink-0 shadow-2xs">
                                                 Skor: <span class="text-emerald-700 font-extrabold" x-text="subindicators[idx]"></span>
                                             </span>
                                         </template>
                                     </div>
 
                                     <!-- Tombol Pilihan 1-5 (Ukuran Touch-Friendly >= 44px) -->
-                                    <div class="flex items-center justify-between gap-2 pt-1" role="radiogroup" :aria-label="'Nilai subindikator ' + idx">
+                                    <div class="grid grid-cols-5 gap-1.5 sm:gap-2 pt-1" role="radiogroup" :aria-label="'Nilai subindikator ' + idx">
                                         <template x-for="val in [1, 2, 3, 4, 5]" :key="val">
                                             <button 
                                                 type="button"
                                                 @click="setSubindicatorScore(idx, val)"
                                                 tabindex="0"
-                                                class="flex-1 min-w-[44px] min-h-[44px] h-12 rounded-xl font-extrabold text-sm flex flex-col items-center justify-center transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#5e43f3] focus:ring-offset-1 select-none"
+                                                class="w-full min-h-[44px] h-11 sm:h-12 rounded-xl font-extrabold text-sm flex flex-col items-center justify-center transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#5e43f3] focus:ring-offset-1 select-none"
                                                 :class="subindicators[idx] === val 
-                                                    ? 'bg-gradient-to-br from-indigo-600 to-[#5e43f3] text-white shadow-md ring-2 ring-indigo-400 scale-[1.03]' 
+                                                    ? 'bg-gradient-to-br from-indigo-600 to-[#5e43f3] text-white shadow-md ring-2 ring-indigo-400 scale-[1.02]' 
                                                     : 'bg-slate-100 hover:bg-slate-200/90 text-slate-700 border border-slate-200/80 hover:border-slate-300 active:scale-95'"
                                                 :aria-checked="subindicators[idx] === val ? 'true' : 'false'"
                                                 role="radio"
@@ -1403,35 +1467,35 @@
                         <!-- Catatan Evaluasi Juri -->
                         <div class="space-y-1.5 pt-2">
                             <label class="block text-xs font-bold text-slate-700">Catatan Masukan / Umpan Balik (Opsional):</label>
-                            <textarea x-model="notes" rows="3" placeholder="Tuliskan apresiasi, masukan perbaikan, atau catatan khusus dewan juri..." class="w-full p-3 text-xs rounded-xl border border-slate-200 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 outline-none"></textarea>
+                            <textarea x-model="notes" rows="3" placeholder="Tuliskan apresiasi, masukan perbaikan, atau catatan khusus dewan juri..." class="w-full p-3 text-base sm:text-xs rounded-xl border border-slate-200 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 outline-none"></textarea>
                         </div>
                     </div>
                 </div>
 
-                <!-- Modal Footer -->
-                <div class="p-5 bg-slate-50 border-t border-slate-100 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 shrink-0">
-                    <div>
+                <!-- Modal Footer (Mobile-First responsive) -->
+                <div class="p-3.5 sm:p-5 bg-slate-50 border-t border-slate-100 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-2.5 sm:gap-3 shrink-0">
+                    <div class="text-center sm:text-left">
                         <span class="text-xs text-slate-500 font-medium">Progres Penilaian Juri <span x-text="myRole"></span>:</span>
-                        <div class="text-sm font-extrabold font-mono"
+                        <div class="text-xs sm:text-sm font-extrabold font-mono"
                             :class="isMyScoringComplete ? 'text-emerald-700' : 'text-amber-700'">
                             <span x-text="myFilledCount + ' dari ' + myTotalItems + ' Subindikator Dinilai (' + myTotalScore + '/' + myMaxScore + ' Poin)'"></span>
                         </div>
                     </div>
-                    <div class="flex items-center justify-end gap-2">
+                    <div class="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2">
                         <template x-if="hasExistingScore">
-                            <button type="button" @click="resetCurrentScore()" class="px-4 py-2.5 rounded-xl border border-rose-300 text-rose-600 font-bold text-xs hover:bg-rose-50 transition cursor-pointer flex items-center gap-1.5">
+                            <button type="button" @click="resetCurrentScore()" class="w-full sm:w-auto min-h-[44px] justify-center px-4 py-2.5 rounded-xl border border-rose-300 text-rose-600 font-bold text-xs hover:bg-rose-50 transition cursor-pointer flex items-center gap-1.5">
                                 <span>🗑️</span>
                                 <span>Reset Penilaian</span>
                             </button>
                         </template>
-                        <button type="button" @click="closeScoring()" class="px-4 py-2.5 rounded-xl border border-slate-300 text-slate-700 font-bold text-xs hover:bg-slate-100 transition cursor-pointer">
+                        <button type="button" @click="closeScoring()" class="w-full sm:w-auto min-h-[44px] justify-center px-4 py-2.5 rounded-xl border border-slate-300 text-slate-700 font-bold text-xs hover:bg-slate-100 transition cursor-pointer">
                             Batal
                         </button>
                         <button 
                             type="button" 
                             @click="submitScore()" 
                             :disabled="!isMyScoringComplete || isSubmittingScore" 
-                            class="px-6 py-2.5 rounded-xl text-white font-bold text-xs shadow-md transition cursor-pointer flex items-center gap-2"
+                            class="w-full sm:w-auto min-h-[44px] justify-center px-6 py-2.5 rounded-xl text-white font-bold text-xs shadow-md transition cursor-pointer flex items-center gap-2"
                             :class="isMyScoringComplete 
                                 ? 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/20' 
                                 : 'bg-slate-400 cursor-not-allowed opacity-75'"
