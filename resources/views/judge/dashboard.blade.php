@@ -2092,6 +2092,69 @@
             </div>
         </div>
 
+        <!-- ======================================================= -->
+        <!-- 5. MODAL SUKSES SIMPAN PENILAIAN KARYA                 -->
+        <!-- ======================================================= -->
+        <div 
+            x-show="scoreSuccessTarget !== null" 
+            x-cloak
+            x-transition:enter="transition ease-out duration-200"
+            x-transition:enter-start="opacity-0"
+            x-transition:enter-end="opacity-100"
+            x-transition:leave="transition ease-in duration-150"
+            x-transition:leave-start="opacity-100"
+            x-transition:leave-end="opacity-0"
+            class="fixed inset-0 z-[999999] overflow-y-auto flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-xs"
+            @keydown.escape.window="closeScoreSuccessModal(true)"
+        >
+            <div 
+                @click.outside="closeScoreSuccessModal(true)"
+                x-show="scoreSuccessTarget !== null"
+                x-transition:enter="transition ease-out duration-200"
+                x-transition:enter-start="opacity-0 scale-95 translate-y-2"
+                x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                x-transition:leave="transition ease-in duration-150"
+                x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+                x-transition:leave-end="opacity-0 scale-95 translate-y-2"
+                class="bg-white rounded-3xl max-w-md w-full p-6 sm:p-7 text-center shadow-2xl border border-slate-200 relative overflow-hidden transition-all duration-300 space-y-4 py-2"
+            >
+                <div class="w-20 h-20 mx-auto rounded-3xl bg-emerald-50 border-2 border-emerald-200 flex items-center justify-center text-emerald-600 shadow-xl shadow-emerald-500/10">
+                    <svg class="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+                    </svg>
+                </div>
+
+                <div>
+                    <h3 class="text-lg sm:text-xl font-extrabold text-slate-900 mb-1">
+                        Penilaian Berhasil Disimpan!
+                    </h3>
+                    <p class="text-xs sm:text-sm text-slate-500" x-text="scoreSuccessTarget?.message || 'Nilai resmi Anda telah tercatat dan rekapitulasi nilai akhir karya telah diperbarui.'">
+                    </p>
+                </div>
+
+                <template x-if="scoreSuccessTarget?.work">
+                    <div class="bg-slate-50 rounded-2xl p-4 border border-slate-200/80 text-left space-y-1.5">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Peserta</span>
+                            <span class="px-2 py-0.5 rounded text-[11px] font-mono font-bold bg-purple-50 text-[#5e43f3]" x-text="scoreSuccessTarget?.work?.registration_number"></span>
+                        </div>
+                        <div class="text-sm font-bold text-slate-800" x-text="scoreSuccessTarget?.work?.full_name"></div>
+                        <div class="text-xs text-slate-500" x-text="(scoreSuccessTarget?.work?.school_name || '') + ' • ' + (scoreSuccessTarget?.work?.regency_city || '')"></div>
+                    </div>
+                </template>
+
+                <div class="pt-2">
+                    <button 
+                        type="button" 
+                        @click="closeScoreSuccessModal(true)"
+                        class="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm shadow-md shadow-emerald-600/30 transition cursor-pointer"
+                    >
+                        Selesai
+                    </button>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <!-- Data Awal Rekap Penilaian & Peringkat Multi-Juri Realtime -->
@@ -2127,6 +2190,9 @@
                 isResettingScore: false,
                 resetSuccess: false,
                 resetSuccessMsg: '',
+
+                // Submit Score Success Modal State
+                scoreSuccessTarget: null,
 
                 // Suggestion Quota State & Map
                 myGimSuggestions: {{ (int) ($stats['my_gim_suggestions'] ?? 0) }},
@@ -2550,18 +2616,19 @@
 
                         const data = await res.json();
                         if (res.ok && data.success) {
-                            this.scoreSuccessMsg = data.message;
+                            const submittedWork = this.scoringWork;
+                            const successMsg = data.message || 'Penilaian resmi Anda berhasil disimpan!';
                             if (data.recap) {
                                 this.recapData = data.recap;
-                                this.scoringWork.recap = data.recap;
-                                this.scoringWork.my_status = 'Sudah dinilai';
-                                this.scoresMap[this.scoringWork.id] = data.recap;
+                                this.scoresMap[submittedWork.id] = data.recap;
                             }
                             this.hasExistingScore = true;
+                            this.closeScoring();
                             this.pollFinalistsRecap();
-                            setTimeout(() => {
-                                window.location.reload();
-                            }, 1200);
+                            this.scoreSuccessTarget = {
+                                work: submittedWork,
+                                message: successMsg
+                            };
                         } else {
                             alert(data.message || 'Gagal menyimpan nilai.');
                         }
@@ -2569,6 +2636,13 @@
                         alert('Gagal menghubungi server.');
                     } finally {
                         this.isSubmittingScore = false;
+                    }
+                },
+
+                closeScoreSuccessModal(reload = true) {
+                    this.scoreSuccessTarget = null;
+                    if (reload) {
+                        window.location.reload();
                     }
                 },
 
@@ -2581,7 +2655,7 @@
                 },
 
                 closeResetModal(reload = false) {
-                    if (this.isResettingScore) return;
+                    if (this.isResettingScore && !this.resetSuccess) return;
                     const shouldReload = this.resetSuccess || reload;
                     this.resetTarget = null;
                     this.resetSuccess = false;
@@ -2612,6 +2686,7 @@
                             this.resetSuccessMsg = data.message || 'Nilai Anda untuk karya ini berhasil direset.';
                             this.subindicators = {};
                             this.hasExistingScore = false;
+                            this.isResettingScore = false;
                             if (data.recap) {
                                 this.scoresMap[work.id] = data.recap;
                             }
@@ -2730,7 +2805,7 @@
                 },
 
                 get isAnyModalOpen() {
-                    return !!(this.scoringWork !== null || this.showProfileModal || this.isJudgeModalOpen || this.suggestionWork !== null || this.resetTarget !== null);
+                    return !!(this.scoringWork !== null || this.showProfileModal || this.isJudgeModalOpen || this.suggestionWork !== null || this.resetTarget !== null || this.scoreSuccessTarget !== null);
                 },
 
                 init() {
